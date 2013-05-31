@@ -27,39 +27,25 @@
 #include "ext/standard/info.h"
 #include "php_crypto.h"
 
-/* If you declare any globals in php_crypto.h uncomment this:
-ZEND_DECLARE_MODULE_GLOBALS(crypto)
-*/
 
-/* True global resources - no need for thread safety here */
-static int le_crypto;
-
-/* {{{ crypto_functions[]
- *
- * Every user visible function must have an entry in crypto_functions[].
- */
+/* {{{ crypto_functions[] */
 const zend_function_entry crypto_functions[] = {
-	PHP_FE(confirm_crypto_compiled,	NULL)		/* For testing, remove later. */
-	PHP_FE_END	/* Must be the last line in crypto_functions[] */
+	PHP_FE_END
 };
 /* }}} */
 
 /* {{{ crypto_module_entry
  */
 zend_module_entry crypto_module_entry = {
-#if ZEND_MODULE_API_NO >= 20010901
 	STANDARD_MODULE_HEADER,
-#endif
 	"crypto",
 	crypto_functions,
 	PHP_MINIT(crypto),
 	PHP_MSHUTDOWN(crypto),
-	PHP_RINIT(crypto),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(crypto),	/* Replace with NULL if there's nothing to do at request end */
+	NULL,
+	NULL,
 	PHP_MINFO(crypto),
-#if ZEND_MODULE_API_NO >= 20010901
-	"0.1", /* Replace with version number for your extension */
-#endif
+	"0.1",
 	STANDARD_MODULE_PROPERTIES
 };
 /* }}} */
@@ -68,34 +54,10 @@ zend_module_entry crypto_module_entry = {
 ZEND_GET_MODULE(crypto)
 #endif
 
-/* {{{ PHP_INI
- */
-/* Remove comments and fill if you need to have entries in php.ini
-PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("crypto.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_crypto_globals, crypto_globals)
-    STD_PHP_INI_ENTRY("crypto.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_crypto_globals, crypto_globals)
-PHP_INI_END()
-*/
-/* }}} */
-
-/* {{{ php_crypto_init_globals
- */
-/* Uncomment this function if you have INI entries
-static void php_crypto_init_globals(zend_crypto_globals *crypto_globals)
-{
-	crypto_globals->global_value = 0;
-	crypto_globals->global_string = NULL;
-}
-*/
-/* }}} */
-
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(crypto)
 {
-	/* If you have INI entries, uncomment these lines 
-	REGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -103,27 +65,6 @@ PHP_MINIT_FUNCTION(crypto)
 /* {{{ PHP_MSHUTDOWN_FUNCTION
  */
 PHP_MSHUTDOWN_FUNCTION(crypto)
-{
-	/* uncomment this line if you have INI entries
-	UNREGISTER_INI_ENTRIES();
-	*/
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request start */
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(crypto)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request end */
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(crypto)
 {
 	return SUCCESS;
 }
@@ -136,40 +77,8 @@ PHP_MINFO_FUNCTION(crypto)
 	php_info_print_table_start();
 	php_info_print_table_header(2, "crypto support", "enabled");
 	php_info_print_table_end();
-
-	/* Remove comments if you have entries in php.ini
-	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
-
-
-/* Remove the following function when you have successfully modified config.m4
-   so that your module can be compiled into PHP, it exists only for testing
-   purposes. */
-
-/* Every user-visible function in PHP should document itself in the source */
-/* {{{ proto string confirm_crypto_compiled(string arg)
-   Return a string to confirm that the module is compiled in */
-PHP_FUNCTION(confirm_crypto_compiled)
-{
-	char *arg = NULL;
-	int arg_len, len;
-	char *strg;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
-
-	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "crypto", arg);
-	RETURN_STRINGL(strg, len, 0);
-}
-/* }}} */
-/* The previous line is meant for vim and emacs, so it can correctly fold and 
-   unfold functions in source code. See the corresponding marks just before 
-   function definition, where the functions purpose is also documented. Please 
-   follow this convention for the convenience of others editing your code.
-*/
 
 
 /*
