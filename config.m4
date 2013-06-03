@@ -9,6 +9,6 @@ if test "$PHP_CRYPTO" != "no"; then
   if test "$PHP_OPENSSL" != "no" || test "$PHP_OPENSSL_DIR" != "no"; then
 	AC_DEFINE(HAVE_CRYPTOLIB,1,[Whether you want objective crypto binding])
 	PHP_SUBST(CRYPTO_SHARED_LIBADD)
-	PHP_NEW_EXTENSION(crypto, crypto.c, $ext_shared)
+	PHP_NEW_EXTENSION(crypto, crypto.c crypto_evp.c, $ext_shared)
   fi
 fi
