@@ -24,7 +24,7 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_crypto.h"
-#include "crypto_evp.h"
+#include "php_crypto_evp.h"
 
 
 /* {{{ crypto_functions[] */

@@ -38,6 +38,12 @@ PHP_MINIT_FUNCTION(crypto);
 PHP_MSHUTDOWN_FUNCTION(crypto);
 PHP_MINFO_FUNCTION(crypto);
 
+
+#define PHP_CRYPTO_NS_NAME(ns) "Crypto\\" #ns
+#define PHP_CRYPTO_CLASS_NAME(ns, classname) PHP_CRYPTO_NS_NAME(ns) #classname
+#define PHP_CRYPTO_CLASS(ns, classname) crypto_#ns
+#define PHP_CRYPTO_METHOD(ns, classname, method) PHP_METHOD(PHP_CRYPTO_CLASS(ns, classname), method)
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
