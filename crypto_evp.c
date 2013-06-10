@@ -65,7 +65,7 @@ static zend_object_value php_crypto_evp_cipher_object_create_ex(zend_class_entry
 		(zend_objects_store_dtor_t) php_crypto_evp_cipher_object_dtor,
 		(zend_objects_free_object_storage_t) php_crypto_evp_cipher_object_free,
 		NULL TSRMLS_CC);
-	retval.handlers = (zend_object_handlers *) &php_crypto_evp_cipher_object_handlers;
+	retval.handlers = &php_crypto_evp_cipher_object_handlers;
 
 	return retval;
 }
@@ -74,7 +74,7 @@ static zend_object_value php_crypto_evp_cipher_object_create_ex(zend_class_entry
 /* {{{ php_crypto_evp_cipher_object_create */
 static zend_object_value php_crypto_evp_cipher_object_create(zend_class_entry *class_type TSRMLS_DC)
 {
-	php_crypto_evp_cipher_object_create_ex(class_type, NULL TSRMLS_CC);
+	return php_crypto_evp_cipher_object_create_ex(class_type, NULL TSRMLS_CC);
 }
 /* }}} */
 
@@ -84,7 +84,7 @@ zend_object_value php_crypto_evp_cipher_object_clone(zval *this_ptr TSRMLS_DC)
 	php_crypto_evp_cipher_object *new_obj = NULL;
 	php_crypto_evp_cipher_object *old_obj = (php_crypto_evp_cipher_object *) zend_object_store_get_object(this_ptr TSRMLS_CC);
 	zend_object_value new_ov = php_crypto_evp_cipher_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
-	
+
 	zend_objects_clone_members(&new_obj->zo, new_ov, &old_obj->zo, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
 	
 	return new_ov;
@@ -98,13 +98,12 @@ PHP_MINIT_FUNCTION(crypto_evp)
 {
 	zend_class_entry ce;
 
-	memcpy(&php_crypto_evp_cipher_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-	
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Cipher), php_crypto_evp_cipher_object_methods);
 	ce.create_object = php_crypto_evp_cipher_object_create;
+	memcpy(&php_crypto_evp_cipher_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	php_crypto_evp_cipher_object_handlers.clone_obj = php_crypto_evp_cipher_object_clone;
 	php_crypto_evp_cipher_ce = zend_register_internal_class(&ce TSRMLS_CC);
-	
+
 	return SUCCESS;
 }
 /* }}} */
