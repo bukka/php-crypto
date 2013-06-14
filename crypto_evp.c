@@ -40,6 +40,10 @@ static void php_crypto_evp_cipher_object_dtor(void *object, zend_object_handle h
 static void php_crypto_evp_cipher_object_free(zend_object *object TSRMLS_DC)
 {
 	php_crypto_evp_cipher_object *intern = (php_crypto_evp_cipher_object *) object;
+
+	EVP_CIPHER_CTX_cleanup(intern->context);
+	efree(intern->context);
+	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
 }
@@ -59,6 +63,9 @@ static zend_object_value php_crypto_evp_cipher_object_create_ex(zend_class_entry
 	}
 	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
 	object_properties_init(&intern->zo, class_type);
+
+	intern->context = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
+	EVP_CIPHER_CTX_init(intern->context);
 
 	retval.handle = zend_objects_store_put(
 		intern,

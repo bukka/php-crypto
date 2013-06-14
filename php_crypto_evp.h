@@ -22,8 +22,12 @@
 #include "php.h"
 #include "php_crypto.h"
 
+#include <openssl/evp.h>
+
+
 typedef struct {
 	zend_object zo;
+	EVP_CIPHER_CTX *context;
 } php_crypto_evp_cipher_object;
 
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
