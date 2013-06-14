@@ -27,12 +27,14 @@
 
 typedef struct {
 	zend_object zo;
+	char *algorithm;
 	EVP_CIPHER_CTX *context;
 } php_crypto_evp_cipher_object;
 
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 PHP_MINIT_FUNCTION(crypto_evp);
+PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 

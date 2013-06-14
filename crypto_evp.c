@@ -20,14 +20,19 @@
 #include "php_crypto.h"
 #include "php_crypto_evp.h"
 
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
-
-static zend_object_handlers php_crypto_evp_cipher_object_handlers;
-
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher___construct, 0)
+ZEND_ARG_INFO(0, algorithm)
+ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
+	PHP_CRYPTO_ME(EVP, Cipher, __construct, arginfo_crypto_evp_cipher___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
+
+/* cipher class entry */
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
+/* cipher object handlers */
+static zend_object_handlers php_crypto_evp_cipher_object_handlers;
 
 /* {{{ php_crypto_evp_cipher_object_dtor */
 static void php_crypto_evp_cipher_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
@@ -43,6 +48,10 @@ static void php_crypto_evp_cipher_object_free(zend_object *object TSRMLS_DC)
 
 	EVP_CIPHER_CTX_cleanup(intern->context);
 	efree(intern->context);
+
+	if (intern->algorithm) {
+		efree(intern->algorithm);
+	}
 	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
@@ -66,6 +75,8 @@ static zend_object_value php_crypto_evp_cipher_object_create_ex(zend_class_entry
 
 	intern->context = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
 	EVP_CIPHER_CTX_init(intern->context);
+
+	intern->algorithm = NULL;
 
 	retval.handle = zend_objects_store_put(
 		intern,
@@ -112,5 +123,22 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	php_crypto_evp_cipher_ce = zend_register_internal_class(&ce TSRMLS_CC);
 
 	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ proto Crypto\EVP\Cipher::__construct(string algorithm)
+   Cipher constructor */
+PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
+{
+	php_crypto_evp_cipher_object *intern;
+	char *algorithm;
+	int algorithm_len;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_cipher_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	intern->algorithm = estrdup(algorithm);
 }
 /* }}} */
