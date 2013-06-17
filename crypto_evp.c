@@ -20,6 +20,46 @@
 #include "php_crypto.h"
 #include "php_crypto_evp.h"
 
+typedef const EVP_MD *(*php_crypto_evp_md_get_algorithm_t)(void);
+typedef const EVP_CIPHER *(*php_crypto_evp_cipher_get_algorithm_t)(void);
+
+typedef struct {
+	const char *name;
+	union {
+		php_crypto_evp_md_get_algorithm_t md;
+		php_crypto_evp_cipher_get_algorithm_t cipher;
+	};
+} php_crypto_evp_algorithm;
+
+#define PHP_CRYPTO_EVP_CIPHER_AE(alg) {#alg, .cipher = EVP_##alg},
+#define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, .md = EVP_##alg},
+#define PHP_CRYPTO_EVP_LAST_AE {NULL, NULL}
+
+php_crypto_evp_algorithm php_crypto_evp_cipher_algorithms[] = {
+#ifndef OPENSSL_NO_DES
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ecb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_ecb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_ecb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_cfb64)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cfb64)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cfb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb64)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb1)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb8)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ofb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_ofb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_ofb)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_cbc)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cbc)
+	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cbc)
+	PHP_CRYPTO_EVP_CIPHER_AE(desx_cbc)
+#endif
+	PHP_CRYPTO_EVP_LAST_AE
+};
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher___construct, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_END_ARG_INFO()
