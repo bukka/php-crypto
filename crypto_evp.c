@@ -20,14 +20,32 @@
 #include "php_crypto.h"
 #include "php_crypto_evp.h"
 
-typedef const EVP_MD *(*php_crypto_evp_md_get_algorithm_t)(void);
-typedef const EVP_CIPHER *(*php_crypto_evp_cipher_get_algorithm_t)(void);
+#include <openssl/evp.h>
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher___construct, 0)
+ZEND_ARG_INFO(0, algorithm)
+ZEND_END_ARG_INFO()
+
+static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
+	PHP_CRYPTO_ME(EVP, Cipher, __construct, arginfo_crypto_evp_cipher___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+    PHP_FE_END
+};
+
+/* cipher class entry */
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
+/* cipher object handlers */
+static zend_object_handlers php_crypto_evp_cipher_object_handlers;
+
+/* algorithms getters */
+typedef const EVP_MD *(*php_crypto_evp_md_algorithm_t)(void);
+typedef const EVP_CIPHER *(*php_crypto_evp_cipher_algorithm_t)(void);
+
+/* algorithm entry */
 typedef struct {
 	const char *name;
 	union {
-		php_crypto_evp_md_get_algorithm_t md;
-		php_crypto_evp_cipher_get_algorithm_t cipher;
+		php_crypto_evp_md_algorithm_t md;
+		php_crypto_evp_cipher_algorithm_t cipher;
 	};
 } php_crypto_evp_algorithm;
 
@@ -35,7 +53,7 @@ typedef struct {
 #define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, .md = EVP_##alg},
 #define PHP_CRYPTO_EVP_LAST_AE {NULL, NULL}
 
-php_crypto_evp_algorithm php_crypto_evp_cipher_algorithms[] = {
+static php_crypto_evp_algorithm php_crypto_evp_cipher_algorithms[] = {
 #ifndef OPENSSL_NO_DES
 	PHP_CRYPTO_EVP_CIPHER_AE(des_ecb)
 	PHP_CRYPTO_EVP_CIPHER_AE(des_ede)
@@ -60,19 +78,18 @@ php_crypto_evp_algorithm php_crypto_evp_cipher_algorithms[] = {
 	PHP_CRYPTO_EVP_LAST_AE
 };
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher___construct, 0)
-ZEND_ARG_INFO(0, algorithm)
-ZEND_END_ARG_INFO()
-
-static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
-	PHP_CRYPTO_ME(EVP, Cipher, __construct, arginfo_crypto_evp_cipher___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-    PHP_FE_END
-};
-
-/* cipher class entry */
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
-/* cipher object handlers */
-static zend_object_handlers php_crypto_evp_cipher_object_handlers;
+/* {{{ php_crypto_evp_algorigthm_find */
+static php_crypto_evp_algorithm *php_crypto_evp_find_algorigthm(const char *alg, int alg_len)
+{
+	php_crypto_evp_algorithm *ae = php_crypto_evp_cipher_algorithms;
+	while (ae->name)
+	{
+		if (strncmp(ae->name, alg, alg_len) == 0)
+			return ae;
+		ae++;
+	}
+	return NULL;
+}
 
 /* {{{ php_crypto_evp_cipher_object_dtor */
 static void php_crypto_evp_cipher_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
@@ -171,6 +188,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 {
 	php_crypto_evp_cipher_object *intern;
+	php_crypto_evp_algorithm *ae;
 	char *algorithm;
 	int algorithm_len;
 	
@@ -180,5 +198,14 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 
 	intern = (php_crypto_evp_cipher_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	intern->algorithm = estrdup(algorithm);
+
+	ae = php_crypto_evp_find_algorigthm(algorithm, algorithm_len);
+	if (ae) {
+		intern->cipher = ae->cipher();
+		php_printf("FOUND\n");
+	}
+	else {
+		php_printf("NOT FOUND\n");
+	}
 }
 /* }}} */

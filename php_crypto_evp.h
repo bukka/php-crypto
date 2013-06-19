@@ -24,10 +24,10 @@
 
 #include <openssl/evp.h>
 
-
 typedef struct {
 	zend_object zo;
 	char *algorithm;
+	const EVP_CIPHER *cipher;
 	EVP_CIPHER_CTX *context;
 } php_crypto_evp_cipher_object;
 
