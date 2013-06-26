@@ -24,17 +24,35 @@
 
 #include <openssl/evp.h>
 
+typedef enum {
+	PHP_CRYPTO_EVP_ALG_NONE = 0,
+	PHP_CRYPTO_EVP_ALG_CIPHER,
+	PHP_CRYPTO_EVP_ALG_MD,
+} php_crypto_evp_algorithm_type;
+
 typedef struct {
 	zend_object zo;
-	char *algorithm;
-	const EVP_CIPHER *cipher;
-	EVP_CIPHER_CTX *context;
-} php_crypto_evp_cipher_object;
+	char *algorithm; 			/* TODO: add as protected property */
+	php_crypto_evp_algorithm_type type;
+	union {
+		struct {
+			const EVP_CIPHER *ao;
+			EVP_CIPHER_CTX *ctx;
+		} cipher;
+		struct {
+			const EVP_MD *ao;
+			EVP_MD_CTX *ctx;
+		} md;
+	};
+} php_crypto_evp_algorithm_object;
 
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 PHP_MINIT_FUNCTION(crypto_evp);
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
+PHP_CRYPTO_METHOD(EVP, MD, __construct);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 
