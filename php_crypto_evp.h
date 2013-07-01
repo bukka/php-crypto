@@ -32,7 +32,6 @@ typedef enum {
 
 typedef struct {
 	zend_object zo;
-	char *algorithm; 			/* TODO: add as protected property */
 	php_crypto_evp_algorithm_type type;
 	union {
 		struct {
@@ -51,6 +50,7 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 PHP_MINIT_FUNCTION(crypto_evp);
+PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm);
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
 PHP_CRYPTO_METHOD(EVP, MD, __construct);
 

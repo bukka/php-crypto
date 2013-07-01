@@ -28,6 +28,7 @@ ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_evp_algorithm_object_methods[] = {
 	PHP_CRYPTO_ABSTRACT_ME(EVP, Algorithm, __construct, arginfo_crypto_evp_algorithm___construct)
+	PHP_CRYPTO_ME(EVP, Algorithm, getAlgorithm, NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
@@ -166,10 +167,6 @@ static void php_crypto_evp_algorithm_object_free(zend_object *object TSRMLS_DC)
 		efree(intern->md.ctx);
 	}
 	
-	if (intern->algorithm) {
-		efree(intern->algorithm);
-	}
-	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
 }
@@ -244,6 +241,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	memcpy(&php_crypto_evp_algorithm_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	php_crypto_evp_algorithm_object_handlers.clone_obj = php_crypto_evp_algorithm_object_clone;
 	php_crypto_evp_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_DC);
 
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MD), php_crypto_evp_md_object_methods);
 	php_crypto_evp_md_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
@@ -264,12 +262,20 @@ static php_crypto_evp_algorithm_object *php_crypto_evp_get_algorithm_object(char
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", algorithm, algorithm_len) == FAILURE) {
 		return NULL;
 	}
+	zend_update_property_stringl(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, *algorithm, *algorithm_len TSRMLS_CC);
 
 	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	intern->algorithm = estrdup(*algorithm);
+
 	return intern;
 }
 /* }}} */
+
+PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm)
+{
+	zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
+	RETURN_ZVAL(algorithm, 1, 0);
+}
+
 
 /* {{{ proto Crypto\EVP\MD::__construct(string algorithm)
    MD (Message Digest) constructor */
