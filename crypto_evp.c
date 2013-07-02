@@ -19,6 +19,7 @@
 #include "php.h"
 #include "php_crypto.h"
 #include "php_crypto_evp.h"
+#include "zend_exceptions.h"
 
 #include <openssl/evp.h>
 
@@ -47,6 +48,8 @@ static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
+/* exception entries */
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_invalid_algorithm_exc_ce;
 
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
@@ -236,6 +239,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 {
 	zend_class_entry ce;
 
+	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Algorithm), php_crypto_evp_algorithm_object_methods);
 	ce.create_object = php_crypto_evp_algorithm_object_create;
 	memcpy(&php_crypto_evp_algorithm_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
@@ -243,9 +247,15 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	php_crypto_evp_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_DC);
 
+	/* InvalidAlgorithmException class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, InvalidAlgorithmException), NULL);
+	php_crypto_evp_invalid_algorithm_exc_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
+	
+	/* MD class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MD), php_crypto_evp_md_object_methods);
 	php_crypto_evp_md_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
-	
+
+	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Cipher), php_crypto_evp_cipher_object_methods);
 	php_crypto_evp_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
 
@@ -294,10 +304,9 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 	ae = php_crypto_evp_find_algorigthm_ex(algorithm, algorithm_len, PHP_CRYPTO_EVP_ALG_MD);
 	if (ae) {
 		intern->md.ao = ae->md();
-		php_printf("MD FOUND\n");
 	}
 	else {
-		php_printf("MD NOT FOUND\n");
+		zend_throw_exception(php_crypto_evp_invalid_algorithm_exc_ce, "MD algorithm not found", 0 TSRMLS_CC);
 	}
 }
 /* }}} */
@@ -319,10 +328,9 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 	ae = php_crypto_evp_find_algorigthm_ex(algorithm, algorithm_len, PHP_CRYPTO_EVP_ALG_CIPHER);
 	if (ae) {
 		intern->cipher.ao = ae->cipher();
-		php_printf("CIPHER FOUND\n");
 	}
 	else {
-		php_printf("CIPHER NOT FOUND\n");
+		zend_throw_exception(php_crypto_evp_invalid_algorithm_exc_ce, "Cipher algorithm not found", 0 TSRMLS_CC);
 	}
 }
 /* }}} */
