@@ -88,7 +88,7 @@ static php_crypto_evp_algorithm php_crypto_evp_algorithms[] = {
 	PHP_CRYPTO_EVP_MD_AE(sha1)
 	PHP_CRYPTO_EVP_MD_AE(dss)
 	PHP_CRYPTO_EVP_MD_AE(dss1)
-	PHP_CRYPTO_EVP_MD_AE(ecdsa)
+	/* PHP_CRYPTO_EVP_MD_AE(ecdsa) - missing in my lib ? */
 #endif
 #ifndef OPENSSL_NO_SHA256
 	PHP_CRYPTO_EVP_MD_AE(sha224)
@@ -139,12 +139,14 @@ static php_crypto_evp_algorithm php_crypto_evp_algorithms[] = {
 static php_crypto_evp_algorithm *php_crypto_evp_find_algorigthm_ex(const char *alg, int alg_len, php_crypto_evp_algorithm_type type)
 {
 	php_crypto_evp_algorithm *ae = php_crypto_evp_algorithms;
+	
 	while (ae->name)
 	{
 		if (strncmp(ae->name, alg, alg_len) == 0)
 			return ae->type == type ? ae : NULL;
 		ae++;
 	}
+	
 	return NULL;
 }
 /* }}} */
@@ -245,7 +247,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	memcpy(&php_crypto_evp_algorithm_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
 	php_crypto_evp_algorithm_object_handlers.clone_obj = php_crypto_evp_algorithm_object_clone;
 	php_crypto_evp_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
-	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_DC);
+	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	/* InvalidAlgorithmException class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, InvalidAlgorithmException), NULL);
