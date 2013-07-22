@@ -1,6 +1,6 @@
 <?php
 namespace Crypto\EVP;
-$cipher = new Cipher('des_ecb');
+$cipher = new Cipher('aes_256_ctr');
 $md = new MD('md5');
 
 var_dump($cipher->getAlgorithm());
