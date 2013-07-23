@@ -27,6 +27,15 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_algorithm___construct, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_evp_cipher_init, 0, 0, 1)
+ZEND_ARG_INFO(0, key)
+ZEND_ARG_INFO(0, iv)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher_update, 0)
+ZEND_ARG_INFO(0, input)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry php_crypto_evp_algorithm_object_methods[] = {
 	PHP_CRYPTO_ABSTRACT_ME(EVP, Algorithm, __construct, arginfo_crypto_evp_algorithm___construct)
 	PHP_CRYPTO_ME(EVP, Algorithm, getAlgorithm, NULL, ZEND_ACC_PUBLIC)
@@ -39,15 +48,22 @@ static const zend_function_entry php_crypto_evp_md_object_methods[] = {
 };
 
 static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
-	PHP_CRYPTO_ME(EVP, Cipher, __construct, arginfo_crypto_evp_algorithm___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, __construct,      arginfo_crypto_evp_algorithm___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, encryptInit,      arginfo_crypto_evp_cipher_init, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, encryptUpdate,    arginfo_crypto_evp_cipher_update, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, encryptFinal,     NULL, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, decryptInit,      arginfo_crypto_evp_cipher_init, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, decryptUpdate,    arginfo_crypto_evp_cipher_update, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, decryptFinal,     NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
 
 /* class entries */
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
+
 /* exception entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_invalid_algorithm_exc_ce;
 
@@ -68,8 +84,8 @@ typedef struct {
 	};
 } php_crypto_evp_algorithm;
 
-#define PHP_CRYPTO_EVP_CIPHER_AE(alg) {#alg, PHP_CRYPTO_EVP_ALG_CIPHER, .cipher = EVP_##alg},
 #define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, PHP_CRYPTO_EVP_ALG_MD, .md = EVP_##alg},
+#define PHP_CRYPTO_EVP_CIPHER_AE(alg) {#alg, PHP_CRYPTO_EVP_ALG_CIPHER, .cipher = EVP_##alg},
 #define PHP_CRYPTO_EVP_LAST_AE {NULL, PHP_CRYPTO_EVP_ALG_NONE, NULL}
 
 static php_crypto_evp_algorithm php_crypto_evp_algorithms[] = {
@@ -373,3 +389,51 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 	}
 }
 /* }}} */
+
+/* {{{ proto Crypto\EVP\Cipher::encryptInit(string key [, string iv])
+   Cipher encryption initialization */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
+{
+	zval *object = getThis();
+	
+}
+
+/* {{{ proto Crypto\EVP\Cipher::encryptUpdate(string input)
+   Cipher encryption update */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
+{
+	zval *object = getThis();
+	
+}
+
+/* {{{ proto Crypto\EVP\Cipher::encryptFinal()
+   Cipher encryption finalization */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
+{
+	zval *object = getThis();
+	
+}
+
+/* {{{ proto Crypto\EVP\Cipher::decryptInit(string key [, string iv])
+   Cipher decryption initialization */
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit)
+{
+	zval *object = getThis();
+	
+}
+
+/* {{{ proto Crypto\EVP\Cipher::decryptUpdate(string input)
+   Cipher decryption update */
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate)
+{
+	zval *object = getThis();
+	
+}
+
+/* {{{ proto Crypto\EVP\Cipher::decryptFinal()
+   Cipher decryption finalization */
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal)
+{
+	zval *object = getThis();
+	
+}

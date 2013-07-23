@@ -52,7 +52,14 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 PHP_MINIT_FUNCTION(crypto_evp);
 PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm);
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit);
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate);
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal);
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit);
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate);
+PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal);
 PHP_CRYPTO_METHOD(EVP, MD, __construct);
+
 
 #endif	/* PHP_CRYPTO_EVP_H */
 
