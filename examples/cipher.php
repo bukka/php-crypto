@@ -1,14 +1,16 @@
 <?php
 namespace Crypto\EVP;
-$cipher = new Cipher('aes_256_ctr');
-$md = new MD('md5');
-
-var_dump($cipher->getAlgorithm());
-var_dump($md->getAlgorithm());
+try {
+	$cipher = new Cipher('aes_256_ctr');
+	$md = new MD('md5');
+}
+catch (AlgorithmException $e) {
+	echo $e->getMessage() . PHP_EOL;
+}
 
 try {
-	$c2 = new Cipher('xxx');
+	$cipher->encryptInit("1234");
 }
-catch(InvalidAlgorithmException $e) {
+catch (AlgorithmException $e) {
 	echo $e->getMessage() . PHP_EOL;
 }

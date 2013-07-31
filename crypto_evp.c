@@ -65,8 +65,10 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 /* exception entries */
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_invalid_algorithm_exc_ce;
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_missing_iv_exc_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
+/* exception codes */
+#define PHP_CRYPTO_EVP_ALGORITHM_E_INVALID    1
+#define PHP_CRYPTO_EVP_ALGORITHM_E_MISSING_IV 2
 
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
@@ -88,10 +90,10 @@ typedef struct {
 
 #define PHP_CRYPTO_EVP_CIPHER_HAS_IV 1
 
-#define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, PHP_CRYPTO_EVP_ALG_MD, 0, .md = EVP_##alg},
-#define PHP_CRYPTO_EVP_CIPHER_AE_EX(alg, flags) {#alg, PHP_CRYPTO_EVP_ALG_CIPHER, flags, .cipher = EVP_##alg},
+#define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, 0, PHP_CRYPTO_EVP_ALG_MD, .md = EVP_##alg},
+#define PHP_CRYPTO_EVP_CIPHER_AE_EX(alg, flags) {#alg, flags, PHP_CRYPTO_EVP_ALG_CIPHER, .cipher = EVP_##alg},
 #define PHP_CRYPTO_EVP_CIPHER_AE(alg) PHP_CRYPTO_EVP_CIPHER_AE_EX(alg, PHP_CRYPTO_EVP_CIPHER_HAS_IV)
-#define PHP_CRYPTO_EVP_LAST_AE {NULL, PHP_CRYPTO_EVP_ALG_NONE, 0, NULL}
+#define PHP_CRYPTO_EVP_LAST_AE {NULL, 0, PHP_CRYPTO_EVP_ALG_NONE, NULL}
 
 static php_crypto_evp_algorithm php_crypto_evp_algorithms[] = {
 	/* MD */
@@ -197,8 +199,9 @@ static php_crypto_evp_algorithm *php_crypto_evp_find_algorigthm_ex(const char *a
 	
 	while (ae->name)
 	{
+
 		if (strncmp(ae->name, alg, alg_len) == 0)
-			return ae->type == type ? ae : NULL;
+			return ae->type == type ? ae : ae;
 		ae++;
 	}
 	
@@ -290,7 +293,6 @@ zend_object_value php_crypto_evp_algorithm_object_clone(zval *this_ptr TSRMLS_DC
 }
 /* }}} */
 
-
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_evp)
 {
@@ -304,14 +306,10 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	php_crypto_evp_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	/* InvalidAlgorithmException class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, InvalidAlgorithmException), NULL);
-	php_crypto_evp_invalid_algorithm_exc_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-	
-	/* MissingInitialVectorException class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MissingInitialVectorException), NULL);
-	php_crypto_evp_missing_iv_exc_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-	
+	/* Algorithm Exception class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, AlgorithmException), NULL);
+	php_crypto_evp_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
+		
 	/* MD class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MD), php_crypto_evp_md_object_methods);
 	php_crypto_evp_md_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
@@ -367,7 +365,8 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 		intern->md.ao = ae->md();
 	}
 	else {
-		zend_throw_exception(php_crypto_evp_invalid_algorithm_exc_ce, "MD algorithm not found", 0 TSRMLS_CC);
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
+							 "Message Digest '%s' algorithm not found", algorithm);
 	}
 }
 /* }}} */
@@ -392,31 +391,34 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 		intern->flags = ae->flags;
 	}
 	else {
-		zend_throw_exception(php_crypto_evp_invalid_algorithm_exc_ce, "Cipher algorithm not found", 0 TSRMLS_CC);
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
+								"Cipher '%s' algorithm not found", algorithm);
 	}
 }
 /* }}} */
 
-/* {{{ proto Crypto\EVP\Cipher::encryptInit(string key [, string iv])
+/* {{{ proto bool Crypto\EVP\Cipher::encryptInit(string key [, string iv])
    Cipher encryption initialization */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 {
 	php_crypto_evp_algorithm_object *intern;
-	char *key, *iv;
+	char *key, *iv = NULL;
 	int key_len, iv_len;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &key, &key_len, &iv, &iv_len) == FAILURE) {
 		return;
 	}
 
 	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	if (NULL == iv && intern->flags & PHP_CRYPTO_EVP_CIPHER_HAS_IV) {
-		zend_throw_exception(php_crypto_evp_missing_iv_exc_ce, "IV is requeired for selected algorithm", 0 TSRMLS_CC);
+		zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_MISSING_IV TSRMLS_CC,
+								"IV is required for the cipher '%s' algorithm", Z_STRVAL_P(algorithm));
 		return;
 	}
 }
 
-/* {{{ proto Crypto\EVP\Cipher::encryptUpdate(string input)
+/* {{{ proto string Crypto\EVP\Cipher::encryptUpdate(string input)
    Cipher encryption update */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 {
@@ -424,7 +426,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 	
 }
 
-/* {{{ proto Crypto\EVP\Cipher::encryptFinal()
+/* {{{ proto string Crypto\EVP\Cipher::encryptFinal()
    Cipher encryption finalization */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 {
