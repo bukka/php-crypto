@@ -67,148 +67,12 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 /* exception entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
 /* exception codes */
-#define PHP_CRYPTO_EVP_ALGORITHM_E_INVALID    1
-#define PHP_CRYPTO_EVP_ALGORITHM_E_MISSING_IV 2
+#define PHP_CRYPTO_EVP_ALGORITHM_E_INVALID  1
+#define PHP_CRYPTO_EVP_ALGORITHM_E_IV       2
+#define PHP_CRYPTO_EVP_ALGORITHM_E_KEY      3
 
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
-
-/* algorithms getters */
-typedef const EVP_MD *(*php_crypto_evp_md_algorithm_t)(void);
-typedef const EVP_CIPHER *(*php_crypto_evp_cipher_algorithm_t)(void);
-
-/* algorithm entry */
-typedef struct {
-	const char *name;
-	int flags;
-	php_crypto_evp_algorithm_type type;
-	union {
-		php_crypto_evp_md_algorithm_t md;
-		php_crypto_evp_cipher_algorithm_t cipher;
-	};
-} php_crypto_evp_algorithm;
-
-#define PHP_CRYPTO_EVP_CIPHER_HAS_IV 1
-
-#define PHP_CRYPTO_EVP_MD_AE(alg) {#alg, 0, PHP_CRYPTO_EVP_ALG_MD, .md = EVP_##alg},
-#define PHP_CRYPTO_EVP_CIPHER_AE_EX(alg, flags) {#alg, flags, PHP_CRYPTO_EVP_ALG_CIPHER, .cipher = EVP_##alg},
-#define PHP_CRYPTO_EVP_CIPHER_AE(alg) PHP_CRYPTO_EVP_CIPHER_AE_EX(alg, PHP_CRYPTO_EVP_CIPHER_HAS_IV)
-#define PHP_CRYPTO_EVP_LAST_AE {NULL, 0, PHP_CRYPTO_EVP_ALG_NONE, NULL}
-
-static php_crypto_evp_algorithm php_crypto_evp_algorithms[] = {
-	/* MD */
-#ifndef OPENSSL_NO_MD2
-	PHP_CRYPTO_EVP_MD_AE(md2)
-#endif
-#ifndef OPENSSL_NO_MD4
-	PHP_CRYPTO_EVP_MD_AE(md4)
-#endif
-#ifndef OPENSSL_NO_MD5
-	PHP_CRYPTO_EVP_MD_AE(md5)
-#endif
-#ifndef OPENSSL_NO_SHA
-	PHP_CRYPTO_EVP_MD_AE(sha)
-	PHP_CRYPTO_EVP_MD_AE(sha1)
-	PHP_CRYPTO_EVP_MD_AE(dss)
-	PHP_CRYPTO_EVP_MD_AE(dss1)
-	/* PHP_CRYPTO_EVP_MD_AE(ecdsa) - missing in my lib ? */
-#endif
-#ifndef OPENSSL_NO_SHA256
-	PHP_CRYPTO_EVP_MD_AE(sha224)
-	PHP_CRYPTO_EVP_MD_AE(sha256)
-#endif
-#ifndef OPENSSL_NO_SHA512
-	PHP_CRYPTO_EVP_MD_AE(sha384)
-	PHP_CRYPTO_EVP_MD_AE(sha512)
-#endif
-#ifndef OPENSSL_NO_MDC2
-	PHP_CRYPTO_EVP_MD_AE(mdc2)
-#endif
-#ifndef OPENSSL_NO_RIPEMD
-	PHP_CRYPTO_EVP_MD_AE(ripemd160)
-#endif
-#ifndef OPENSSL_NO_WHIRLPOOL
-	PHP_CRYPTO_EVP_MD_AE(whirlpool)
-#endif
-	/* Cipher */
-#ifndef OPENSSL_NO_DES
-	PHP_CRYPTO_EVP_CIPHER_AE_EX(des_ecb, 0)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_ecb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_ecb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_cfb64)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cfb64)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cfb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb64)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb1)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cfb8)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(des_ede3_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(desx_cbc)
-#endif
-#ifndef OPENSSL_NO_AES
-	PHP_CRYPTO_EVP_CIPHER_AE_EX(aes_128_ecb, 0)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_cfb1)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_cfb8)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_cfb128)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_cfb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_ctr)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_ccm)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_gcm)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_128_xts)
-	PHP_CRYPTO_EVP_CIPHER_AE_EX(aes_192_ecb, 0)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_cfb1)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_cfb8)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_cfb128)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_cfb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_ctr)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_ccm)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_192_gcm)
-	PHP_CRYPTO_EVP_CIPHER_AE_EX(aes_256_ecb, 0)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_cbc)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_cfb1)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_cfb8)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_cfb128)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_cfb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_ofb)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_ctr)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_ccm)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_gcm)
-	PHP_CRYPTO_EVP_CIPHER_AE(aes_256_xts)
-#endif
-	
-	PHP_CRYPTO_EVP_LAST_AE
-};
-
-#define php_crypto_evp_find_algorigthm(alg, type) php_crypto_evp_find_algorigthm_ex(alg, strlen(alg), type)
-
-/* {{{ php_crypto_evp_find_algorithm */
-static php_crypto_evp_algorithm *php_crypto_evp_find_algorigthm_ex(const char *alg, int alg_len, php_crypto_evp_algorithm_type type)
-{
-	php_crypto_evp_algorithm *ae = php_crypto_evp_algorithms;
-	
-	while (ae->name)
-	{
-
-		if (strncmp(ae->name, alg, alg_len) == 0)
-			return ae->type == type ? ae : ae;
-		ae++;
-	}
-	
-	return NULL;
-}
-/* }}} */
-
 
 /* {{{ php_crypto_evp_algorithm_object_dtor */
 static void php_crypto_evp_algorithm_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
@@ -288,6 +152,12 @@ zend_object_value php_crypto_evp_algorithm_object_clone(zval *this_ptr TSRMLS_DC
 	zend_object_value new_ov = php_crypto_evp_algorithm_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
 
 	zend_objects_clone_members(&new_obj->zo, new_ov, &old_obj->zo, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
+
+	if (new_obj->type == PHP_CRYPTO_EVP_ALG_CIPHER) {
+		EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
+	} else if (new_obj->type == PHP_CRYPTO_EVP_ALG_MD) {
+		EVP_MD_CTX_copy(new_obj->md.ctx, old_obj->md.ctx);
+	}
 	
 	return new_ov;
 }
@@ -351,22 +221,22 @@ PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm)
 PHP_CRYPTO_METHOD(EVP, MD, __construct)
 {
 	php_crypto_evp_algorithm_object *intern;
-	php_crypto_evp_algorithm *ae;
 	char *algorithm;
 	int algorithm_len;
+	const EVP_MD *digest;
 	
 	intern = php_crypto_evp_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
 	if (!intern) {
 		return;
 	}
 	
-	ae = php_crypto_evp_find_algorigthm_ex(algorithm, algorithm_len, PHP_CRYPTO_EVP_ALG_MD);
-	if (ae) {
-		intern->md.ao = ae->md();
+	digest = EVP_get_digestbyname(algorithm);
+	if (digest) {
+		intern->md.alg = digest;
 	}
 	else {
-		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
-							 "Message Digest '%s' algorithm not found", algorithm);
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
+								"Message Digest '%s' algorithm not found", algorithm);
 	}
 }
 /* }}} */
@@ -376,19 +246,18 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 {
 	php_crypto_evp_algorithm_object *intern;
-	php_crypto_evp_algorithm *ae;
 	char *algorithm;
 	int algorithm_len;
+	const EVP_CIPHER *cipher;
 
 	intern = php_crypto_evp_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
 	if (!intern) {
 		return;
 	}
 	
-	ae = php_crypto_evp_find_algorigthm_ex(algorithm, algorithm_len, PHP_CRYPTO_EVP_ALG_CIPHER);
-	if (ae) {
-		intern->cipher.ao = ae->cipher();
-		intern->flags = ae->flags;
+	cipher = EVP_get_cipherbyname(algorithm);
+	if (cipher) {
+		intern->cipher.alg = cipher;
 	}
 	else {
 		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
@@ -403,17 +272,28 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 {
 	php_crypto_evp_algorithm_object *intern;
 	char *key, *iv = NULL;
-	int key_len, iv_len;
+	int alg_key_len, alg_iv_len, key_len, iv_len = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s", &key, &key_len, &iv, &iv_len) == FAILURE) {
 		return;
 	}
 
 	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	if (NULL == iv && intern->flags & PHP_CRYPTO_EVP_CIPHER_HAS_IV) {
+	alg_key_len = EVP_CIPHER_key_length(intern->cipher.alg);
+	alg_iv_len = EVP_CIPHER_iv_length(intern->cipher.alg);
+
+	if (key_len != alg_key_len) {
 		zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
-		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_MISSING_IV TSRMLS_CC,
-								"IV is required for the cipher '%s' algorithm", Z_STRVAL_P(algorithm));
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_KEY TSRMLS_CC,
+								"Invalid length of key for cipher '%s' algorithm (required length: %d)",
+								Z_STRVAL_P(algorithm), alg_key_len);
+		return;
+	}
+	if (iv_len != alg_iv_len) {
+		zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_IV TSRMLS_CC,
+								"Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
+								Z_STRVAL_P(algorithm), alg_iv_len);
 		return;
 	}
 }

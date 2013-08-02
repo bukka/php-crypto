@@ -33,14 +33,13 @@ typedef enum {
 typedef struct {
 	zend_object zo;
 	php_crypto_evp_algorithm_type type;
-	int flags;
 	union {
 		struct {
-			const EVP_CIPHER *ao;
+			const EVP_CIPHER *alg;
 			EVP_CIPHER_CTX *ctx;
 		} cipher;
 		struct {
-			const EVP_MD *ao;
+			const EVP_MD *alg;
 			EVP_MD_CTX *ctx;
 		} md;
 	};
