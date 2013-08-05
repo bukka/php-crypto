@@ -74,6 +74,12 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
 
+#define php_crypto_evp_get_algorithm_property()	\
+	zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC)
+
+#define php_crypto_evp_get_algorithm_property_string() \
+	Z_STRVAL_P(php_crypto_evp_get_algorithm_property())
+
 /* {{{ php_crypto_evp_algorithm_object_dtor */
 static void php_crypto_evp_algorithm_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
 {
@@ -211,7 +217,7 @@ static php_crypto_evp_algorithm_object *php_crypto_evp_get_algorithm_object(char
 
 PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm)
 {
-	zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
+	zval *algorithm = php_crypto_evp_get_algorithm_property();
 	RETURN_ZVAL(algorithm, 1, 0);
 }
 
@@ -261,7 +267,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 	}
 	else {
 		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
-								"Cipher '%s' algorithm not found", algorithm);
+								"Cipher algorithm '%s' not found", algorithm);
 	}
 }
 /* }}} */
@@ -283,17 +289,15 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 	alg_iv_len = EVP_CIPHER_iv_length(intern->cipher.alg);
 
 	if (key_len != alg_key_len) {
-		zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
 		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_KEY TSRMLS_CC,
 								"Invalid length of key for cipher '%s' algorithm (required length: %d)",
-								Z_STRVAL_P(algorithm), alg_key_len);
+								php_crypto_evp_get_algorithm_property_string(), alg_key_len);
 		return;
 	}
 	if (iv_len != alg_iv_len) {
-		zval *algorithm = zend_read_property(php_crypto_evp_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC);
 		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_IV TSRMLS_CC,
 								"Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
-								Z_STRVAL_P(algorithm), alg_iv_len);
+								php_crypto_evp_get_algorithm_property_string(), alg_iv_len);
 		return;
 	}
 }
