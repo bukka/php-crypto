@@ -30,9 +30,17 @@ typedef enum {
 	PHP_CRYPTO_EVP_ALG_MD,
 } php_crypto_evp_algorithm_type;
 
+typedef enum {
+	PHP_CRYPTO_EVP_ALG_STATUS_CLEAR,
+	PHP_CRYPTO_EVP_ALG_STATUS_DIGEST,
+	PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT,
+	PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT,
+} php_crypto_evp_algorithm_status;
+
 typedef struct {
 	zend_object zo;
 	php_crypto_evp_algorithm_type type;
+	php_crypto_evp_algorithm_status status;
 	union {
 		struct {
 			const EVP_CIPHER *alg;

@@ -33,7 +33,7 @@ ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_cipher_update, 0)
-ZEND_ARG_INFO(0, input)
+ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_evp_algorithm_object_methods[] = {
@@ -67,9 +67,12 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 /* exception entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
 /* exception codes */
-#define PHP_CRYPTO_EVP_ALGORITHM_E_INVALID  1
-#define PHP_CRYPTO_EVP_ALGORITHM_E_IV       2
-#define PHP_CRYPTO_EVP_ALGORITHM_E_KEY      3
+#define PHP_CRYPTO_EVP_ALG_E_INVALID  1
+#define PHP_CRYPTO_EVP_ALG_E_IV       2
+#define PHP_CRYPTO_EVP_ALG_E_KEY      3
+#define PHP_CRYPTO_EVP_ALG_E_DIGEST   4
+#define PHP_CRYPTO_EVP_ALG_E_ENCRYPT  5
+#define PHP_CRYPTO_EVP_ALG_E_DECRYPT  6
 
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
@@ -241,7 +244,7 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 		intern->md.alg = digest;
 	}
 	else {
-		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E_INVALID TSRMLS_CC,
 								"Message Digest '%s' algorithm not found", algorithm);
 	}
 }
@@ -266,13 +269,13 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 		intern->cipher.alg = cipher;
 	}
 	else {
-		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_INVALID TSRMLS_CC,
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E_INVALID TSRMLS_CC,
 								"Cipher algorithm '%s' not found", algorithm);
 	}
 }
 /* }}} */
 
-/* {{{ proto bool Crypto\EVP\Cipher::encryptInit(string key [, string iv])
+/* {{{ proto void Crypto\EVP\Cipher::encryptInit(string key [, string iv])
    Cipher encryption initialization */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 {
@@ -288,34 +291,103 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 	alg_key_len = EVP_CIPHER_key_length(intern->cipher.alg);
 	alg_iv_len = EVP_CIPHER_iv_length(intern->cipher.alg);
 
+	/* check key length */
 	if (key_len != alg_key_len) {
-		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_KEY TSRMLS_CC,
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E_KEY TSRMLS_CC,
 								"Invalid length of key for cipher '%s' algorithm (required length: %d)",
 								php_crypto_evp_get_algorithm_property_string(), alg_key_len);
 		return;
 	}
+	/* check initialization vector length */
 	if (iv_len != alg_iv_len) {
-		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALGORITHM_E_IV TSRMLS_CC,
+		zend_throw_exception_ex(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC,
 								"Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
 								php_crypto_evp_get_algorithm_property_string(), alg_iv_len);
 		return;
 	}
+	/* check algorithm status */
+	if (intern->status == PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Cipher object is already used for decryption",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		return;
+	}
+	/* initialize encryption */
+	if (!EVP_EncryptInit_ex(intern->cipher.ctx, intern->cipher.alg, NULL, key, iv)) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Initialization of cipher encryption failed",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		return;
+	}
+	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT;
 }
 
-/* {{{ proto string Crypto\EVP\Cipher::encryptUpdate(string input)
+/* {{{ proto string Crypto\EVP\Cipher::encryptUpdate(string data)
    Cipher encryption update */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 {
-	zval *object = getThis();
+	php_crypto_evp_algorithm_object *intern;
+	unsigned char *outbuf;
+	char *data;
+	int data_len, outbuf_len;
 	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	
+	/* check algorithm status */
+	if (intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Cipher object has not been initialized for encryption",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		return;
+	}
+
+	outbuf_len = data_len + EVP_CIPHER_block_size(intern->cipher.alg);
+	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
+	
+	/* update encryption context */
+	if (!EVP_EncryptUpdate(intern->cipher.ctx, outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Updating of cipher encryption failed",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		efree(outbuf);
+		return;
+	}
+	RETURN_STRINGL(outbuf, outbuf_len, 0);
 }
 
 /* {{{ proto string Crypto\EVP\Cipher::encryptFinal()
    Cipher encryption finalization */
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 {
-	zval *object = getThis();
+	php_crypto_evp_algorithm_object *intern;
+	unsigned char *outbuf;
+	int outbuf_len;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	
+	/* check algorithm status */
+	if (intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Cipher object has not been initialized for encryption",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		return;
+	}
+	
+	outbuf_len = EVP_CIPHER_block_size(intern->cipher.alg);
+	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
+	
+	/* update encryption context */
+	if (!EVP_EncryptFinal_ex(intern->cipher.ctx, outbuf, &outbuf_len)) {
+		zend_throw_exception(php_crypto_evp_algorithm_exception_ce, "Finalizing of cipher encryption failed",
+							 PHP_CRYPTO_EVP_ALG_E_IV TSRMLS_CC);
+		efree(outbuf);
+		return;
+	}
+	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_CLEAR;
+	RETURN_STRINGL(outbuf, outbuf_len, 0);
 }
 
 /* {{{ proto Crypto\EVP\Cipher::decryptInit(string key [, string iv])
