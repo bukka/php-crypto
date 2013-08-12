@@ -63,9 +63,11 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit);
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate);
 PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal);
+PHP_CRYPTO_METHOD(EVP, Cipher, encrypt);
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit);
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate);
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal);
+PHP_CRYPTO_METHOD(EVP, Cipher, decrypt);
 PHP_CRYPTO_METHOD(EVP, MD, __construct);
 
 
