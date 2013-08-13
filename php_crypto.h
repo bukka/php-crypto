@@ -45,6 +45,10 @@ PHP_MINFO_FUNCTION(crypto);
 #define PHP_CRYPTO_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
 #define PHP_CRYPTO_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
 
+/* macros for throwing exceptions */
+#define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)
+#define PHP_CRYPTO_THROW_EXCEPTION_EX(exc_ce, code, msg, ...) zend_throw_exception_ex(exc_ce, code TSRMLS_CC, msg, ##__VA_ARGS__)
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
