@@ -74,13 +74,6 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 /* exception entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
-/* exception codes */
-#define PHP_CRYPTO_EVP_ALG_E_INVALID  1
-#define PHP_CRYPTO_EVP_ALG_E_IV       2
-#define PHP_CRYPTO_EVP_ALG_E_KEY      3
-#define PHP_CRYPTO_EVP_ALG_E_DIGEST   4
-#define PHP_CRYPTO_EVP_ALG_E_ENCRYPT  5
-#define PHP_CRYPTO_EVP_ALG_E_DECRYPT  6
 
 /* object handlers */
 static zend_object_handlers php_crypto_evp_algorithm_object_handlers;
@@ -284,7 +277,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 /* }}} */
 
 /* {{{ php_crypto_evp_cipher_check_key */
-static int php_crypto_evp_cipher_check_key(zval *zobject, php_crypto_evp_algorithm_object *intern, int key_len)
+static int php_crypto_evp_cipher_check_key(zval *zobject, php_crypto_evp_algorithm_object *intern, int key_len TSRMLS_DC)
 {
 	int alg_key_len = EVP_CIPHER_key_length(intern->cipher.alg);
 	
@@ -298,7 +291,7 @@ static int php_crypto_evp_cipher_check_key(zval *zobject, php_crypto_evp_algorit
 /* }}} */
 
 /* {{{ php_crypto_evp_cipher_check_iv */
-static int php_crypto_evp_cipher_check_iv(zval *zobject, php_crypto_evp_algorithm_object *intern, int iv_len)
+static int php_crypto_evp_cipher_check_iv(zval *zobject, php_crypto_evp_algorithm_object *intern, int iv_len TSRMLS_DC)
 {
 	int alg_iv_len = EVP_CIPHER_iv_length(intern->cipher.alg);
 	
@@ -313,16 +306,16 @@ static int php_crypto_evp_cipher_check_iv(zval *zobject, php_crypto_evp_algorith
 /* }}} */
 
 /* {{{ php_crypto_evp_cipher_init */
-static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_init_ex(zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc)
+static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_init_ex(zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc TSRMLS_DC)
 {
 	php_crypto_evp_algorithm_object *intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(zobject TSRMLS_CC);
 	
 	/* check key length */
-	if (php_crypto_evp_cipher_check_key(zobject, intern, key_len) == FAILURE) {
+	if (php_crypto_evp_cipher_check_key(zobject, intern, key_len TSRMLS_CC) == FAILURE) {
 		return NULL;
 	}
 	/* check initialization vector length */
-	if (php_crypto_evp_cipher_check_iv(zobject, intern, iv_len) == FAILURE) {
+	if (php_crypto_evp_cipher_check_iv(zobject, intern, iv_len TSRMLS_CC) == FAILURE) {
 		return NULL;
 	}
 	
@@ -354,7 +347,7 @@ static inline void php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int 
 		return;
 	}
 
-	php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, 1);
+	php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, 1 TSRMLS_CC);
 }
 /* }}} */
 
@@ -443,7 +436,7 @@ static inline void php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int
 		return;
 	}
 
-	intern = php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc);
+	intern = php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC);
 	if (intern == NULL) {
 		return;
 	}
