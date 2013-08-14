@@ -312,8 +312,8 @@ static int php_crypto_evp_cipher_check_iv(zval *zobject, php_crypto_evp_algorith
 }
 /* }}} */
 
-/* {{{ php_crypto_evp_cipher_encrypt_init */
-static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_encrypt_init(zval *zobject, char *key, int key_len, char *iv, int iv_len)
+/* {{{ php_crypto_evp_cipher_init */
+static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_init_ex(zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc)
 {
 	php_crypto_evp_algorithm_object *intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(zobject TSRMLS_CC);
 	
@@ -327,13 +327,16 @@ static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_encrypt_init(zval 
 	}
 	
 	/* check algorithm status */
-	if (intern->status == PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT) {
+	if (enc && intern->status == PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT) {
 		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_INIT_STATUS, "Cipher object is already used for decryption");
+		return NULL;
+	} else if (!enc && intern->status == PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(DECRYPT_INIT_STATUS, "Cipher object is already used for encryption");
 		return NULL;
 	}
 	/* initialize encryption */
-	if (!EVP_EncryptInit_ex(intern->cipher.ctx, intern->cipher.alg, NULL, key, iv)) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_INIT_FAILED, "Initialization of cipher encryption failed");
+	if (!EVP_CipherInit_ex(intern->cipher.ctx, intern->cipher.alg, NULL, key, iv, enc)) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_FAILED, "Initialization of cipher failed");
 		return NULL;
 	}
 	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT;
@@ -341,9 +344,8 @@ static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_encrypt_init(zval 
 }
 /* }}} */
 
-/* {{{ proto void Crypto\EVP\Cipher::encryptInit(string key [, string iv])
-   Cipher encryption initialization */
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
+/* {{{ php_crypto_evp_cipher_update */
+static inline void php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	char *key, *iv = NULL;
 	int key_len, iv_len = 0;
@@ -352,12 +354,12 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
 		return;
 	}
 
-	php_crypto_evp_cipher_encrypt_init(getThis(), key, key_len, iv, iv_len);
+	php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, 1);
 }
+/* }}} */
 
-/* {{{ proto string Crypto\EVP\Cipher::encryptUpdate(string data)
-   Cipher encryption update */
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
+/* {{{ php_crypto_evp_cipher_update */
+static inline void php_crypto_evp_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_evp_algorithm_object *intern;
 	unsigned char *outbuf;
@@ -369,10 +371,13 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 	}
 
 	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	
+
 	/* check algorithm status */
-	if (intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_UPDATE_STATUS, "Cipher object has not been initialized for encryption yet");
+	if (enc && intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_UPDATE_STATUS, "Cipher object is not initialized for encryption");
+		return;
+	} else if (!enc && intern->status != PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(DECRYPT_UPDATE_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
 
@@ -380,8 +385,8 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 	
 	/* update encryption context */
-	if (!EVP_EncryptUpdate(intern->cipher.ctx, outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_UPDATE_FAILED, "Updating of cipher encryption failed");
+	if (!EVP_CipherUpdate(intern->cipher.ctx, outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_UPDATE_FAILED, "Updating of cipher failed");
 		efree(outbuf);
 		return;
 	}
@@ -389,9 +394,8 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
 	RETURN_STRINGL(outbuf, outbuf_len, 0);
 }
 
-/* {{{ proto string Crypto\EVP\Cipher::encryptFinal()
-   Cipher encryption finalization */
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
+/* {{{ php_crypto_evp_cipher_final */
+static inline void php_crypto_evp_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_evp_algorithm_object *intern;
 	unsigned char *outbuf;
@@ -402,10 +406,13 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 	}
 
 	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	
+
 	/* check algorithm status */
-	if (intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINAL_STATUS, "Cipher object has not been initialized for encryption yet");
+	if (enc && intern->status != PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINAL_STATUS, "Cipher object is not initialized for encryption");
+		return;
+	} else if (!enc && intern->status != PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(DECRYPT_FINAL_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
 	
@@ -413,8 +420,8 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 	
 	/* finalize encryption context */
-	if (!EVP_EncryptFinal_ex(intern->cipher.ctx, outbuf, &outbuf_len)) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINAL_FAILED, "Finalizing of cipher encryption failed");
+	if (!EVP_CipherFinal_ex(intern->cipher.ctx, outbuf, &outbuf_len)) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
 	}
@@ -422,10 +429,10 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_CLEAR;
 	RETURN_STRINGL(outbuf, outbuf_len, 0);
 }
+/* }}} */
 
-/* {{{ proto Crypto\EVP\Cipher::encrypt(string data, string key [, string iv])
-   Cipher encryption */
-PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
+/* {{{ php_crypto_evp_cipher_crypt */
+static inline void php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_evp_algorithm_object *intern;
 	unsigned char *outbuf;
@@ -436,7 +443,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
 		return;
 	}
 
-	intern = php_crypto_evp_cipher_encrypt_init(getThis(), key, key_len, iv, iv_len);
+	intern = php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc);
 	if (intern == NULL) {
 		return;
 	}
@@ -445,14 +452,14 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 
 	/* update encryption context */
-	if (!EVP_EncryptUpdate(intern->cipher.ctx, outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_UPDATE_FAILED, "Updating of cipher encryption failed");
+	if (!EVP_CipherUpdate(intern->cipher.ctx, outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_UPDATE_FAILED, "Updating of cipher failed");
 		efree(outbuf);
 		return;
 	}
 	/* finalize encryption context */
-	if (!EVP_EncryptFinal_ex(intern->cipher.ctx, outbuf + outbuf_update_len, &outbuf_final_len)) {
-		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINAL_FAILED, "Finalizing of cipher encryption failed");
+	if (!EVP_CipherFinal_ex(intern->cipher.ctx, outbuf + outbuf_update_len, &outbuf_final_len)) {
+		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
 	}
@@ -461,35 +468,60 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
 	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_CLEAR;
 	RETURN_STRINGL(outbuf, outbuf_len, 0);
 }
+/* }}} */
+
+/* {{{ proto void Crypto\EVP\Cipher::encryptInit(string key [, string iv])
+   Cipher encryption initialization */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit)
+{
+	php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+}
+
+/* {{{ proto string Crypto\EVP\Cipher::encryptUpdate(string data)
+   Cipher encryption update */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate)
+{
+	php_crypto_evp_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+}
+
+/* {{{ proto string Crypto\EVP\Cipher::encryptFinal()
+   Cipher encryption finalization */
+PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
+{
+	php_crypto_evp_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+}
+
+/* {{{ proto Crypto\EVP\Cipher::encrypt(string data, string key [, string iv])
+   Cipher encryption */
+PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
+{
+	php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+}
 
 /* {{{ proto Crypto\EVP\Cipher::decryptInit(string key [, string iv])
    Cipher decryption initialization */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit)
 {
-	zval *object = getThis();
-	
+	php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto Crypto\EVP\Cipher::decryptUpdate(string data)
    Cipher decryption update */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate)
 {
-	zval *object = getThis();
-	
+	php_crypto_evp_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto Crypto\EVP\Cipher::decryptFinal()
    Cipher decryption finalization */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal)
 {
-	zval *object = getThis();
-	
+	php_crypto_evp_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto Crypto\EVP\Cipher::decrypt(string data, string key [, string iv])
    Cipher decryption */
 PHP_CRYPTO_METHOD(EVP, Cipher, decrypt)
 {
-	zval *object = getThis();
-	
+	php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
