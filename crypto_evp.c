@@ -23,7 +23,7 @@
 
 #include <openssl/evp.h>
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_algorithm___construct, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_evp_algorithm, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_END_ARG_INFO()
 
@@ -43,18 +43,19 @@ ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_evp_algorithm_object_methods[] = {
-	PHP_CRYPTO_ABSTRACT_ME(EVP, Algorithm, __construct, arginfo_crypto_evp_algorithm___construct)
+	PHP_CRYPTO_ABSTRACT_ME(EVP, Algorithm, __construct, arginfo_crypto_evp_algorithm)
 	PHP_CRYPTO_ME(EVP, Algorithm, getAlgorithm, NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
 static const zend_function_entry php_crypto_evp_md_object_methods[] = {
-	PHP_CRYPTO_ME(EVP, MD, __construct, arginfo_crypto_evp_algorithm___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-    PHP_FE_END
+	PHP_CRYPTO_ME(EVP, MD, __construct, arginfo_crypto_evp_algorithm, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_FE_END
 };
 
 static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
-	PHP_CRYPTO_ME(EVP, Cipher, __construct,      arginfo_crypto_evp_algorithm___construct, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, hasAlgorithm,     arginfo_crypto_evp_algorithm, ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, __construct,      arginfo_crypto_evp_algorithm, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(EVP, Cipher, encryptInit,      arginfo_crypto_evp_cipher_init, ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(EVP, Cipher, encryptUpdate,    arginfo_crypto_evp_cipher_update, ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(EVP, Cipher, encryptFinal,     NULL, ZEND_ACC_PUBLIC)
@@ -252,6 +253,26 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 }
 /* }}} */
 
+/* {{{ proto bool Crypto\EVP\Cipher::hasAlgorithm()
+   Finds out whether algorithm exists */
+PHP_CRYPTO_METHOD(EVP, Cipher, hasAlgorithm)
+{
+	char *algorithm;
+	int algorithm_len;
+	const EVP_CIPHER *cipher;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
+		return;
+	}
+	
+	if (EVP_get_cipherbyname(algorithm)) {
+		RETURN_TRUE;
+	} else {
+		RETURN_FALSE;
+	}
+}
+/* }}} */
+
 /* {{{ proto Crypto\EVP\Cipher::__construct(string algorithm)
    Cipher constructor */
 PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
@@ -269,8 +290,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, __construct)
 	cipher = EVP_get_cipherbyname(algorithm);
 	if (cipher) {
 		intern->cipher.alg = cipher;
-	}
-	else {
+	} else {
 		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
 	}
 }
