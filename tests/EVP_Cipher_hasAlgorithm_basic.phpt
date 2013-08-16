@@ -2,12 +2,11 @@
 Crypto\EVP\Cipher::hasAlogirthm basic usage.
 --FILE--
 <?php
-var_dump(Crypto\EVP\Cipher::hasAlgorithm('nnnn'));
+echo Crypto\EVP\Cipher::hasAlgorithm('nnnn') ? "nnnn\n" : "";
 // the following algorigthms should exists on any platform
-var_dump(Crypto\EVP\Cipher::hasAlgorithm('aes-256-ctr'));
-var_dump(Crypto\EVP\Cipher::hasAlgorithm('aes-256-cbc'));
+echo Crypto\EVP\Cipher::hasAlgorithm('aes-256-ctr') ? "HAS aes-256-ctr\n" : "";
+echo Crypto\EVP\Cipher::hasAlgorithm('aes-256-cbc') ? "HAS aes-256-cbc\n" : "";
 ?>
---EXPECTF--
-bool(false)
-bool(true)
-bool(true)
+--EXPECT--
+HAS aes-256-ctr
+HAS aes-256-cbc
