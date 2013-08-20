@@ -1,19 +1,19 @@
 --TEST--
 Crypto\EVP\Cipher::__construct basic usage.
---SKIPIF--
-<?php if (!Crypto\EVP\Cipher::hasAlgorithm('aes-256-cbc')) die("Skip: aes-256-cbc is not supported"); ?>
 --FILE--
 <?php
 // basic creation
 $cipher = new Crypto\EVP\Cipher('aes-256-cbc');
 if ($cipher instanceof Crypto\EVP\Cipher)
-	echo "Correct algorithm\n";
+	echo "FOUND\n";
 // invalid creation
 try {
 	$cipher = new Crypto\EVP\Cipher('nnn');	
 }
 catch (Crypto\EVP\AlgorithmException $e) {
-	echo "Invalid algorithm\n";
+	if ($e->getCode() === Crypto\EVP\AlgorithmException::CIPHER_NOT_FOUND) {
+		echo "NOT FOUND\n";
+	}
 }
 // sub classing
 class SubCipher extends Crypto\EVP\Cipher {
@@ -25,6 +25,6 @@ class SubCipher extends Crypto\EVP\Cipher {
 $subcipher = new SubCipher('aes-256-cbc');
 ?>
 --EXPECT--
-Correct algorithm
-Invalid algorithm
+FOUND
+NOT FOUND
 aes-256-cbc
