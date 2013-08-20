@@ -174,10 +174,14 @@ zend_object_value php_crypto_evp_algorithm_object_clone(zval *this_ptr TSRMLS_DC
 }
 /* }}} */
 
+#define PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(aconst)	\
+	zend_declare_class_constant_long(php_crypto_evp_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_EVP_ALG_E(aconst) TSRMLS_CC)
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_evp)
 {
 	zend_class_entry ce;
+	int alg_error_code = 1;
 
 	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Algorithm), php_crypto_evp_algorithm_object_methods);
@@ -186,11 +190,25 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	php_crypto_evp_algorithm_object_handlers.clone_obj = php_crypto_evp_algorithm_object_clone;
 	php_crypto_evp_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	zend_declare_property_null(php_crypto_evp_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
-
+	
 	/* Algorithm Exception class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, AlgorithmException), NULL);
 	php_crypto_evp_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-		
+	/* Declare AlorithmExcption class constants for error codes */
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DIGEST_NOT_FOUND);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_INIT_FAILED);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_UPDATE_FAILED);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(CIPHER_FINAL_FAILED);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(ENCRYPT_INIT_STATUS);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(ENCRYPT_UPDATE_STATUS);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(ENCRYPT_FINAL_STATUS);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DECRYPT_INIT_STATUS);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
+	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
+	
 	/* MD class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MD), php_crypto_evp_md_object_methods);
 	php_crypto_evp_md_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
