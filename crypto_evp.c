@@ -370,7 +370,7 @@ static php_crypto_evp_algorithm_object *php_crypto_evp_cipher_init_ex(zval *zobj
 		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_FAILED, "Initialization of cipher failed");
 		return NULL;
 	}
-	intern->status = PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT;
+	intern->status = (enc ? PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT : PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT);
 	return intern;
 }
 /* }}} */
@@ -385,7 +385,7 @@ static inline void php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int 
 		return;
 	}
 
-	php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, 1 TSRMLS_CC);
+	php_crypto_evp_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC);
 }
 /* }}} */
 

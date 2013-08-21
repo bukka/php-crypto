@@ -10,7 +10,6 @@ $data = str_repeat('a', 16);
 $cipher = new Crypto\EVP\Cipher('aes-256-cbc');
 
 // init first
-$cipher->encryptInit($key, $iv);
 echo base64_encode($cipher->encrypt($data, $key, $iv)) . "\n";
 
 ?>
