@@ -96,6 +96,9 @@ PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit);
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate);
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal);
 PHP_CRYPTO_METHOD(EVP, Cipher, decrypt);
+PHP_CRYPTO_METHOD(EVP, Cipher, getBlockSize);
+PHP_CRYPTO_METHOD(EVP, Cipher, getKeyLength);
+PHP_CRYPTO_METHOD(EVP, Cipher, getIVLength);
 PHP_CRYPTO_METHOD(EVP, MD, __construct);
 
 #endif	/* PHP_CRYPTO_EVP_H */

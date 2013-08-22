@@ -64,6 +64,9 @@ static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(EVP, Cipher, decryptUpdate,    arginfo_crypto_evp_cipher_update, ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(EVP, Cipher, decryptFinal,     NULL, ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(EVP, Cipher, decrypt,          arginfo_crypto_evp_cipher_crypt, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, getBlockSize,     NULL, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, getKeyLength,     NULL, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(EVP, Cipher, getIVLength,     NULL, ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
@@ -522,37 +525,79 @@ PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal)
 	php_crypto_evp_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto Crypto\EVP\Cipher::encrypt(string data, string key [, string iv])
+/* {{{ proto string Crypto\EVP\Cipher::encrypt(string data, string key [, string iv])
    Cipher encryption */
 PHP_CRYPTO_METHOD(EVP, Cipher, encrypt)
 {
 	php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto Crypto\EVP\Cipher::decryptInit(string key [, string iv])
+/* {{{ proto void Crypto\EVP\Cipher::decryptInit(string key [, string iv])
    Cipher decryption initialization */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit)
 {
 	php_crypto_evp_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto Crypto\EVP\Cipher::decryptUpdate(string data)
+/* {{{ proto string Crypto\EVP\Cipher::decryptUpdate(string data)
    Cipher decryption update */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate)
 {
 	php_crypto_evp_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto Crypto\EVP\Cipher::decryptFinal()
+/* {{{ proto string Crypto\EVP\Cipher::decryptFinal()
    Cipher decryption finalization */
 PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal)
 {
 	php_crypto_evp_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto Crypto\EVP\Cipher::decrypt(string data, string key [, string iv])
+/* {{{ proto string Crypto\EVP\Cipher::decrypt(string data, string key [, string iv])
    Cipher decryption */
 PHP_CRYPTO_METHOD(EVP, Cipher, decrypt)
 {
 	php_crypto_evp_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
+}
+
+/* {{{ proto int Crypto\EVP\Cipher::getBlockSize()
+   Returns cipher block size */
+PHP_CRYPTO_METHOD(EVP, Cipher, getBlockSize)
+{
+	php_crypto_evp_algorithm_object *intern;
+	
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_LONG(EVP_CIPHER_block_size(intern->cipher.alg));
+}
+
+/* {{{ proto int Crypto\EVP\Cipher::getKeyLength()
+   Returns cipher key length */
+PHP_CRYPTO_METHOD(EVP, Cipher, getKeyLength)
+{
+	php_crypto_evp_algorithm_object *intern;
+	
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_LONG(EVP_CIPHER_key_length(intern->cipher.alg));
+}
+
+/* {{{ proto int Crypto\EVP\Cipher::getIVLength()
+   Returns cipher IV length */
+PHP_CRYPTO_METHOD(EVP, Cipher, getIVLength)
+{
+	php_crypto_evp_algorithm_object *intern;
+	
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_evp_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_LONG(EVP_CIPHER_iv_length(intern->cipher.alg));
 }
