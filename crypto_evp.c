@@ -48,8 +48,8 @@ static const zend_function_entry php_crypto_evp_algorithm_object_methods[] = {
     PHP_FE_END
 };
 
-static const zend_function_entry php_crypto_evp_md_object_methods[] = {
-	PHP_CRYPTO_ME(EVP, MD, __construct, arginfo_crypto_evp_algorithm, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+static const zend_function_entry php_crypto_evp_digest_object_methods[] = {
+	PHP_CRYPTO_ME(EVP, Digest, __construct, arginfo_crypto_evp_algorithm, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -73,7 +73,7 @@ static const zend_function_entry php_crypto_evp_cipher_object_methods[] = {
 
 /* class entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
-PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_evp_digest_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 
 /* exception entries */
@@ -103,9 +103,9 @@ static void php_crypto_evp_algorithm_object_free(zend_object *object TSRMLS_DC)
 	if (intern->type == PHP_CRYPTO_EVP_ALG_CIPHER) {
 		EVP_CIPHER_CTX_cleanup(intern->cipher.ctx);
 		efree(intern->cipher.ctx);
-	} else if (intern->type == PHP_CRYPTO_EVP_ALG_MD) {
-		EVP_MD_CTX_cleanup(intern->md.ctx);
-		efree(intern->md.ctx);
+	} else if (intern->type == PHP_CRYPTO_EVP_ALG_DIGEST) {
+		EVP_MD_CTX_cleanup(intern->digest.ctx);
+		efree(intern->digest.ctx);
 	}
 	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
@@ -132,10 +132,10 @@ static zend_object_value php_crypto_evp_algorithm_object_create_ex(zend_class_en
 		intern->type = PHP_CRYPTO_EVP_ALG_CIPHER;
 		intern->cipher.ctx = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
 		EVP_CIPHER_CTX_init(intern->cipher.ctx);
-	} else if (class_type == php_crypto_evp_md_ce) {
-		intern->type = PHP_CRYPTO_EVP_ALG_MD;
-		intern->md.ctx = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
-		EVP_MD_CTX_init(intern->md.ctx);
+	} else if (class_type == php_crypto_evp_digest_ce) {
+		intern->type = PHP_CRYPTO_EVP_ALG_DIGEST;
+		intern->digest.ctx = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
+		EVP_MD_CTX_init(intern->digest.ctx);
 	} else {
 		intern->type = PHP_CRYPTO_EVP_ALG_NONE;
 	}
@@ -169,8 +169,8 @@ zend_object_value php_crypto_evp_algorithm_object_clone(zval *this_ptr TSRMLS_DC
 
 	if (new_obj->type == PHP_CRYPTO_EVP_ALG_CIPHER) {
 		EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
-	} else if (new_obj->type == PHP_CRYPTO_EVP_ALG_MD) {
-		EVP_MD_CTX_copy(new_obj->md.ctx, old_obj->md.ctx);
+	} else if (new_obj->type == PHP_CRYPTO_EVP_ALG_DIGEST) {
+		EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
 	}
 	
 	return new_ov;
@@ -212,9 +212,9 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
 	PHP_CRYPTO_EVP_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
 	
-	/* MD class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, MD), php_crypto_evp_md_object_methods);
-	php_crypto_evp_md_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
+	/* Digest class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Digest), php_crypto_evp_digest_object_methods);
+	php_crypto_evp_digest_ce = zend_register_internal_class_ex(&ce, php_crypto_evp_algorithm_ce, NULL TSRMLS_CC);
 
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(EVP, Cipher), php_crypto_evp_cipher_object_methods);
@@ -250,9 +250,9 @@ PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto Crypto\EVP\MD::__construct(string algorithm)
-   MD (Message Digest) constructor */
-PHP_CRYPTO_METHOD(EVP, MD, __construct)
+/* {{{ proto Crypto\EVP\Digest::__construct(string algorithm)
+   Message Digest constructor */
+PHP_CRYPTO_METHOD(EVP, Digest, __construct)
 {
 	php_crypto_evp_algorithm_object *intern;
 	char *algorithm;
@@ -266,7 +266,7 @@ PHP_CRYPTO_METHOD(EVP, MD, __construct)
 	
 	digest = EVP_get_digestbyname(algorithm);
 	if (digest) {
-		intern->md.alg = digest;
+		intern->digest.alg = digest;
 	}
 	else {
 		PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION_EX(DIGEST_NOT_FOUND, "Message Digest '%s' algorithm not found", algorithm);

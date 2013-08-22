@@ -27,7 +27,7 @@
 typedef enum {
 	PHP_CRYPTO_EVP_ALG_NONE = 0,
 	PHP_CRYPTO_EVP_ALG_CIPHER,
-	PHP_CRYPTO_EVP_ALG_MD,
+	PHP_CRYPTO_EVP_ALG_DIGEST,
 } php_crypto_evp_algorithm_type;
 
 typedef enum {
@@ -49,7 +49,7 @@ typedef struct {
 		struct {
 			const EVP_MD *alg;
 			EVP_MD_CTX *ctx;
-		} md;
+		} digest;
 	};
 } php_crypto_evp_algorithm_object;
 
@@ -79,7 +79,7 @@ typedef enum {
 
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_md_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_digest_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
 
@@ -99,7 +99,7 @@ PHP_CRYPTO_METHOD(EVP, Cipher, decrypt);
 PHP_CRYPTO_METHOD(EVP, Cipher, getBlockSize);
 PHP_CRYPTO_METHOD(EVP, Cipher, getKeyLength);
 PHP_CRYPTO_METHOD(EVP, Cipher, getIVLength);
-PHP_CRYPTO_METHOD(EVP, MD, __construct);
+PHP_CRYPTO_METHOD(EVP, Digest, __construct);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 
