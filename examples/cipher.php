@@ -1,28 +1,61 @@
 <?php
 namespace Crypto;
+
+$algorithm = 'aes-256-cbc';
+
+if (!Cipher::hasAlgorithm($algorithm)) {
+	die("Algorithm $algorithm not found" . PHP_EOL);
+}
+
 try {
-	$md = new Digest('md5');
+	$cipher = new Cipher($algorithm);
 
-	$cipher = new Cipher('aes-256-ctr');
-	var_dump($cipher->getAlgorithm());
-	$key = str_repeat('x', 32);
-	$iv = str_repeat('i', 16);
+	// Algorithm method for retrieving algorithm
+	echo "Algorithm: " . $cipher->getAlgorithm() . PHP_EOL;
 
-	$in = "jakub";
-	// stream encryption
+	// Params
+	$key_len = $cipher->getKeyLength();
+	$iv_len = $cipher->getIVLength();
+	
+	echo "Key length: " . $key_len . PHP_EOL;
+	echo "IV length: "  . $iv_len . PHP_EOL;
+	echo "Block size: " . $cipher->getBlockSize() . PHP_EOL;
+
+	// This is just for this example. You shoul never use such key and IV!
+	$key = str_repeat('x', $key_len);
+	$iv = str_repeat('i', $iv_len);
+
+	// Test data
+	$data1 = "Test";
+	$data2 = "Data";
+	$data = $data1 . $data2;
+
+	// Simple encryption
+	$sim_ct = $cipher->encrypt($data, $key, $iv);
+	
+	// init/update/final encryption
 	$cipher->encryptInit($key, $iv);
-	$stream_out = $cipher->encryptUpdate($in);
-	$stream_out_final = $cipher->encryptFinal();
-	$stream_out .= $stream_out_final;
-	// complete encryption
-	$out = $cipher->encrypt($in, $key, $iv);
-	var_dump(base64_encode($stream_out));
-	var_dump(base64_encode($out));
-	var_dump($cipher->decrypt($out, $key, $iv));
-	// openssl ext functions result
-	echo "STANDARD RESULT\n";
-	var_dump(openssl_encrypt($in, $cipher->getAlgorithm(), $key, 0, $iv));
-	var_dump(openssl_decrypt($out, $cipher->getAlgorithm(), $key, OPENSSL_RAW_DATA, $iv));
+	$iuf_ct  = $cipher->encryptUpdate($data1);
+	$iuf_ct .= $cipher->encryptUpdate($data2);
+	$iuf_ct .= $cipher->encryptFinal();
+
+	// Raw data output (used base64 format for printing)
+	echo "Ciphertext (sim): " . base64_encode($sim_ct) . PHP_EOL;
+	echo "Ciphertext (iuf): " . base64_encode($iuf_ct) . PHP_EOL;
+	// $iuf_out == $sim_out
+	$ct = $sim_ct;
+	
+	// Simple decryption
+	$sim_text = $cipher->decrypt($ct, $key, $iv);
+	
+	// init/update/final decryption
+	$cipher->decryptInit($key, $iv);
+	$iuf_text = $cipher->decryptUpdate($ct);
+	$iuf_text .= $cipher->decryptFinal();
+
+	// Raw data output ($iuf_out == $sim_out)
+	echo "Text (sim): " . $sim_text . PHP_EOL;
+	echo "Text (iuf): " . $iuf_text . PHP_EOL;
 }
 catch (AlgorithmException $e) {
 	echo $e->getMessage() . PHP_EOL;
