@@ -38,12 +38,20 @@ PHP_MINIT_FUNCTION(crypto);
 PHP_MSHUTDOWN_FUNCTION(crypto);
 PHP_MINFO_FUNCTION(crypto);
 
+/* Macros for Crypto namespace */
+#define PHP_CRYPTO_NS_NAME "Crypto"
 #define PHP_CRYPTO_NS_SEPARATOR "\\"
-#define PHP_CRYPTO_NS_NAME(ns) "Crypto" PHP_CRYPTO_NS_SEPARATOR #ns
-#define PHP_CRYPTO_CLASS_NAME(ns, classname) PHP_CRYPTO_NS_NAME(ns) PHP_CRYPTO_NS_SEPARATOR #classname
-#define PHP_CRYPTO_METHOD(ns, classname, method) PHP_METHOD(Crypto_##ns##_##classname, method)
-#define PHP_CRYPTO_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
-#define PHP_CRYPTO_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
+/* Macros for dealing with Crypto namespace classes */
+#define PHP_CRYPTO_CLASS_NAME(classname) PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #classname
+#define PHP_CRYPTO_METHOD(classname, method) PHP_METHOD(Crypto_##_##classname, method)
+#define PHP_CRYPTO_ME(classname, name, arg_info, flags) PHP_ME(Crypto_##_##classname, name, arg_info, flags)
+#define PHP_CRYPTO_ABSTRACT_ME(classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##_##classname, name, arg_info)
+/* Macros for dealing with Crypto sub namespaces */
+#define PHP_CRYPTO_NS_NAMESPACE(ns) PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #ns
+#define PHP_CRYPTO_NS_CLASS_NAME(ns, classname) PHP_CRYPTO_NS_NAMESPACE(ns) PHP_CRYPTO_NS_SEPARATOR #classname
+#define PHP_CRYPTO_NS_METHOD(ns, classname, method) PHP_METHOD(Crypto_##ns##_##classname, method)
+#define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
+#define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
 
 /* macros for throwing exceptions */
 #define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)

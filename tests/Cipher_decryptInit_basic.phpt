@@ -1,8 +1,8 @@
 --TEST--
-Crypto\EVP\Cipher::decryptInit basic usage.
+Crypto\Cipher::decryptInit basic usage.
 --FILE--
 <?php
-$cipher = new Crypto\EVP\Cipher('aes-256-cbc');
+$cipher = new Crypto\Cipher('aes-256-cbc');
 $key = str_repeat('x', 32);
 $iv = str_repeat('i', 16);
 $ciphertext = base64_decode('j4hToWhWBxM8ue4Px6W4pXEDk1y8OepoDe8NsHZ+lU4=');
@@ -11,8 +11,8 @@ $ciphertext = base64_decode('j4hToWhWBxM8ue4Px6W4pXEDk1y8OepoDe8NsHZ+lU4=');
 try {
 	$cipher->decryptInit('short_key', $iv);
 }
-catch (Crypto\EVP\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\EVP\AlgorithmException::CIPHER_KEY_LENGTH) {
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\AlgorithmException::CIPHER_KEY_LENGTH) {
 		echo "SHORT KEY\n";
 	}
 }
@@ -21,8 +21,8 @@ catch (Crypto\EVP\AlgorithmException $e) {
 try {
 	$cipher->decryptInit($key, 'short_iv');
 }
-catch (Crypto\EVP\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\EVP\AlgorithmException::CIPHER_IV_LENGTH) {
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\AlgorithmException::CIPHER_IV_LENGTH) {
 		echo "SHORT IV\n";
 	}
 }
@@ -31,8 +31,8 @@ catch (Crypto\EVP\AlgorithmException $e) {
 try {
 	$cipher->decryptInit($key);
 }
-catch (Crypto\EVP\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\EVP\AlgorithmException::CIPHER_IV_LENGTH) {
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\AlgorithmException::CIPHER_IV_LENGTH) {
 		echo "NO IV\n";
 	}
 }
@@ -41,9 +41,9 @@ catch (Crypto\EVP\AlgorithmException $e) {
 try {
 	$cipher->decryptInit('short_key');
 }
-catch (Crypto\EVP\AlgorithmException $e) {
+catch (Crypto\AlgorithmException $e) {
 	// key checking is first
-	if ($e->getCode() === Crypto\EVP\AlgorithmException::CIPHER_KEY_LENGTH) {
+	if ($e->getCode() === Crypto\AlgorithmException::CIPHER_KEY_LENGTH) {
 		echo "BOTH\n";
 	}
 }

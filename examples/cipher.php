@@ -1,7 +1,7 @@
 <?php
-namespace Crypto\EVP;
+namespace Crypto;
 try {
-	$md = new MD('md5');
+	$md = new Digest('md5');
 
 	$cipher = new Cipher('aes-256-ctr');
 	var_dump($cipher->getAlgorithm());

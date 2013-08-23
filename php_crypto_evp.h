@@ -25,22 +25,22 @@
 #include <openssl/evp.h>
 
 typedef enum {
-	PHP_CRYPTO_EVP_ALG_NONE = 0,
-	PHP_CRYPTO_EVP_ALG_CIPHER,
-	PHP_CRYPTO_EVP_ALG_DIGEST,
-} php_crypto_evp_algorithm_type;
+	PHP_CRYPTO_ALG_NONE = 0,
+	PHP_CRYPTO_ALG_CIPHER,
+	PHP_CRYPTO_ALG_DIGEST,
+} php_crypto_algorithm_type;
 
 typedef enum {
-	PHP_CRYPTO_EVP_ALG_STATUS_CLEAR,
-	PHP_CRYPTO_EVP_ALG_STATUS_DIGEST,
-	PHP_CRYPTO_EVP_ALG_STATUS_ENCRYPT,
-	PHP_CRYPTO_EVP_ALG_STATUS_DECRYPT,
-} php_crypto_evp_algorithm_status;
+	PHP_CRYPTO_ALG_STATUS_CLEAR,
+	PHP_CRYPTO_ALG_STATUS_DIGEST,
+	PHP_CRYPTO_ALG_STATUS_ENCRYPT,
+	PHP_CRYPTO_ALG_STATUS_DECRYPT,
+} php_crypto_algorithm_status;
 
 typedef struct {
 	zend_object zo;
-	php_crypto_evp_algorithm_type type;
-	php_crypto_evp_algorithm_status status;
+	php_crypto_algorithm_type type;
+	php_crypto_algorithm_status status;
 	union {
 		struct {
 			const EVP_CIPHER *alg;
@@ -51,55 +51,55 @@ typedef struct {
 			EVP_MD_CTX *ctx;
 		} digest;
 	};
-} php_crypto_evp_algorithm_object;
+} php_crypto_algorithm_object;
 
 /* Algorithm exceptions macros */
-#define PHP_CRYPTO_EVP_ALG_E(code) PHP_CRYPTO_EVP_ALGORITHM_ERROR_##code
-#define PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION(code, msg) \
-	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E(code), msg)
-#define PHP_CRYPTO_EVP_THROW_ALGORITHM_EXCEPTION_EX(code, msg, ...) \
-	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_evp_algorithm_exception_ce, PHP_CRYPTO_EVP_ALG_E(code), msg, ##__VA_ARGS__)
+#define PHP_CRYPTO_ALG_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
+#define PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(code, msg) \
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_algorithm_exception_ce, PHP_CRYPTO_ALG_E(code), msg)
+#define PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(code, msg, ...) \
+	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_algorithm_exception_ce, PHP_CRYPTO_ALG_E(code), msg, ##__VA_ARGS__)
 
 /* Algorithm exception error codes */
 typedef enum {
-	PHP_CRYPTO_EVP_ALG_E(DIGEST_NOT_FOUND) = 1,
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_NOT_FOUND),
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_KEY_LENGTH),
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_IV_LENGTH),
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_INIT_FAILED),
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_UPDATE_FAILED),
-	PHP_CRYPTO_EVP_ALG_E(CIPHER_FINAL_FAILED),
-	PHP_CRYPTO_EVP_ALG_E(ENCRYPT_INIT_STATUS),
-	PHP_CRYPTO_EVP_ALG_E(ENCRYPT_UPDATE_STATUS),
-	PHP_CRYPTO_EVP_ALG_E(ENCRYPT_FINAL_STATUS),
-	PHP_CRYPTO_EVP_ALG_E(DECRYPT_INIT_STATUS),
-	PHP_CRYPTO_EVP_ALG_E(DECRYPT_UPDATE_STATUS),
-	PHP_CRYPTO_EVP_ALG_E(DECRYPT_FINAL_STATUS)
-} php_crypto_evp_algorithm_error_code;
+	PHP_CRYPTO_ALG_E(DIGEST_NOT_FOUND) = 1,
+	PHP_CRYPTO_ALG_E(CIPHER_NOT_FOUND),
+	PHP_CRYPTO_ALG_E(CIPHER_KEY_LENGTH),
+	PHP_CRYPTO_ALG_E(CIPHER_IV_LENGTH),
+	PHP_CRYPTO_ALG_E(CIPHER_INIT_FAILED),
+	PHP_CRYPTO_ALG_E(CIPHER_UPDATE_FAILED),
+	PHP_CRYPTO_ALG_E(CIPHER_FINAL_FAILED),
+	PHP_CRYPTO_ALG_E(ENCRYPT_INIT_STATUS),
+	PHP_CRYPTO_ALG_E(ENCRYPT_UPDATE_STATUS),
+	PHP_CRYPTO_ALG_E(ENCRYPT_FINAL_STATUS),
+	PHP_CRYPTO_ALG_E(DECRYPT_INIT_STATUS),
+	PHP_CRYPTO_ALG_E(DECRYPT_UPDATE_STATUS),
+	PHP_CRYPTO_ALG_E(DECRYPT_FINAL_STATUS)
+} php_crypto_algorithm_error_code;
 
 /* Class entries */
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_digest_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_cipher_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_evp_algorithm_exception_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_digest_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 
 /* Methods definitions */
 PHP_MINIT_FUNCTION(crypto_evp);
-PHP_CRYPTO_METHOD(EVP, Algorithm, getAlgorithm);
-PHP_CRYPTO_METHOD(EVP, Cipher, hasAlgorithm);
-PHP_CRYPTO_METHOD(EVP, Cipher, __construct);
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptInit);
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptUpdate);
-PHP_CRYPTO_METHOD(EVP, Cipher, encryptFinal);
-PHP_CRYPTO_METHOD(EVP, Cipher, encrypt);
-PHP_CRYPTO_METHOD(EVP, Cipher, decryptInit);
-PHP_CRYPTO_METHOD(EVP, Cipher, decryptUpdate);
-PHP_CRYPTO_METHOD(EVP, Cipher, decryptFinal);
-PHP_CRYPTO_METHOD(EVP, Cipher, decrypt);
-PHP_CRYPTO_METHOD(EVP, Cipher, getBlockSize);
-PHP_CRYPTO_METHOD(EVP, Cipher, getKeyLength);
-PHP_CRYPTO_METHOD(EVP, Cipher, getIVLength);
-PHP_CRYPTO_METHOD(EVP, Digest, __construct);
+PHP_CRYPTO_METHOD(Algorithm, getAlgorithm);
+PHP_CRYPTO_METHOD(Cipher, hasAlgorithm);
+PHP_CRYPTO_METHOD(Cipher, __construct);
+PHP_CRYPTO_METHOD(Cipher, encryptInit);
+PHP_CRYPTO_METHOD(Cipher, encryptUpdate);
+PHP_CRYPTO_METHOD(Cipher, encryptFinal);
+PHP_CRYPTO_METHOD(Cipher, encrypt);
+PHP_CRYPTO_METHOD(Cipher, decryptInit);
+PHP_CRYPTO_METHOD(Cipher, decryptUpdate);
+PHP_CRYPTO_METHOD(Cipher, decryptFinal);
+PHP_CRYPTO_METHOD(Cipher, decrypt);
+PHP_CRYPTO_METHOD(Cipher, getBlockSize);
+PHP_CRYPTO_METHOD(Cipher, getKeyLength);
+PHP_CRYPTO_METHOD(Cipher, getIVLength);
+PHP_CRYPTO_METHOD(Digest, __construct);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 

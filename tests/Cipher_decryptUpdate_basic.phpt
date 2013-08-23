@@ -1,5 +1,5 @@
 --TEST--
-Crypto\EVP\Cipher::decryptUpdate basic usage.
+Crypto\Cipher::decryptUpdate basic usage.
 --FILE--
 <?php
 $key = str_repeat('x', 32);
@@ -7,14 +7,14 @@ $iv = str_repeat('i', 16);
 
 $ciphertext = base64_decode('j4hToWhWBxM8ue4Px6W4pXEDk1y8OepoDe8NsHZ+lU4=');
 
-$cipher = new Crypto\EVP\Cipher('aes-256-cbc');
+$cipher = new Crypto\Cipher('aes-256-cbc');
 
 // invalid order
 try {
 	$cipher->decryptUpdate('ddd');
 }
-catch (Crypto\EVP\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\EVP\AlgorithmException::DECRYPT_UPDATE_STATUS) {
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\AlgorithmException::DECRYPT_UPDATE_STATUS) {
 		echo "UPDATE STATUS\n";
 	}
 }

@@ -1,8 +1,8 @@
 --TEST--
-Crypto\EVP\Cipher::getBlockSize basic usage.
+Crypto\Cipher::getBlockSize basic usage.
 --FILE--
 <?php
-$cipher = new Crypto\EVP\Cipher('aes-256-cbc');
+$cipher = new Crypto\Cipher('aes-256-cbc');
 
 // init first
 echo $cipher->getBlockSize() . "\n";
