@@ -261,7 +261,7 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto bool Crypto\Cipher::hasAlgorithm()
+/* {{{ proto static bool Crypto\Cipher::hasAlgorithm(string $algorithm)
    Finds out whether algorithm exists */
 PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
 {
@@ -280,7 +280,7 @@ PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto Crypto\Cipher::__construct(string algorithm)
+/* {{{ proto Crypto\Cipher::__construct(string $algorithm)
    Cipher constructor */
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
@@ -490,57 +490,57 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Cipher::encryptInit(string key [, string iv])
-   Cipher encryption initialization */
+/* {{{ proto void Crypto\Cipher::encryptInit(string $key, string $iv = null)
+   Initializes cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptInit)
 {
 	php_crypto_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto string Crypto\Cipher::encryptUpdate(string data)
-   Cipher encryption update */
+/* {{{ proto string Crypto\Cipher::encryptUpdate(string $data)
+   Updates cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptUpdate)
 {
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto string Crypto\Cipher::encryptFinal()
-   Cipher encryption finalization */
+   Finalizes cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptFinal)
 {
 	php_crypto_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto string Crypto\Cipher::encrypt(string data, string key [, string iv])
-   Cipher encryption */
+/* {{{ proto string Crypto\Cipher::encrypt(string $data, string $key, string $iv = null)
+   Enrypts text to ciphertext */
 PHP_CRYPTO_METHOD(Cipher, encrypt)
 {
 	php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto void Crypto\Cipher::decryptInit(string key [, string iv])
-   Cipher decryption initialization */
+/* {{{ proto void Crypto\Cipher::decryptInit(string $key, string $iv = null)
+   Initializes cipher decription */
 PHP_CRYPTO_METHOD(Cipher, decryptInit)
 {
 	php_crypto_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto string Crypto\Cipher::decryptUpdate(string data)
-   Cipher decryption update */
+/* {{{ proto string Crypto\Cipher::decryptUpdate(string $data)
+   Updates cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptUpdate)
 {
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto string Crypto\Cipher::decryptFinal()
-   Cipher decryption finalization */
+   Finalizes cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptFinal)
 {
 	php_crypto_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto string Crypto\Cipher::decrypt(string data, string key [, string iv])
-   Cipher decryption */
+/* {{{ proto string Crypto\Cipher::decrypt(string $data, string $key, string $iv = null)
+   Decrypts ciphertext to decrypted text */
 PHP_CRYPTO_METHOD(Cipher, decrypt)
 {
 	php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
@@ -588,7 +588,7 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
 	RETURN_LONG(EVP_CIPHER_iv_length(intern->cipher.alg));
 }
 
-/* {{{ proto bool Crypto\Digest::hasAlgorithm()
+/* {{{ proto static bool Crypto\Digest::hasAlgorithm(string $algorithm)
    Finds out whether algorithm exists */
 PHP_CRYPTO_METHOD(Digest, hasAlgorithm)
 {
@@ -607,7 +607,7 @@ PHP_CRYPTO_METHOD(Digest, hasAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto Crypto\Digest::__construct(string algorithm)
+/* {{{ proto Crypto\Digest::__construct(string $algorithm)
    Message Digest constructor */
 PHP_CRYPTO_METHOD(Digest, __construct)
 {
@@ -759,28 +759,28 @@ static inline void php_crypto_digest_make(INTERNAL_FUNCTION_PARAMETERS)
 /* }}} */
 
 /* {{{ proto void Crypto\Digest::init()
-   Digest initialization */
+   Initializes digest */
 PHP_CRYPTO_METHOD(Digest, init)
 {
 	php_crypto_digest_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto void Crypto\Digest::update(string data)
-   Digest update */
+/* {{{ proto void Crypto\Digest::update(string $data)
+   Updates digest */
 PHP_CRYPTO_METHOD(Digest, update)
 {
 	php_crypto_digest_update(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
 /* {{{ proto string Crypto\Digest::final()
-   Digest finalization */
+   Finalizes digest */
 PHP_CRYPTO_METHOD(Digest, final)
 {
 	php_crypto_digest_final(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto string Crypto\Digest::make(string data)
-   Digest making */
+/* {{{ proto string Crypto\Digest::make(string $data)
+   Makes digest */
 PHP_CRYPTO_METHOD(Digest, make)
 {
 	php_crypto_digest_make(INTERNAL_FUNCTION_PARAM_PASSTHRU);
