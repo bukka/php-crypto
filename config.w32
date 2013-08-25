@@ -1,13 +1,15 @@
 // $Id$
 // vim:ft=javascript
 
-// If your extension references something external, use ARG_WITH
-// ARG_WITH("crypto", "for crypto support", "no");
-
-// Otherwise, use ARG_ENABLE
-// ARG_ENABLE("crypto", "enable crypto support", "no");
+ARG_WITH("crypto", "Crypto support", "no");
 
 if (PHP_CRYPTO != "no") {
-	EXTENSION("crypto", "crypto.c");
+	if (ADD_EXTENSION_DEP('CRYPTO', 'OPENSSL')
+			&& CHECK_LIB("libeay32.lib", "crypto", PHP_CRYPTO)) {
+		AC_DEFINE("HAVE_CRYPTOLIB",1,"[Whether you want objective crypto binding]");
+		EXTENSION("crypto", "crypto.c crypto_evp.c");
+	} else {
+		WARNING("crypto support can't be enabled, openssl is not enabled");
+		PHP_CRYPTO = "no";
+	}
 }
-
