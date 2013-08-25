@@ -172,11 +172,21 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 	zend_object_value new_ov = php_crypto_algorithm_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
 
 	zend_objects_clone_members(&new_obj->zo, new_ov, &old_obj->zo, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
+	new_obj->status = old_obj->status;
+	new_obj->type = old_obj->type;
 
 	if (new_obj->type == PHP_CRYPTO_ALG_CIPHER) {
-		EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
+		/*
+		 * EVP_CIPHER_CTX_copy doesn't work for OpenSSL version <= 1.0.0
+		 * EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
+		 */
+		memcpy(new_obj->cipher.ctx, old_obj->cipher.ctx, sizeof *(new_obj->cipher.ctx));
 	} else if (new_obj->type == PHP_CRYPTO_ALG_DIGEST) {
-		EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
+		/*
+		 * EVP_MD_CTX_copy doesn't work for OpenSSL version <= 1.0.0
+		 * EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
+		 */
+		memcpy(new_obj->digest.ctx, old_obj->digest.ctx, sizeof *(new_obj->digest.ctx));
 	}
 	
 	return new_ov;
