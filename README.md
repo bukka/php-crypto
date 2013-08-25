@@ -5,6 +5,8 @@ The php-crypto is an objective wrapper for OpenSSL Crypto library.
 
 ## Installation
 
+### Linux
+
 First download the source
 ```
 git clone https://github.com/bukka/php-crypto.git
@@ -29,6 +31,12 @@ extension=crypto.so
 ```
 to the `php.ini`
 
+### Windows
+
+The `php_crypto.dll` for Windows is available inside this PHP 5.4.19 build:
+
+[https://dl.dropboxusercontent.com/u/8954372/php-5.4.19-nts-Win32-VC9-x86.zip](https://dl.dropboxusercontent.com/u/8954372/php-5.4.19-nts-Win32-VC9-x86.zip)
+
 
 ## API
 
@@ -38,7 +46,7 @@ All classes are defined in namespace `Crypto`. Currently there are 3 classes and
 
 ### PHP definition for the classes
 
-The internal code is written in C. The body of the methods is not shown though.
+The internal code is written in C so the body of methods is not shown.
 
 ```php
 <?php
