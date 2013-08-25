@@ -57,6 +57,20 @@ PHP_MINFO_FUNCTION(crypto);
 #define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)
 #define PHP_CRYPTO_THROW_EXCEPTION_EX(exc_ce, code, msg, ...) zend_throw_exception_ex(exc_ce, code TSRMLS_CC, msg, ##__VA_ARGS__)
 
+/* macro for initializing properties in obejct (new definition for PHP 5.3) */
+#if PHP_VERSION_ID < 50399
+#define php_crypto_object_properties_init(zo, class_type) { \
+	zval *tmp; \
+	zend_hash_copy((*(zo)).properties, \
+		&(class_type)->default_properties, \
+		(copy_ctor_func_t) zval_add_ref, \
+		(void *) &tmp, \
+		sizeof(zval *)); \
+}
+#else
+#define php_crypto_object_properties_init(zo, class_type) object_properties_init(zo, class_type)
+#endif
+
 #endif	/* PHP_CRYPTO_H */
 
 /*

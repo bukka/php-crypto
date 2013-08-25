@@ -132,7 +132,7 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 		*ptr = intern;
 	}
 	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
-	object_properties_init(&intern->zo, class_type);
+	php_crypto_object_properties_init(&intern->zo, class_type);
 
 	if (class_type == php_crypto_cipher_ce) {
 		intern->type = PHP_CRYPTO_ALG_CIPHER;
