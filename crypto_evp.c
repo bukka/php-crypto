@@ -167,6 +167,7 @@ static zend_object_value php_crypto_algorithm_object_create(zend_class_entry *cl
 /* {{{ php_crypto_algorith_object_clone */
 zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 {
+	int copy_success;
 	php_crypto_algorithm_object *new_obj = NULL;
 	php_crypto_algorithm_object *old_obj = (php_crypto_algorithm_object *) zend_object_store_get_object(this_ptr TSRMLS_CC);
 	zend_object_value new_ov = php_crypto_algorithm_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
@@ -176,17 +177,27 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 	new_obj->type = old_obj->type;
 
 	if (new_obj->type == PHP_CRYPTO_ALG_CIPHER) {
-		/*
-		 * EVP_CIPHER_CTX_copy doesn't work for OpenSSL version <= 1.0.0
-		 * EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
-		 */
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+		copy_success = EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
+#else
 		memcpy(new_obj->cipher.ctx, old_obj->cipher.ctx, sizeof *(new_obj->cipher.ctx));
+		copy_success = 1;
+		if (old_obj->cipher.ctx->cipher_data && old_obj->cipher.ctx->cipher->ctx_size) {
+			new_obj->cipher.ctx->cipher_data = OPENSSL_malloc(old_obj->cipher.ctx->cipher->ctx_size);
+			if (!new_obj->cipher.ctx->cipher_data) {
+				copy_success = 0;
+			}
+			memcpy(new_obj->cipher.ctx->cipher_data, old_obj->cipher.ctx->cipher_data, old_obj->cipher.ctx->cipher->ctx_size);
+		}
+#endif
+		new_obj->cipher.alg = old_obj->cipher.ctx->cipher;
 	} else if (new_obj->type == PHP_CRYPTO_ALG_DIGEST) {
-		/*
-		 * EVP_MD_CTX_copy doesn't work for OpenSSL version <= 1.0.0
-		 * EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
-		 */
-		memcpy(new_obj->digest.ctx, old_obj->digest.ctx, sizeof *(new_obj->digest.ctx));
+		copy_success = EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
+		new_obj->digest.alg = old_obj->digest.ctx->digest;
+	}
+
+	if (!copy_success) {
+		php_error(E_ERROR, "Cloning of Algorithm object failed");
 	}
 	
 	return new_ov;
