@@ -107,11 +107,11 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) object;
 
 	if (intern->type == PHP_CRYPTO_ALG_CIPHER) {
-		EVP_CIPHER_CTX_cleanup(intern->cipher.ctx);
-		efree(intern->cipher.ctx);
+		EVP_CIPHER_CTX_cleanup(PHP_CRYPTO_CIPHER_CTX(intern));
+		efree(PHP_CRYPTO_CIPHER_CTX(intern));
 	} else if (intern->type == PHP_CRYPTO_ALG_DIGEST) {
-		EVP_MD_CTX_cleanup(intern->digest.ctx);
-		efree(intern->digest.ctx);
+		EVP_MD_CTX_cleanup(PHP_CRYPTO_DIGEST_CTX(intern));
+		efree(PHP_CRYPTO_DIGEST_CTX(intern));
 	}
 	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
@@ -136,12 +136,12 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 
 	if (class_type == php_crypto_cipher_ce) {
 		intern->type = PHP_CRYPTO_ALG_CIPHER;
-		intern->cipher.ctx = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
-		EVP_CIPHER_CTX_init(intern->cipher.ctx);
+		PHP_CRYPTO_CIPHER_CTX(intern) = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
+		EVP_CIPHER_CTX_init(PHP_CRYPTO_CIPHER_CTX(intern));
 	} else if (class_type == php_crypto_digest_ce) {
 		intern->type = PHP_CRYPTO_ALG_DIGEST;
-		intern->digest.ctx = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
-		EVP_MD_CTX_init(intern->digest.ctx);
+		PHP_CRYPTO_DIGEST_CTX(intern) = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
+		EVP_MD_CTX_init(PHP_CRYPTO_DIGEST_CTX(intern));
 	} else {
 		intern->type = PHP_CRYPTO_ALG_NONE;
 	}
@@ -178,22 +178,22 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 
 	if (new_obj->type == PHP_CRYPTO_ALG_CIPHER) {
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
-		copy_success = EVP_CIPHER_CTX_copy(new_obj->cipher.ctx, old_obj->cipher.ctx);
+		copy_success = EVP_CIPHER_CTX_copy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj));
 #else
-		memcpy(new_obj->cipher.ctx, old_obj->cipher.ctx, sizeof *(new_obj->cipher.ctx));
+		memcpy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj), sizeof *(PHP_CRYPTO_CIPHER_CTX(new_obj)));
 		copy_success = 1;
-		if (old_obj->cipher.ctx->cipher_data && old_obj->cipher.ctx->cipher->ctx_size) {
-			new_obj->cipher.ctx->cipher_data = OPENSSL_malloc(old_obj->cipher.ctx->cipher->ctx_size);
-			if (!new_obj->cipher.ctx->cipher_data) {
+		if (PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher_data && PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size) {
+			PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data = OPENSSL_malloc(PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size);
+			if (!PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data) {
 				copy_success = 0;
 			}
-			memcpy(new_obj->cipher.ctx->cipher_data, old_obj->cipher.ctx->cipher_data, old_obj->cipher.ctx->cipher->ctx_size);
+			memcpy(PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data, PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher_data, PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size);
 		}
 #endif
-		new_obj->cipher.alg = old_obj->cipher.ctx->cipher;
+		PHP_CRYPTO_CIPHER_ALG(new_obj) = PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher;
 	} else if (new_obj->type == PHP_CRYPTO_ALG_DIGEST) {
-		copy_success = EVP_MD_CTX_copy(new_obj->digest.ctx, old_obj->digest.ctx);
-		new_obj->digest.alg = old_obj->digest.ctx->digest;
+		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_DIGEST_CTX(new_obj), PHP_CRYPTO_DIGEST_CTX(old_obj));
+		PHP_CRYPTO_DIGEST_ALG(new_obj) = PHP_CRYPTO_DIGEST_CTX(old_obj)->digest;
 	}
 
 	if (!copy_success) {
@@ -317,7 +317,7 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 	
 	cipher = EVP_get_cipherbyname(algorithm);
 	if (cipher) {
-		intern->cipher.alg = cipher;
+		PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
 	} else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
 	}
@@ -327,7 +327,7 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 /* {{{ php_crypto_cipher_check_key */
 static int php_crypto_cipher_check_key(zval *zobject, php_crypto_algorithm_object *intern, int key_len TSRMLS_DC)
 {
-	int alg_key_len = EVP_CIPHER_key_length(intern->cipher.alg);
+	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(intern));
 	
 	if (key_len != alg_key_len) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_KEY_LENGTH, "Invalid length of key for cipher '%s' algorithm (required length: %d)",
@@ -341,7 +341,7 @@ static int php_crypto_cipher_check_key(zval *zobject, php_crypto_algorithm_objec
 /* {{{ php_crypto_cipher_check_iv */
 static int php_crypto_cipher_check_iv(zval *zobject, php_crypto_algorithm_object *intern, int iv_len TSRMLS_DC)
 {
-	int alg_iv_len = EVP_CIPHER_iv_length(intern->cipher.alg);
+	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(intern));
 	
 	if (iv_len != alg_iv_len) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_IV_LENGTH, "Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
@@ -376,7 +376,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 		return NULL;
 	}
 	/* initialize encryption */
-	if (!EVP_CipherInit_ex(intern->cipher.ctx, intern->cipher.alg, NULL, key, iv, enc)) {
+	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(intern), PHP_CRYPTO_CIPHER_ALG(intern), NULL, key, iv, enc)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_FAILED, "Initialization of cipher failed");
 		return NULL;
 	}
@@ -422,11 +422,11 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 
-	outbuf_len = data_len + EVP_CIPHER_block_size(intern->cipher.alg);
+	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 	
 	/* update encryption context */
-	if (!EVP_CipherUpdate(intern->cipher.ctx, outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
+	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_UPDATE_FAILED, "Updating of cipher failed");
 		efree(outbuf);
 		return;
@@ -457,11 +457,11 @@ static inline void php_crypto_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc
 		return;
 	}
 	
-	outbuf_len = EVP_CIPHER_block_size(intern->cipher.alg);
+	outbuf_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 	
 	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(intern->cipher.ctx, outbuf, &outbuf_len)) {
+	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
@@ -489,17 +489,17 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 		return;
 	}
 
-	outbuf_len = data_len + EVP_CIPHER_block_size(intern->cipher.alg);
+	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
 	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
 
 	/* update encryption context */
-	if (!EVP_CipherUpdate(intern->cipher.ctx, outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
+	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_UPDATE_FAILED, "Updating of cipher failed");
 		efree(outbuf);
 		return;
 	}
 	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(intern->cipher.ctx, outbuf + outbuf_update_len, &outbuf_final_len)) {
+	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf + outbuf_update_len, &outbuf_final_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
@@ -578,7 +578,7 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_CIPHER_block_size(intern->cipher.alg));
+	RETURN_LONG(EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
 /* {{{ proto int Crypto\Cipher::getKeyLength()
@@ -592,7 +592,7 @@ PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_CIPHER_key_length(intern->cipher.alg));
+	RETURN_LONG(EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
 /* {{{ proto int Crypto\Cipher::getIVLength()
@@ -606,7 +606,7 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_CIPHER_iv_length(intern->cipher.alg));
+	RETURN_LONG(EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
 /* {{{ proto static bool Crypto\Digest::hasAlgorithm(string $algorithm)
@@ -644,7 +644,7 @@ PHP_CRYPTO_METHOD(Digest, __construct)
 	
 	digest = EVP_get_digestbyname(algorithm);
 	if (digest) {
-		intern->digest.alg = digest;
+		PHP_CRYPTO_DIGEST_ALG(intern) = digest;
 	}
 	else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(DIGEST_NOT_FOUND, "Message Digest '%s' algorithm not found", algorithm);
@@ -658,7 +658,7 @@ static inline php_crypto_algorithm_object *php_crypto_digest_init_ex(zval *zobje
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(zobject TSRMLS_CC);
 	
 	/* initialize digest */
-	if (!EVP_DigestInit_ex(intern->digest.ctx, intern->digest.alg, NULL)) {
+	if (!EVP_DigestInit_ex(PHP_CRYPTO_DIGEST_CTX(intern), PHP_CRYPTO_DIGEST_ALG(intern), NULL)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_INIT_FAILED, "Initialization of digest failed");
 		return NULL;
 	}
@@ -688,7 +688,7 @@ static inline zend_bool php_crypto_digest_update_ex(php_crypto_algorithm_object 
 	}
 
 	/* update digest context */
-	if (!EVP_DigestUpdate(intern->digest.ctx, data, data_len)) {
+	if (!EVP_DigestUpdate(PHP_CRYPTO_DIGEST_CTX(intern), data, data_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_UPDATE_FAILED, "Updating of digest failed");
 		return FAILURE;
 	}
@@ -726,7 +726,7 @@ static inline char *php_crypto_digest_final_ex(php_crypto_algorithm_object *inte
 	}
 
 	/* finalize digest context */
-	if (!EVP_DigestFinal(intern->digest.ctx, digest_value, &digest_len)) {
+	if (!EVP_DigestFinal(PHP_CRYPTO_DIGEST_CTX(intern), digest_value, &digest_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_FINAL_FAILED, "Finalizing of digest failed");
 		return NULL;
 	}
@@ -818,7 +818,7 @@ PHP_CRYPTO_METHOD(Digest, getBlockSize)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_MD_block_size(intern->digest.alg));
+	RETURN_LONG(EVP_MD_block_size(PHP_CRYPTO_DIGEST_ALG(intern)));
 }
 
 /* {{{ proto int Crypto\Digest::getSize()
@@ -832,5 +832,5 @@ PHP_CRYPTO_METHOD(Digest, getSize)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_MD_size(intern->digest.alg));
+	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_DIGEST_ALG(intern)));
 }
