@@ -62,6 +62,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getKeyLength,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getIVLength,      NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, getMode,          NULL,                              ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
@@ -204,8 +205,12 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 }
 /* }}} */
 
-#define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst)	\
+#define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst) \
 	zend_declare_class_constant_long(php_crypto_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_ALG_E(aconst) TSRMLS_CC)
+
+#define PHP_CRYPTO_DECLARE_CIPHER_CONST(const_name, const_value) \
+	zend_declare_class_constant_long(php_crypto_cipher_ce, #const_name, sizeof(#const_name)-1, const_value TSRMLS_CC)
+
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_evp)
@@ -251,6 +256,23 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
 	php_crypto_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
+	/* Cipher constants for modes */
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_ECB, EVP_CIPH_ECB_MODE);
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CBC, EVP_CIPH_CBC_MODE);
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CFB, EVP_CIPH_CFB_MODE);
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_OFB, EVP_CIPH_OFB_MODE);
+#ifdef EVP_CIPH_CTR_MODE
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CTR, EVP_CIPH_CTR_MODE);
+#endif
+#ifdef EVP_CIPH_GCM_MODE
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_GCM, EVP_CIPH_GCM_MODE);
+#endif
+#ifdef EVP_CIPH_CCM_MODE
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CCM, EVP_CIPH_CCM_MODE);
+#endif
+#ifdef EVP_CIPH_XTS_MODE
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, EVP_CIPH_XTS_MODE);
+#endif
 
 	return SUCCESS;
 }
@@ -607,6 +629,20 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	RETURN_LONG(EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(intern)));
+}
+
+/* {{{ proto int Crypto\Cipher::getMode()
+   Returns cipher mode */
+PHP_CRYPTO_METHOD(Cipher, getMode)
+{
+	php_crypto_algorithm_object *intern;
+	
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	RETURN_LONG(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
 /* {{{ proto static bool Crypto\Digest::hasAlgorithm(string $algorithm)

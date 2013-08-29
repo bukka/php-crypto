@@ -110,6 +110,7 @@ PHP_CRYPTO_METHOD(Cipher, decrypt);
 PHP_CRYPTO_METHOD(Cipher, getBlockSize);
 PHP_CRYPTO_METHOD(Cipher, getKeyLength);
 PHP_CRYPTO_METHOD(Cipher, getIVLength);
+PHP_CRYPTO_METHOD(Cipher, getMode);
 PHP_CRYPTO_METHOD(Digest, hasAlgorithm);
 PHP_CRYPTO_METHOD(Digest, __construct);
 PHP_CRYPTO_METHOD(Digest, init);
