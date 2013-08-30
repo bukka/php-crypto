@@ -88,6 +88,9 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(DIGEST_FINAL_STATUS)
 } php_crypto_algorithm_error_code;
 
+/* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
+#define PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED -1
+
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_digest_ce;
@@ -98,6 +101,7 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 PHP_MINIT_FUNCTION(crypto_evp);
 PHP_CRYPTO_METHOD(Algorithm, getAlgorithm);
 PHP_CRYPTO_METHOD(Cipher, hasAlgorithm);
+PHP_CRYPTO_METHOD(Cipher, hasMode);
 PHP_CRYPTO_METHOD(Cipher, __construct);
 PHP_CRYPTO_METHOD(Cipher, encryptInit);
 PHP_CRYPTO_METHOD(Cipher, encryptUpdate);

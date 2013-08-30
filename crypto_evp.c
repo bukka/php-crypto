@@ -32,6 +32,10 @@ ZEND_ARG_INFO(0, key)
 ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher, 0)
+ZEND_ARG_INFO(0, mode)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm_data, 0)
 ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
@@ -50,6 +54,7 @@ static const zend_function_entry php_crypto_algorithm_object_methods[] = {
 
 static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, hasMode,          arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
@@ -263,15 +268,23 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_OFB, EVP_CIPH_OFB_MODE);
 #ifdef EVP_CIPH_CTR_MODE
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CTR, EVP_CIPH_CTR_MODE);
+#else
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CTR, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 #ifdef EVP_CIPH_GCM_MODE
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_GCM, EVP_CIPH_GCM_MODE);
+#else
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_GCM, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 #ifdef EVP_CIPH_CCM_MODE
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CCM, EVP_CIPH_CCM_MODE);
+#else
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CCM, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 #ifdef EVP_CIPH_XTS_MODE
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, EVP_CIPH_XTS_MODE);
+#else
+	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 
 	return SUCCESS;
@@ -320,6 +333,20 @@ PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
 	} else {
 		RETURN_FALSE;
 	}
+}
+/* }}} */
+
+/* {{{ proto static bool Crypto\Cipher::hasMode(int $mode)
+   Finds out whether the cipher mode is defined in the used OpenSSL library */
+PHP_CRYPTO_METHOD(Cipher, hasMode)
+{
+	long mode;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &mode) == FAILURE) {
+		return;
+	}
+
+	RETURN_BOOL(mode != PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED && (mode & EVP_CIPH_MODE));
 }
 /* }}} */
 
