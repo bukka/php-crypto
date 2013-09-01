@@ -16,74 +16,31 @@
   +----------------------------------------------------------------------+
 */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifndef PHP_CRYPTO_RAND_H
+#define PHP_CRYPTO_RAND_H
 
 #include "php.h"
-#include "php_ini.h"
-#include "ext/standard/info.h"
 #include "php_crypto.h"
-#include "php_crypto_evp.h"
 
+#include <openssl/rand.h>
 
-/* {{{ crypto_functions[] */
-const zend_function_entry crypto_functions[] = {
-	PHP_FE_END
-};
-/* }}} */
+/* Rand exceptions macros */
+#define PHP_CRYPTO_THROW_RAND_EXCEPTION(code, msg) \
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_rand_exception_ce, PHP_CRYPTO_ALG_E(code), msg)
+#define PHP_CRYPTO_THROW_RAND_EXCEPTION_EX(code, msg, ...) \
+	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_rand_exception_ce, code, msg, ##__VA_ARGS__)
 
-/* {{{ crypto_module_entry
- */
-zend_module_entry crypto_module_entry = {
-	STANDARD_MODULE_HEADER,
-	"crypto",
-	crypto_functions,
-	PHP_MINIT(crypto),
-	PHP_MSHUTDOWN(crypto),
-	NULL,
-	NULL,
-	PHP_MINFO(crypto),
-	"0.1",
-	STANDARD_MODULE_PROPERTIES
-};
-/* }}} */
+/* Class entries */
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_rand_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_rand_exception_ce;
 
-#ifdef COMPILE_DL_CRYPTO
-ZEND_GET_MODULE(crypto)
-#endif
+/* Methods definitions */
+PHP_MINIT_FUNCTION(crypto_rand);
+PHP_CRYPTO_METHOD(Rand, generate);
+PHP_CRYPTO_METHOD(Rand, seed);
+PHP_CRYPTO_METHOD(Rand, cleanup);
 
-/* {{{ PHP_MINIT_FUNCTION
- */
-PHP_MINIT_FUNCTION(crypto)
-{
-	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
-	PHP_MINIT(crypto_evp)(INIT_FUNC_ARGS_PASSTHRU);
-	
-	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_MSHUTDOWN_FUNCTION
- */
-PHP_MSHUTDOWN_FUNCTION(crypto)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ PHP_MINFO_FUNCTION
- */
-PHP_MINFO_FUNCTION(crypto)
-{
-	php_info_print_table_start();
-	php_info_print_table_row(2, "Crypto support", "enabled");
-	php_info_print_table_row(2, "OpenSSL Library Version", SSLeay_version(SSLEAY_VERSION));
-	php_info_print_table_row(2, "OpenSSL Header Version", OPENSSL_VERSION_TEXT);
-	php_info_print_table_end();
-}
-/* }}} */
-
+#endif	/* PHP_CRYPTO_RAND_H */
 
 /*
  * Local variables:

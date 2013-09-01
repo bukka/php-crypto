@@ -221,7 +221,6 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 PHP_MINIT_FUNCTION(crypto_evp)
 {
 	zend_class_entry ce;
-	int alg_error_code = 1;
 
 	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Algorithm), php_crypto_algorithm_object_methods);
