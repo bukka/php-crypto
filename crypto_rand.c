@@ -30,7 +30,8 @@ ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_rand_generate, 0, 0, 1)
 ZEND_ARG_INFO(0, num)
-ZEND_ARG_INFO(0, strong)
+ZEND_ARG_INFO(0, must_be_strong)
+ZEND_ARG_INFO(1, returned_strong_result)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_rand_seed, 0, 0, 1)
@@ -68,27 +69,36 @@ PHP_MINIT_FUNCTION(crypto_rand)
 }
 /* }}} */
 
-/* {{{ proto string Rand::generate(int $num, bool $strong = true)
+/* {{{ proto string Rand::generate(int $num, bool $must_be_strong = true, &bool $returned_strong_result = true)
    Generate pseudo random bytes */
 PHP_CRYPTO_METHOD(Rand, generate)
 {
-	long num, strong = 1;
+	long num;
 	char *buf;
+	zval *zstrong_result = NULL;
+	zend_bool strong_result, must_be_strong = 1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|l", &num, &strong) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz", &num, &must_be_strong, &zstrong_result) == FAILURE) {
 		return;
 	}
 
 	buf = emalloc(sizeof(buf) * num + 1);
-	if (strong) {
+		
+	if (must_be_strong) {
 		if (!RAND_bytes((unsigned char *) buf, num)) {
 			PHP_CRYPTO_THROW_RAND_EXCEPTION(0, "The PRNG state is not yet unpridactable");
+			efree(buf);
+			return;
 		}
+		strong_result = 1;
 	} else {
-		RAND_pseudo_bytes((unsigned char *) buf, num);
+		strong_result = RAND_pseudo_bytes((unsigned char *) buf, num);
+	}
+	if (zstrong_result) {
+		ZVAL_TRUE(zstrong_result);
 	}
 	buf[num] = '\0';
-	RETURN_STRING(buf, 0);
+	RETURN_STRINGL(buf, num, 0);
 }
 /* }}} */
 
