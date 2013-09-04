@@ -95,7 +95,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 		strong_result = RAND_pseudo_bytes((unsigned char *) buf, num);
 	}
 	if (zstrong_result) {
-		ZVAL_TRUE(zstrong_result);
+		ZVAL_BOOL(zstrong_result, strong_result);
 	}
 	buf[num] = '\0';
 	RETURN_STRINGL(buf, num, 0);

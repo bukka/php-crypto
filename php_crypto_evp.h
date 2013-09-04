@@ -50,14 +50,14 @@ typedef struct {
 			const EVP_MD *alg;
 			EVP_MD_CTX *ctx;
 		} digest;
-	};
+	} evp;
 } php_crypto_algorithm_object;
 
 /* Algorithm object accessors */
-#define PHP_CRYPTO_CIPHER_CTX(pobj) (pobj)->cipher.ctx
-#define PHP_CRYPTO_CIPHER_ALG(pobj) (pobj)->cipher.alg
-#define PHP_CRYPTO_DIGEST_CTX(pobj) (pobj)->digest.ctx
-#define PHP_CRYPTO_DIGEST_ALG(pobj) (pobj)->digest.alg
+#define PHP_CRYPTO_CIPHER_CTX(pobj) (pobj)->evp.cipher.ctx
+#define PHP_CRYPTO_CIPHER_ALG(pobj) (pobj)->evp.cipher.alg
+#define PHP_CRYPTO_DIGEST_CTX(pobj) (pobj)->evp.digest.ctx
+#define PHP_CRYPTO_DIGEST_ALG(pobj) (pobj)->evp.digest.alg
 
 /* Algorithm exceptions macros */
 #define PHP_CRYPTO_ALG_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code

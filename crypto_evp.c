@@ -424,7 +424,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 		return NULL;
 	}
 	/* initialize encryption */
-	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(intern), PHP_CRYPTO_CIPHER_ALG(intern), NULL, key, iv, enc)) {
+	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(intern), PHP_CRYPTO_CIPHER_ALG(intern), NULL, (const unsigned char *) key, (const unsigned char *) iv, enc)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_FAILED, "Initialization of cipher failed");
 		return NULL;
 	}
@@ -480,7 +480,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 	outbuf[outbuf_len] = 0;
-	RETURN_STRINGL(outbuf, outbuf_len, 0);
+	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 
 /* {{{ php_crypto_cipher_final */
@@ -516,7 +516,7 @@ static inline void php_crypto_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc
 	}
 	outbuf[outbuf_len] = 0;
 	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
-	RETURN_STRINGL(outbuf, outbuf_len, 0);
+	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 /* }}} */
 
@@ -555,7 +555,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	outbuf_len = outbuf_update_len + outbuf_final_len;
 	outbuf[outbuf_len] = 0;
 	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
-	RETURN_STRINGL(outbuf, outbuf_len, 0);
+	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 /* }}} */
 
@@ -733,7 +733,7 @@ static inline php_crypto_algorithm_object *php_crypto_digest_init_ex(zval *zobje
 static inline php_crypto_algorithm_object *php_crypto_digest_init(INTERNAL_FUNCTION_PARAMETERS)
 {
 	if (zend_parse_parameters_none() == FAILURE) {
-		return;
+		return NULL;
 	}
 	
 	return php_crypto_digest_init_ex(getThis() TSRMLS_CC);
@@ -779,7 +779,7 @@ static inline void php_crypto_digest_update(INTERNAL_FUNCTION_PARAMETERS)
 static inline char *php_crypto_digest_final_ex(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
 	unsigned char digest_value[EVP_MAX_MD_SIZE+1];
-	int digest_len;
+	unsigned digest_len;
 
 	/* check algorithm status */
 	if (intern->status != PHP_CRYPTO_ALG_STATUS_DIGEST) {
@@ -794,7 +794,7 @@ static inline char *php_crypto_digest_final_ex(php_crypto_algorithm_object *inte
 	}
 	digest_value[digest_len] = 0;
 	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
-	return estrdup(digest_value);
+	return estrdup((char *) digest_value);
 }
 /* }}} */
 
