@@ -25,6 +25,7 @@
 #include "ext/standard/info.h"
 #include "php_crypto.h"
 #include "php_crypto_evp.h"
+#include "php_crypto_rand.h"
 
 
 /* {{{ crypto_functions[] */

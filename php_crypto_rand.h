@@ -26,7 +26,7 @@
 
 /* Rand exceptions macros */
 #define PHP_CRYPTO_THROW_RAND_EXCEPTION(code, msg) \
-	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_rand_exception_ce, PHP_CRYPTO_ALG_E(code), msg)
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_rand_exception_ce, code, msg)
 #define PHP_CRYPTO_THROW_RAND_EXCEPTION_EX(code, msg, ...) \
 	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_rand_exception_ce, code, msg, ##__VA_ARGS__)
 

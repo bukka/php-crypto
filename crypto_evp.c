@@ -736,7 +736,7 @@ static inline php_crypto_algorithm_object *php_crypto_digest_init(INTERNAL_FUNCT
 		return;
 	}
 	
-	php_crypto_digest_init_ex(getThis() TSRMLS_CC);
+	return php_crypto_digest_init_ex(getThis() TSRMLS_CC);
 }
 /* }}} */
 
