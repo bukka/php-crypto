@@ -202,12 +202,13 @@ PHP_CRYPTO_METHOD(Rand, egd)
 	}
 
 	if (!seed) {
-		buf = emalloc(sizeof(unsigned char) * bytes);
+		buf = emalloc(sizeof(unsigned char) * bytes + 1);
 	}
 
 	RAND_query_egd_bytes(path, buf, bytes);
 
 	if (!seed) {
+		buf[bytes] = '\0';
 		RETVAL_STRINGL((char *) buf, bytes, 0);
 	}
 }
