@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Algorithm::__getAlgorithm basic usage.
+Crypto\Algorithm::getAlgorithmName basic usage.
 --FILE--
 <?php
 // basic creation
