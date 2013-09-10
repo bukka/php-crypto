@@ -99,7 +99,8 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 
 /* Methods definitions */
 PHP_MINIT_FUNCTION(crypto_evp);
-PHP_CRYPTO_METHOD(Algorithm, getAlgorithm);
+PHP_CRYPTO_METHOD(Algorithm, __construct);
+PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName);
 PHP_CRYPTO_METHOD(Cipher, hasAlgorithm);
 PHP_CRYPTO_METHOD(Cipher, hasMode);
 PHP_CRYPTO_METHOD(Cipher, __construct);

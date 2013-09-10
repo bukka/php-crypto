@@ -47,8 +47,8 @@ ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_algorithm_object_methods[] = {
-	PHP_CRYPTO_ABSTRACT_ME(Algorithm, __construct, arginfo_crypto_algorithm)
-	PHP_CRYPTO_ME(Algorithm, getAlgorithm, NULL, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Algorithm, __construct,       arginfo_crypto_algorithm, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Algorithm, getAlgorithmName,  NULL,                     ZEND_ACC_PUBLIC)
     PHP_FE_END
 };
 
@@ -307,9 +307,18 @@ static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algor
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Algorithm::getAlgorithm()
+/* {{{ proto Crypto\Algorithm::__construct(string $algorithm)
+   Algorithm constructor */
+PHP_CRYPTO_METHOD(Algorithm, __construct)
+{
+	char *algorithm;
+	int algorithm_len;
+	php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
+}
+
+/* {{{ proto string Crypto\Algorithm::getAlgorithmName()
    Returns algorithm string */
-PHP_CRYPTO_METHOD(Algorithm, getAlgorithm)
+PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 {
 	zval *algorithm = php_crypto_get_algorithm_property(getThis());
 	RETURN_ZVAL(algorithm, 1, 0);
