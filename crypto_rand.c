@@ -154,9 +154,9 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 {
 	char *path;
 	int path_len;
-	long max_bytes;
+	long max_bytes = -1;
 	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|l", &path, &path_len, &max_bytes) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p|l", &path, &path_len, &max_bytes) == FAILURE) {
 		return;
 	}
 
@@ -173,7 +173,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 	char *path;
 	int path_len, bytes_written;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &path, &path_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "p", &path, &path_len) == FAILURE) {
 		return;
 	}
 
