@@ -9,7 +9,7 @@ $digest = new Crypto\Digest('sha256');
 $digest->init();
 $digest->update($data1);
 $digest_clone = clone $digest;
-echo $digest_clone->getAlgorithm() . "\n";
+echo $digest_clone->getAlgorithmName() . "\n";
 
 $digest->update($data2);
 echo bin2hex($digest->final()) . "\n";

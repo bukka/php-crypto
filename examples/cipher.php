@@ -11,7 +11,7 @@ try {
 	$cipher = new Cipher($algorithm);
 
 	// Algorithm method for retrieving algorithm
-	echo "Algorithm: " . $cipher->getAlgorithm() . PHP_EOL;
+	echo "Algorithm: " . $cipher->getAlgorithmName() . PHP_EOL;
 
 	// Params
 	$key_len = $cipher->getKeyLength();

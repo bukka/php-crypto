@@ -4,7 +4,18 @@ Crypto\Algorithm::__construct basic usage.
 <?php
 // basic creation
 $algorithm = new Crypto\Algorithm('custom_alg');
-echo $algorithm->getAlgorithmName() . "\n";
+if ($algorithm instanceof Crypto\Algorithm)
+	echo "created\n";
+
+// sub classing
+class SubAlgorithm extends Crypto\Algorithm {
+	function __construct($algorithm) {
+		parent::__construct($algorithm);
+		echo $this->algorithm . "\n";
+	}
+}
+$subalg = new SubAlgorithm('custom_subalg');
 ?>
---EXCEPT--
-custom_alg
+--EXPECT--
+created
+custom_subalg

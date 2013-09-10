@@ -12,7 +12,7 @@ $cipher = new Crypto\Cipher('aes-256-cbc');
 $cipher->encryptInit($key, $iv);
 $cipher->encryptUpdate($data1);
 $cipher_clone = clone $cipher;
-echo $cipher_clone->getAlgorithm() . "\n";
+echo $cipher_clone->getAlgorithmName() . "\n";
 
 $cipher->encryptUpdate($data2);
 echo base64_encode($cipher->encryptFinal()) . "\n";

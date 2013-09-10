@@ -11,7 +11,7 @@ try {
 	$digest = new Digest($algorithm);
 
 	// Algorithm method for retrieving algorithm
-	echo "Algorithm: " . $digest->getAlgorithm() . PHP_EOL;
+	echo "Algorithm: " . $digest->getAlgorithmName() . PHP_EOL;
 
 	// Params
 	echo "Size: " . $digest->getSize() . PHP_EOL;
