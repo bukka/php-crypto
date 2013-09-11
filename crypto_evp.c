@@ -94,11 +94,11 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 /* object handlers */
 static zend_object_handlers php_crypto_algorithm_object_handlers;
 
-#define php_crypto_get_algorithm_property(this_object) \
+#define PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object) \
 	zend_read_property(php_crypto_algorithm_ce, this_object, "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC)
 
-#define php_crypto_get_algorithm_property_string(this_object) \
-	Z_STRVAL_P(php_crypto_get_algorithm_property(this_object))
+#define PHP_CRYPTO_GET_ALGORITHM_NAME(this_object) \
+	Z_STRVAL_P(PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object))
 
 /* {{{ php_crypto_algorithm_object_dtor */
 static void php_crypto_algorithm_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
@@ -125,7 +125,7 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 }
 /* }}} */
 
-/* {{{ php_crypto_algorithm_object_create */
+/* {{{ php_crypto_algorithm_object_create_ex */
 static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry *class_type, php_crypto_algorithm_object **ptr TSRMLS_DC)
 {
 	zend_object_value retval;
@@ -320,7 +320,7 @@ PHP_CRYPTO_METHOD(Algorithm, __construct)
    Returns algorithm string */
 PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 {
-	zval *algorithm = php_crypto_get_algorithm_property(getThis());
+	zval *algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
 	RETURN_ZVAL(algorithm, 1, 0);
 }
 /* }}} */
@@ -387,8 +387,9 @@ static int php_crypto_cipher_check_key(zval *zobject, php_crypto_algorithm_objec
 	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(intern));
 	
 	if (key_len != alg_key_len) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_KEY_LENGTH, "Invalid length of key for cipher '%s' algorithm (required length: %d)",
-													php_crypto_get_algorithm_property_string(zobject), alg_key_len);
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_KEY_LENGTH,
+			"Invalid length of key for cipher '%s' algorithm (required length: %d)",
+			PHP_CRYPTO_GET_ALGORITHM_NAME(zobject), alg_key_len);
 		return FAILURE;
 	}
 	return SUCCESS;
@@ -401,9 +402,9 @@ static int php_crypto_cipher_check_iv(zval *zobject, php_crypto_algorithm_object
 	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(intern));
 	
 	if (iv_len != alg_iv_len) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_IV_LENGTH, "Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
-													php_crypto_get_algorithm_property_string(zobject), alg_iv_len);
-		
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_IV_LENGTH,
+			"Invalid length of initial vector (IV) for cipher '%s' algorithm (required length: %d)",
+			PHP_CRYPTO_GET_ALGORITHM_NAME(zobject), alg_iv_len);
 		return FAILURE;
 	}
 	return SUCCESS;
