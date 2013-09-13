@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Cipher::hasAlogirthm basic usage.
+Crypto\Cipher::hasAlgorithm basic usage.
 --FILE--
 <?php
 echo Crypto\Cipher::hasAlgorithm('nnnn') ? "nnnn\n" : "";

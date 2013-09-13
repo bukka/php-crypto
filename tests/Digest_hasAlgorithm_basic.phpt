@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Digest::hasAlogirthm basic usage.
+Crypto\Digest::hasAlgorithm basic usage.
 --FILE--
 <?php
 echo Crypto\Digest::hasAlgorithm('nnnn') ? "nnnn\n" : "";

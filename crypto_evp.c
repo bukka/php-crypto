@@ -27,17 +27,22 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_algorithm_list, 0, 0, 0)
+ZEND_ARG_INFO(0, aliases)
+ZEND_ARG_INFO(0, prefix)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm_data, 0)
+ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_init, 0, 0, 1)
 ZEND_ARG_INFO(0, key)
 ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_mode, 0)
 ZEND_ARG_INFO(0, mode)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm_data, 0)
-ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_crypt, 0, 0, 2)
@@ -53,8 +58,9 @@ static const zend_function_entry php_crypto_algorithm_object_methods[] = {
 };
 
 static const zend_function_entry php_crypto_cipher_object_methods[] = {
+	PHP_CRYPTO_ME(Cipher, getAlgorithms,    arginfo_crypto_algorithm_list,     ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, hasMode,          arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, hasMode,          arginfo_crypto_cipher_mode,        ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
@@ -72,14 +78,15 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 };
 
 static const zend_function_entry php_crypto_digest_object_methods[] = {
-	PHP_CRYPTO_ME(Digest, hasAlgorithm,     arginfo_crypto_algorithm,           ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, __construct,      arginfo_crypto_algorithm,           ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, init,             NULL,                               ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, update,           arginfo_crypto_algorithm_data,      ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, final,            NULL,                               ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, make,             arginfo_crypto_algorithm_data,      ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, getSize,          NULL,                               ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, getBlockSize,     NULL,                               ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, getAlgorithms,    arginfo_crypto_algorithm_list,     ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, init,             NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, update,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, final,            NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, make,             arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, getSize,          NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
@@ -290,7 +297,38 @@ PHP_MINIT_FUNCTION(crypto_evp)
 }
 /* }}} */
 
-/* {{{ php_crypto_get_algorithm
+/* do all parameter structure */
+typedef struct {
+	zend_bool aliases;
+	char *prefix;
+	int prefix_len;
+	zval *return_value;
+} php_crypto_do_all_algorithms_param;
+
+/* {{{ php_crypto_do_all_algorithms */
+static void php_crypto_do_all_algorithms(const OBJ_NAME *name, void *arg)
+{
+	php_crypto_do_all_algorithms_param *pp = (php_crypto_do_all_algorithms_param *) arg;
+	if ((pp->aliases || name->alias == 0) && (!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
+		add_next_index_string(pp->return_value, (char *) name->name, 1);
+	}
+}
+/* }}} */
+
+/* {{{ php_crypto_get_algorithms */
+static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
+{
+	php_crypto_do_all_algorithms_param param = { 0, NULL, 0, return_value };
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bs", &param.aliases, &param.prefix, &param.prefix_len) == FAILURE) {
+		return;
+	}
+	array_init(return_value);
+	OBJ_NAME_do_all_sorted(type, php_crypto_do_all_algorithms, &param);
+}
+/* }}} */
+
+/* {{{ php_crypto_get_algorithm_object
    It is sort of Crypto\Algorithm::_construct */
 static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algorithm, int *algorithm_len, INTERNAL_FUNCTION_PARAMETERS)
 {
@@ -322,6 +360,14 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 {
 	zval *algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
 	RETURN_ZVAL(algorithm, 1, 0);
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Cipher::getAlgorithms(bool $aliases = false, string $prefix = null)
+   Returns cipher algorithms */
+PHP_CRYPTO_METHOD(Cipher, getAlgorithms)
+{
+	php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_CIPHER_METH);
 }
 /* }}} */
 
@@ -680,6 +726,14 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	RETURN_LONG(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
+
+/* {{{ proto string Crypto\Digest::getAlgorithms(bool $aliases = false, string $prefix = null)
+   Returns message digest algorithms */
+PHP_CRYPTO_METHOD(Digest, getAlgorithms)
+{
+	php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_MD_METH);
+}
+/* }}} */
 
 /* {{{ proto static bool Crypto\Digest::hasAlgorithm(string $algorithm)
    Finds out whether algorithm exists */
