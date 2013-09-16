@@ -240,7 +240,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	/* Algorithm Exception class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-	/* Declare AlorithmExcption class constants for error codes */
+	/* Declare AlorithmException class constants for error codes */
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);

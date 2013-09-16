@@ -66,6 +66,9 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_rand_ce;
 /* exception entry */
 PHP_CRYPTO_API zend_class_entry *php_crypto_rand_exception_ce;
 
+#define PHP_CRYPTO_DECLARE_RAND_E_CONST(rconst) \
+	zend_declare_class_constant_long(php_crypto_rand_exception_ce, #rconst, sizeof(#rconst)-1, PHP_CRYPTO_RAND_E(rconst) TSRMLS_CC)
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_rand)
 {
@@ -75,10 +78,13 @@ PHP_MINIT_FUNCTION(crypto_rand)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Rand), php_crypto_rand_object_methods);
 	php_crypto_rand_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	
-	/* Algorithm Exception class */
+	/* Rand Exception class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(RandException), NULL);
 	php_crypto_rand_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-
+	/* Declare RandException class constants for error codes */
+	PHP_CRYPTO_DECLARE_RAND_E_CONST(GENERATE_PREDICTABLE);
+	PHP_CRYPTO_DECLARE_RAND_E_CONST(FILE_WRITE_PREDICTABLE);
+	
 	return SUCCESS;
 }
 /* }}} */
@@ -100,7 +106,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 		
 	if (must_be_strong) {
 		if (!RAND_bytes((unsigned char *) buf, num)) {
-			PHP_CRYPTO_THROW_RAND_EXCEPTION(0, "The PRNG state is not yet unpridactable");
+			PHP_CRYPTO_THROW_RAND_EXCEPTION(GENERATE_PREDICTABLE, "The PRNG state is not yet unpridactable");
 			efree(buf);
 			return;
 		}
@@ -179,7 +185,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 
 	bytes_written = RAND_write_file(path);
 	if (bytes_written < 0) {
-		PHP_CRYPTO_THROW_RAND_EXCEPTION(0, "The bytes written were generated without appropriate seed");
+		PHP_CRYPTO_THROW_RAND_EXCEPTION(FILE_WRITE_PREDICTABLE, "The bytes written were generated without appropriate seed");
 	} else {
 		RETURN_LONG(bytes_written);
 	}

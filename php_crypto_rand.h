@@ -25,10 +25,17 @@
 #include <openssl/rand.h>
 
 /* Rand exceptions macros */
+#define PHP_CRYPTO_RAND_E(code) PHP_CRYPTO_RAND_ERROR_##code
 #define PHP_CRYPTO_THROW_RAND_EXCEPTION(code, msg) \
-	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_rand_exception_ce, code, msg)
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_rand_exception_ce, PHP_CRYPTO_RAND_E(code), msg)
 #define PHP_CRYPTO_THROW_RAND_EXCEPTION_EX(code, msg, ...) \
-	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_rand_exception_ce, code, msg, ##__VA_ARGS__)
+	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_rand_exception_ce, PHP_CRYPTO_RAND_E(code), msg, ##__VA_ARGS__)
+
+/* Rand exception error codes */
+typedef enum {
+	PHP_CRYPTO_RAND_E(GENERATE_PREDICTABLE) = 1,
+	PHP_CRYPTO_RAND_E(FILE_WRITE_PREDICTABLE)
+} php_crypto_rand_error_code;
 
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_rand_ce;
