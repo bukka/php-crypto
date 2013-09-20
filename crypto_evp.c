@@ -84,7 +84,7 @@ static const zend_function_entry php_crypto_digest_object_methods[] = {
 	PHP_CRYPTO_ME(Digest, init,             NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Digest, update,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Digest, final,            NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, make,             arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Digest, digest,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Digest, getSize,          NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Digest, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_FE_END
@@ -94,6 +94,10 @@ static const zend_function_entry php_crypto_digest_object_methods[] = {
 PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_digest_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
+#ifdef PHP_CRYPTO_HAS_CMAC
+PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
+#endif
 
 /* exception entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
@@ -125,7 +129,16 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 	} else if (intern->type == PHP_CRYPTO_ALG_DIGEST) {
 		EVP_MD_CTX_cleanup(PHP_CRYPTO_DIGEST_CTX(intern));
 		efree(PHP_CRYPTO_DIGEST_CTX(intern));
+	} else if (intern->type == PHP_CRYPTO_ALG_HMAC) {
+		HMAC_CTX_cleanup(PHP_CRYPTO_HMAC_CTX(intern));
+		efree(PHP_CRYPTO_HMAC_CTX(intern));
 	}
+#ifdef PHP_CRYPTO_HAS_CMAC
+	else if (intern->type == PHP_CRYPTO_ALG_CMAC) {
+		CMAC_CTX_cleanup(PHP_CRYPTO_CMAC_CTX(intern));
+		efree(PHP_CRYPTO_CMAC_CTX(intern));
+	}
+#endif
 	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
@@ -155,7 +168,19 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 		intern->type = PHP_CRYPTO_ALG_DIGEST;
 		PHP_CRYPTO_DIGEST_CTX(intern) = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
 		EVP_MD_CTX_init(PHP_CRYPTO_DIGEST_CTX(intern));
-	} else {
+	} else if (class_type == php_crypto_hmac_ce) {
+		intern->type = PHP_CRYPTO_ALG_HMAC;
+		PHP_CRYPTO_HMAC_CTX(intern) = (HMAC_CTX *) emalloc(sizeof(HMAC_CTX));
+		HMAC_CTX_init(PHP_CRYPTO_HMAC_CTX(intern));
+	}
+#ifdef PHP_CRYPTO_HAS_CMAC
+	else if (class_type == php_crypto_cmac_ce) {
+		intern->type = PHP_CRYPTO_ALG_CMAC;
+		PHP_CRYPTO_CMAC_CTX(intern) = (CMAC_CTX *) emalloc(sizeof(CMAC_CTX));
+		CMAC_CTX_init(PHP_CRYPTO_CMAC_CTX(intern));
+	}
+#endif
+	else {
 		intern->type = PHP_CRYPTO_ALG_NONE;
 	}
 	
@@ -190,7 +215,7 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 	new_obj->type = old_obj->type;
 
 	if (new_obj->type == PHP_CRYPTO_ALG_CIPHER) {
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
 		copy_success = EVP_CIPHER_CTX_copy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj));
 #else
 		memcpy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj), sizeof *(PHP_CRYPTO_CIPHER_CTX(new_obj)));
@@ -207,9 +232,31 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 	} else if (new_obj->type == PHP_CRYPTO_ALG_DIGEST) {
 		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_DIGEST_CTX(new_obj), PHP_CRYPTO_DIGEST_CTX(old_obj));
 		PHP_CRYPTO_DIGEST_ALG(new_obj) = PHP_CRYPTO_DIGEST_CTX(old_obj)->digest;
+	} else if (new_obj->type == PHP_CRYPTO_ALG_HMAC) {
+#ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
+		copy_success = HMAC_CTX_copy(PHP_CRYPTO_HMAC_CTX(new_obj), PHP_CRYPTO_HMAC_CTX(old_obj));
+#else
+		copy_success = 0;
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->i_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->i_ctx))
+			goto copy_end;
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->o_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->o_ctx))
+			goto copy_end;
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->md_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->md_ctx))
+			goto copy_end;
+		memcpy(PHP_CRYPTO_HMAC_CTX(new_obj)->key, PHP_CRYPTO_HMAC_CTX(old_obj)->key, HMAC_MAX_MD_CBLOCK);
+		PHP_CRYPTO_HMAC_CTX(new_obj)->key_length = PHP_CRYPTO_HMAC_CTX(old_obj)->key_length;
+		PHP_CRYPTO_HMAC_CTX(new_obj)->md = PHP_CRYPTO_HMAC_CTX(old_obj)->md;
+		copy_success = 1;
+#endif
 	}
+#ifdef PHP_CRYPTO_HAS_CMAC
+	else if (new_obj->type == PHP_CRYPTO_ALG_CMAC) {
+		copy_success = CMAC_CTX_copy(PHP_CRYPTO_CMAC_CTX(new_obj), PHP_CRYPTO_CMAC_CTX(old_obj));
+	}
+#endif
 
-	if (!copy_success) {
+copy_end:
+   if (!copy_success) {
 		php_error(E_ERROR, "Cloning of Algorithm object failed");
 	}
 	
@@ -260,10 +307,6 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_UPDATE_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_FINAL_STATUS);
 	
-	/* Digest class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Digest), php_crypto_digest_object_methods);
-	php_crypto_digest_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
-
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
 	php_crypto_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
@@ -293,6 +336,20 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 
+	/* Digest class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Digest), php_crypto_digest_object_methods);
+	php_crypto_digest_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
+
+	/* HMAC class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(HMAC), NULL);
+	php_crypto_hmac_ce = zend_register_internal_class_ex(&ce, php_crypto_digest_ce, NULL TSRMLS_CC);
+
+#ifdef PHP_CRYPTO_HAS_CMAC
+	/* CMAC class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(CMAC), NULL);
+	php_crypto_cmac_ce = zend_register_internal_class_ex(&ce, php_crypto_digest_ce, NULL TSRMLS_CC);
+#endif
+	
 	return SUCCESS;
 }
 /* }}} */
@@ -342,6 +399,34 @@ static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algor
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	return intern;
+}
+/* }}} */
+
+/* {{{ php_crypto_set_cipher_algorithm */
+static zend_bool php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_CC)
+{
+	const EVP_CIPHER *cipher = EVP_get_cipherbyname(algorithm);
+	if (cipher) {
+		PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
+		return SUCCESS;
+	} else {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
+		return FAILURE;
+	}
+}
+/* }}} */
+
+/* {{{ php_crypto_set_digest_algorithm */
+static zend_bool php_crypto_set_digest_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_CC)
+{
+	const EVP_MD *digest = EVP_get_digestbyname(algorithm);
+	if (digest) {
+		PHP_CRYPTO_DIGEST_ALG(intern) = digest;
+		return SUCCESS;
+	} else {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(DIGEST_NOT_FOUND, "Message Digest '%s' algorithm not found", algorithm);
+		return FAILURE;
+	}
 }
 /* }}} */
 
@@ -411,19 +496,12 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 	php_crypto_algorithm_object *intern;
 	char *algorithm;
 	int algorithm_len;
-	const EVP_CIPHER *cipher;
 
 	intern = php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
 	if (!intern) {
 		return;
 	}
-	
-	cipher = EVP_get_cipherbyname(algorithm);
-	if (cipher) {
-		PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
-	} else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
-	}
+	php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
 }
 /* }}} */
 
@@ -761,20 +839,21 @@ PHP_CRYPTO_METHOD(Digest, __construct)
 	php_crypto_algorithm_object *intern;
 	char *algorithm;
 	int algorithm_len;
-	const EVP_MD *digest;
 	
 	intern = php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
 	if (!intern) {
 		return;
 	}
-	
-	digest = EVP_get_digestbyname(algorithm);
-	if (digest) {
-		PHP_CRYPTO_DIGEST_ALG(intern) = digest;
+
+#ifdef PHP_CRYPTO_HAS_CMAC
+	/* CMAC algorithm uses a cipher algorithm */
+	if (intern->type == PHP_CRYPTO_ALG_CMAC) {
+		php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
+		return;
 	}
-	else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(DIGEST_NOT_FOUND, "Message Digest '%s' algorithm not found", algorithm);
-	}
+#endif
+
+	php_crypto_set_digest_algorithm(intern, algorithm TSRMLS_CC);
 }
 /* }}} */
 
@@ -928,7 +1007,7 @@ PHP_CRYPTO_METHOD(Digest, final)
 
 /* {{{ proto string Crypto\Digest::make(string $data)
    Makes digest */
-PHP_CRYPTO_METHOD(Digest, make)
+PHP_CRYPTO_METHOD(Digest, digest)
 {
 	php_crypto_digest_make(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }

@@ -71,6 +71,15 @@ PHP_MINFO_FUNCTION(crypto);
 #define php_crypto_object_properties_init(zo, class_type) object_properties_init(zo, class_type)
 #endif
 
+/* OpenSSL features test */
+#if OPENSSL_VERSION_NUMBER >= 0x10001000L
+#define PHP_CRYPTO_HAS_CMAC 1
+#endif
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#define PHP_CRYPTO_HAS_CIPHER_CTX_COPY 1
+#define PHP_CRYPTO_HAS_HMAC_CTX_COPY 1
+#endif
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
