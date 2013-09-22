@@ -77,23 +77,23 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
     PHP_FE_END
 };
 
-static const zend_function_entry php_crypto_digest_object_methods[] = {
-	PHP_CRYPTO_ME(Digest, getAlgorithms,    arginfo_crypto_algorithm_list,     ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, init,             NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, update,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, final,            NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, digest,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, getSize,          NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Digest, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
+static const zend_function_entry php_crypto_hash_object_methods[] = {
+	PHP_CRYPTO_ME(Hash, getAlgorithms,    arginfo_crypto_algorithm_list,     ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, init,             NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, update,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, final,            NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, digest,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, getSize,          NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_FE_END
 };
 
 /* class entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
-PHP_CRYPTO_API zend_class_entry *php_crypto_digest_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 #ifdef PHP_CRYPTO_HAS_CMAC
 PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
@@ -126,9 +126,9 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 	if (intern->type == PHP_CRYPTO_ALG_CIPHER) {
 		EVP_CIPHER_CTX_cleanup(PHP_CRYPTO_CIPHER_CTX(intern));
 		efree(PHP_CRYPTO_CIPHER_CTX(intern));
-	} else if (intern->type == PHP_CRYPTO_ALG_DIGEST) {
-		EVP_MD_CTX_cleanup(PHP_CRYPTO_DIGEST_CTX(intern));
-		efree(PHP_CRYPTO_DIGEST_CTX(intern));
+	} else if (intern->type == PHP_CRYPTO_ALG_HASH) {
+		EVP_MD_CTX_cleanup(PHP_CRYPTO_HASH_CTX(intern));
+		efree(PHP_CRYPTO_HASH_CTX(intern));
 	} else if (intern->type == PHP_CRYPTO_ALG_HMAC) {
 		HMAC_CTX_cleanup(PHP_CRYPTO_HMAC_CTX(intern));
 		efree(PHP_CRYPTO_HMAC_CTX(intern));
@@ -164,10 +164,10 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 		intern->type = PHP_CRYPTO_ALG_CIPHER;
 		PHP_CRYPTO_CIPHER_CTX(intern) = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
 		EVP_CIPHER_CTX_init(PHP_CRYPTO_CIPHER_CTX(intern));
-	} else if (class_type == php_crypto_digest_ce) {
-		intern->type = PHP_CRYPTO_ALG_DIGEST;
-		PHP_CRYPTO_DIGEST_CTX(intern) = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
-		EVP_MD_CTX_init(PHP_CRYPTO_DIGEST_CTX(intern));
+	} else if (class_type == php_crypto_hash_ce) {
+		intern->type = PHP_CRYPTO_ALG_HASH;
+		PHP_CRYPTO_HASH_CTX(intern) = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
+		EVP_MD_CTX_init(PHP_CRYPTO_HASH_CTX(intern));
 	} else if (class_type == php_crypto_hmac_ce) {
 		intern->type = PHP_CRYPTO_ALG_HMAC;
 		PHP_CRYPTO_HMAC_CTX(intern) = (HMAC_CTX *) emalloc(sizeof(HMAC_CTX));
@@ -229,9 +229,9 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 		}
 #endif
 		PHP_CRYPTO_CIPHER_ALG(new_obj) = PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher;
-	} else if (new_obj->type == PHP_CRYPTO_ALG_DIGEST) {
-		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_DIGEST_CTX(new_obj), PHP_CRYPTO_DIGEST_CTX(old_obj));
-		PHP_CRYPTO_DIGEST_ALG(new_obj) = PHP_CRYPTO_DIGEST_CTX(old_obj)->digest;
+	} else if (new_obj->type == PHP_CRYPTO_ALG_HASH) {
+		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_HASH_CTX(new_obj), PHP_CRYPTO_HASH_CTX(old_obj));
+		PHP_CRYPTO_HASH_ALG(new_obj) = PHP_CRYPTO_HASH_CTX(old_obj)->digest;
 	} else if (new_obj->type == PHP_CRYPTO_ALG_HMAC) {
 #ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
 		copy_success = HMAC_CTX_copy(PHP_CRYPTO_HMAC_CTX(new_obj), PHP_CRYPTO_HMAC_CTX(old_obj));
@@ -288,7 +288,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 	/* Declare AlorithmException class constants for error codes */
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_NOT_FOUND);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
@@ -301,11 +301,11 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_INIT_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_INIT_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_UPDATE_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_FINAL_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DIGEST_FINAL_STATUS);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_FINAL_FAILED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_STATUS);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_FINAL_STATUS);
 	
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
@@ -336,18 +336,18 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
 #endif
 
-	/* Digest class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Digest), php_crypto_digest_object_methods);
-	php_crypto_digest_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
+	/* Hash class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Hash), php_crypto_hash_object_methods);
+	php_crypto_hash_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
 
 	/* HMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(HMAC), NULL);
-	php_crypto_hmac_ce = zend_register_internal_class_ex(&ce, php_crypto_digest_ce, NULL TSRMLS_CC);
+	php_crypto_hmac_ce = zend_register_internal_class_ex(&ce, php_crypto_hash_ce, NULL TSRMLS_CC);
 
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(CMAC), NULL);
-	php_crypto_cmac_ce = zend_register_internal_class_ex(&ce, php_crypto_digest_ce, NULL TSRMLS_CC);
+	php_crypto_cmac_ce = zend_register_internal_class_ex(&ce, php_crypto_hash_ce, NULL TSRMLS_CC);
 #endif
 	
 	return SUCCESS;
@@ -403,7 +403,7 @@ static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algor
 /* }}} */
 
 /* {{{ php_crypto_set_cipher_algorithm */
-static zend_bool php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_CC)
+static zend_bool php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher = EVP_get_cipherbyname(algorithm);
 	if (cipher) {
@@ -416,15 +416,15 @@ static zend_bool php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *in
 }
 /* }}} */
 
-/* {{{ php_crypto_set_digest_algorithm */
-static zend_bool php_crypto_set_digest_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_CC)
+/* {{{ php_crypto_set_hash_algorithm */
+static zend_bool php_crypto_set_hash_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
 {
 	const EVP_MD *digest = EVP_get_digestbyname(algorithm);
 	if (digest) {
-		PHP_CRYPTO_DIGEST_ALG(intern) = digest;
+		PHP_CRYPTO_HASH_ALG(intern) = digest;
 		return SUCCESS;
 	} else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(DIGEST_NOT_FOUND, "Message Digest '%s' algorithm not found", algorithm);
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_NOT_FOUND, "Hash '%s' algorithm not found", algorithm);
 		return FAILURE;
 	}
 }
@@ -805,17 +805,17 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 	RETURN_LONG(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
-/* {{{ proto string Crypto\Digest::getAlgorithms(bool $aliases = false, string $prefix = null)
-   Returns message digest algorithms */
-PHP_CRYPTO_METHOD(Digest, getAlgorithms)
+/* {{{ proto string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
+   Returns hash algorithms */
+PHP_CRYPTO_METHOD(Hash, getAlgorithms)
 {
 	php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_MD_METH);
 }
 /* }}} */
 
-/* {{{ proto static bool Crypto\Digest::hasAlgorithm(string $algorithm)
+/* {{{ proto static bool Crypto\Hash::hasAlgorithm(string $algorithm)
    Finds out whether algorithm exists */
-PHP_CRYPTO_METHOD(Digest, hasAlgorithm)
+PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
 {
 	char *algorithm;
 	int algorithm_len;
@@ -832,9 +832,9 @@ PHP_CRYPTO_METHOD(Digest, hasAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto Crypto\Digest::__construct(string $algorithm)
-   Message Digest constructor */
-PHP_CRYPTO_METHOD(Digest, __construct)
+/* {{{ proto Crypto\Hash::__construct(string $algorithm)
+   Message Hash constructor */
+PHP_CRYPTO_METHOD(Hash, __construct)
 {
 	php_crypto_algorithm_object *intern;
 	char *algorithm;
@@ -853,48 +853,48 @@ PHP_CRYPTO_METHOD(Digest, __construct)
 	}
 #endif
 
-	php_crypto_set_digest_algorithm(intern, algorithm TSRMLS_CC);
+	php_crypto_set_hash_algorithm(intern, algorithm TSRMLS_CC);
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_init_ex */
-static inline php_crypto_algorithm_object *php_crypto_digest_init_ex(zval *zobject TSRMLS_DC)
+/* {{{ php_crypto_hash_init_ex */
+static inline php_crypto_algorithm_object *php_crypto_hash_init_ex(zval *zobject TSRMLS_DC)
 {
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(zobject TSRMLS_CC);
 	
-	/* initialize digest */
-	if (!EVP_DigestInit_ex(PHP_CRYPTO_DIGEST_CTX(intern), PHP_CRYPTO_DIGEST_ALG(intern), NULL)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_INIT_FAILED, "Initialization of digest failed");
+	/* initialize hash */
+	if (!EVP_DigestInit_ex(PHP_CRYPTO_HASH_CTX(intern), PHP_CRYPTO_HASH_ALG(intern), NULL)) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_INIT_FAILED, "Initialization of hash failed");
 		return NULL;
 	}
-	intern->status = PHP_CRYPTO_ALG_STATUS_DIGEST;
+	intern->status = PHP_CRYPTO_ALG_STATUS_HASH;
 	return intern;
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_init */
-static inline php_crypto_algorithm_object *php_crypto_digest_init(INTERNAL_FUNCTION_PARAMETERS)
+/* {{{ php_crypto_hash_init */
+static inline php_crypto_algorithm_object *php_crypto_hash_init(INTERNAL_FUNCTION_PARAMETERS)
 {
 	if (zend_parse_parameters_none() == FAILURE) {
 		return NULL;
 	}
 	
-	return php_crypto_digest_init_ex(getThis() TSRMLS_CC);
+	return php_crypto_hash_init_ex(getThis() TSRMLS_CC);
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_update_ex */
-static inline zend_bool php_crypto_digest_update_ex(php_crypto_algorithm_object *intern, char *data, int data_len TSRMLS_DC)
+/* {{{ php_crypto_hash_update_ex */
+static inline zend_bool php_crypto_hash_update_ex(php_crypto_algorithm_object *intern, char *data, int data_len TSRMLS_DC)
 {
 	/* check algorithm status */
-	if (intern->status != PHP_CRYPTO_ALG_STATUS_DIGEST) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_UPDATE_STATUS, "Digest object is not initialized");
+	if (intern->status != PHP_CRYPTO_ALG_STATUS_HASH) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_UPDATE_STATUS, "Hash object is not initialized");
 		return FAILURE;
 	}
 
-	/* update digest context */
-	if (!EVP_DigestUpdate(PHP_CRYPTO_DIGEST_CTX(intern), data, data_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_UPDATE_FAILED, "Updating of digest failed");
+	/* update hash context */
+	if (!EVP_DigestUpdate(PHP_CRYPTO_HASH_CTX(intern), data, data_len)) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_UPDATE_FAILED, "Updating of hash failed");
 		return FAILURE;
 	}
 	
@@ -902,8 +902,8 @@ static inline zend_bool php_crypto_digest_update_ex(php_crypto_algorithm_object 
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_update */
-static inline void php_crypto_digest_update(INTERNAL_FUNCTION_PARAMETERS)
+/* {{{ php_crypto_hash_update */
+static inline void php_crypto_hash_update(INTERNAL_FUNCTION_PARAMETERS)
 {
 	php_crypto_algorithm_object *intern;
 	char *data;
@@ -914,107 +914,107 @@ static inline void php_crypto_digest_update(INTERNAL_FUNCTION_PARAMETERS)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	php_crypto_digest_update_ex(intern, data, data_len TSRMLS_CC);
+	php_crypto_hash_update_ex(intern, data, data_len TSRMLS_CC);
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_final */
-static inline char *php_crypto_digest_final_ex(php_crypto_algorithm_object *intern TSRMLS_DC)
+/* {{{ php_crypto_hash_final */
+static inline char *php_crypto_hash_final_ex(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
-	unsigned char digest_value[EVP_MAX_MD_SIZE+1];
-	unsigned digest_len;
+	unsigned char hash_value[EVP_MAX_MD_SIZE+1];
+	unsigned hash_len;
 
 	/* check algorithm status */
-	if (intern->status != PHP_CRYPTO_ALG_STATUS_DIGEST) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_FINAL_STATUS, "Digest object is not initialized");
+	if (intern->status != PHP_CRYPTO_ALG_STATUS_HASH) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_FINAL_STATUS, "Hash object is not initialized");
 		return NULL;
 	}
 
-	/* finalize digest context */
-	if (!EVP_DigestFinal(PHP_CRYPTO_DIGEST_CTX(intern), digest_value, &digest_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DIGEST_FINAL_FAILED, "Finalizing of digest failed");
+	/* finalize hash context */
+	if (!EVP_DigestFinal(PHP_CRYPTO_HASH_CTX(intern), hash_value, &hash_len)) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_FINAL_FAILED, "Finalizing of hash failed");
 		return NULL;
 	}
-	digest_value[digest_len] = 0;
+	hash_value[hash_len] = 0;
 	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
-	return estrdup((char *) digest_value);
+	return estrdup((char *) hash_value);
 }
 /* }}} */
 
-/* {{{ php_crypto_digest_final */
-static inline void php_crypto_digest_final(INTERNAL_FUNCTION_PARAMETERS)
+/* {{{ php_crypto_hash_final */
+static inline void php_crypto_hash_final(INTERNAL_FUNCTION_PARAMETERS)
 {
 	php_crypto_algorithm_object *intern;
-	char *digest;
+	char *hash;
 	
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	digest = php_crypto_digest_final_ex(intern TSRMLS_CC);
-	if (digest) {
-		RETURN_STRING(digest, 0);
+	hash = php_crypto_hash_final_ex(intern TSRMLS_CC);
+	if (hash) {
+		RETURN_STRING(hash, 0);
 	}
 }
 
-/* {{{ php_crypto_digest_make */
-static inline void php_crypto_digest_make(INTERNAL_FUNCTION_PARAMETERS)
+/* {{{ php_crypto_hash_digest */
+static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS)
 {
 	php_crypto_algorithm_object *intern;
-	char *data, *digest;
+	char *data, *hash;
 	int data_len;
 	
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
 		return;
 	}
 
-	intern = php_crypto_digest_init_ex(getThis() TSRMLS_CC);
+	intern = php_crypto_hash_init_ex(getThis() TSRMLS_CC);
 	if (intern == NULL) {
 		return;
 	}
 	
-	if (php_crypto_digest_update_ex(intern, data, data_len TSRMLS_CC) == FAILURE) {
+	if (php_crypto_hash_update_ex(intern, data, data_len TSRMLS_CC) == FAILURE) {
 		return;
 	}
 
-	digest = php_crypto_digest_final_ex(intern TSRMLS_CC);
-	if (digest) {
-		RETURN_STRING(digest, 0);
+	hash = php_crypto_hash_final_ex(intern TSRMLS_CC);
+	if (hash) {
+		RETURN_STRING(hash, 0);
 	}
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Digest::init()
-   Initializes digest */
-PHP_CRYPTO_METHOD(Digest, init)
+/* {{{ proto void Crypto\Hash::init()
+   Initializes hash */
+PHP_CRYPTO_METHOD(Hash, init)
 {
-	php_crypto_digest_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	php_crypto_hash_init(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto void Crypto\Digest::update(string $data)
-   Updates digest */
-PHP_CRYPTO_METHOD(Digest, update)
+/* {{{ proto void Crypto\Hash::update(string $data)
+   Updates hash */
+PHP_CRYPTO_METHOD(Hash, update)
 {
-	php_crypto_digest_update(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	php_crypto_hash_update(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto string Crypto\Digest::final()
-   Finalizes digest */
-PHP_CRYPTO_METHOD(Digest, final)
+/* {{{ proto string Crypto\Hash::final()
+   Finalizes hash */
+PHP_CRYPTO_METHOD(Hash, final)
 {
-	php_crypto_digest_final(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	php_crypto_hash_final(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto string Crypto\Digest::make(string $data)
-   Makes digest */
-PHP_CRYPTO_METHOD(Digest, digest)
+/* {{{ proto string Crypto\Hash::make(string $data)
+   Makes hash digest */
+PHP_CRYPTO_METHOD(Hash, digest)
 {
-	php_crypto_digest_make(INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	php_crypto_hash_digest(INTERNAL_FUNCTION_PARAM_PASSTHRU);
 }
 
-/* {{{ proto int Crypto\Digest::getBlockSize()
-   Returns digest block size */
-PHP_CRYPTO_METHOD(Digest, getBlockSize)
+/* {{{ proto int Crypto\Hash::getBlockSize()
+   Returns hash block size */
+PHP_CRYPTO_METHOD(Hash, getBlockSize)
 {
 	php_crypto_algorithm_object *intern;
 	
@@ -1023,12 +1023,12 @@ PHP_CRYPTO_METHOD(Digest, getBlockSize)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_MD_block_size(PHP_CRYPTO_DIGEST_ALG(intern)));
+	RETURN_LONG(EVP_MD_block_size(PHP_CRYPTO_HASH_ALG(intern)));
 }
 
-/* {{{ proto int Crypto\Digest::getSize()
-   Returns digest size */
-PHP_CRYPTO_METHOD(Digest, getSize)
+/* {{{ proto int Crypto\Hash::getSize()
+   Returns hash size */
+PHP_CRYPTO_METHOD(Hash, getSize)
 {
 	php_crypto_algorithm_object *intern;
 	
@@ -1037,5 +1037,5 @@ PHP_CRYPTO_METHOD(Digest, getSize)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_DIGEST_ALG(intern)));
+	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_HASH_ALG(intern)));
 }

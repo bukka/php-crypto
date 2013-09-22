@@ -31,14 +31,14 @@
 typedef enum {
 	PHP_CRYPTO_ALG_NONE = 0,
 	PHP_CRYPTO_ALG_CIPHER,
-	PHP_CRYPTO_ALG_DIGEST,
+	PHP_CRYPTO_ALG_HASH,
 	PHP_CRYPTO_ALG_HMAC,
 	PHP_CRYPTO_ALG_CMAC
 } php_crypto_algorithm_type;
 
 typedef enum {
 	PHP_CRYPTO_ALG_STATUS_CLEAR,
-	PHP_CRYPTO_ALG_STATUS_DIGEST,
+	PHP_CRYPTO_ALG_STATUS_HASH,
 	PHP_CRYPTO_ALG_STATUS_ENCRYPT,
 	PHP_CRYPTO_ALG_STATUS_DECRYPT
 } php_crypto_algorithm_status;
@@ -63,7 +63,7 @@ typedef struct {
 				EVP_MD_CTX *md;
 				HMAC_CTX *hmac;
 			} ctx;
-		} digest;
+		} hash;
 	} evp;
 } php_crypto_algorithm_object;
 
@@ -74,10 +74,10 @@ typedef struct {
 #define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->evp.cipher.ctx.cmac
 #define PHP_CRYPTO_CMAC_ALG PHP_CRYPTO_CIPHER_ALG
 #endif
-#define PHP_CRYPTO_DIGEST_CTX(pobj) (pobj)->evp.digest.ctx.md
-#define PHP_CRYPTO_DIGEST_ALG(pobj) (pobj)->evp.digest.alg
-#define PHP_CRYPTO_HMAC_CTX(pobj)   (pobj)->evp.digest.ctx.hmac
-#define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_DIGEST_ALG
+#define PHP_CRYPTO_HASH_CTX(pobj) (pobj)->evp.hash.ctx.md
+#define PHP_CRYPTO_HASH_ALG(pobj) (pobj)->evp.hash.alg
+#define PHP_CRYPTO_HMAC_CTX(pobj)   (pobj)->evp.hash.ctx.hmac
+#define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_HASH_ALG
 
 
 /* Algorithm exceptions macros */
@@ -101,12 +101,12 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(DECRYPT_INIT_STATUS),
 	PHP_CRYPTO_ALG_E(DECRYPT_UPDATE_STATUS),
 	PHP_CRYPTO_ALG_E(DECRYPT_FINAL_STATUS),
-	PHP_CRYPTO_ALG_E(DIGEST_NOT_FOUND),
-	PHP_CRYPTO_ALG_E(DIGEST_INIT_FAILED),
-	PHP_CRYPTO_ALG_E(DIGEST_UPDATE_FAILED),
-	PHP_CRYPTO_ALG_E(DIGEST_FINAL_FAILED),
-	PHP_CRYPTO_ALG_E(DIGEST_UPDATE_STATUS),
-	PHP_CRYPTO_ALG_E(DIGEST_FINAL_STATUS)
+	PHP_CRYPTO_ALG_E(HASH_NOT_FOUND),
+	PHP_CRYPTO_ALG_E(HASH_INIT_FAILED),
+	PHP_CRYPTO_ALG_E(HASH_UPDATE_FAILED),
+	PHP_CRYPTO_ALG_E(HASH_FINAL_FAILED),
+	PHP_CRYPTO_ALG_E(HASH_UPDATE_STATUS),
+	PHP_CRYPTO_ALG_E(HASH_FINAL_STATUS)
 } php_crypto_algorithm_error_code;
 
 /* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
@@ -116,7 +116,7 @@ typedef enum {
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_digest_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 #ifdef PHP_CRYPTO_HAS_CMAC
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
@@ -144,16 +144,16 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize);
 PHP_CRYPTO_METHOD(Cipher, getKeyLength);
 PHP_CRYPTO_METHOD(Cipher, getIVLength);
 PHP_CRYPTO_METHOD(Cipher, getMode);
-/* Digest methods */
-PHP_CRYPTO_METHOD(Digest, getAlgorithms);
-PHP_CRYPTO_METHOD(Digest, hasAlgorithm);
-PHP_CRYPTO_METHOD(Digest, __construct);
-PHP_CRYPTO_METHOD(Digest, init);
-PHP_CRYPTO_METHOD(Digest, update);
-PHP_CRYPTO_METHOD(Digest, final);
-PHP_CRYPTO_METHOD(Digest, digest);
-PHP_CRYPTO_METHOD(Digest, getSize);
-PHP_CRYPTO_METHOD(Digest, getBlockSize);
+/* Hash methods */
+PHP_CRYPTO_METHOD(Hash, getAlgorithms);
+PHP_CRYPTO_METHOD(Hash, hasAlgorithm);
+PHP_CRYPTO_METHOD(Hash, __construct);
+PHP_CRYPTO_METHOD(Hash, init);
+PHP_CRYPTO_METHOD(Hash, update);
+PHP_CRYPTO_METHOD(Hash, final);
+PHP_CRYPTO_METHOD(Hash, digest);
+PHP_CRYPTO_METHOD(Hash, getSize);
+PHP_CRYPTO_METHOD(Hash, getBlockSize);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 
