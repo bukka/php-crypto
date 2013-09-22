@@ -2,10 +2,7 @@
 
 ## General tasks
 
-- CMAC (sub-class of `Cipher`)
-- HMAC (sub-class of `Digest`)
-- Random genenerator
-- Output and input formats (ini settings and constructor options)
+- Output and input formats
   - base64
   - hex
 - X509 binding
@@ -13,8 +10,10 @@
 
 ## Cipher tasks
 
+### API
+- Static cipher factories: `Cipher::aes($mode, $type)`
+
 ### Features
-- File (Streams) encoding and decoding
 - IV generator
 - Key generation (PKCS#7, PKCS#5)
 - List of all algorithms
@@ -25,7 +24,15 @@
 - int EVP_CIPHER_CTX_rand_key(EVP_CIPHER_CTX *ctx, unsigned char *key)
 
 
-## Digest tasks
+## Hash tasks
+
+### API
+- Static hash factories: `Hash::sha1()`, `Hash::md5`
+  - using __callStatic
+
+## Stream
+- crypto stream
+
 
 ### Features
 - List of all algorithms
