@@ -23,17 +23,18 @@ try {
 	$data = $data1 . $data2;
 
 	// Simple hash
-	$sim_hash = $hash->digest($data);
+	$hash->update($data);
+	$sim_hash = $hash->hexdigest();
 	
 	// init/update/final hash
-	$hash->init();
+	$hash = new Hash($algorithm);
 	$hash->update($data1);
 	$hash->update($data2);
-	$iuf_hash = $hash->final();
+	$iuf_hash = $hash->hexdigest();
 
 	// Raw data output (used hex format for printing)
-	echo "Hash (sim): " . bin2hex($sim_hash) . PHP_EOL;
-	echo "Hash (iuf): " . bin2hex($iuf_hash) . PHP_EOL;
+	echo "Hash (sim): " . $sim_hash . PHP_EOL;
+	echo "Hash (iuf): " . $iuf_hash . PHP_EOL;
 	// sim == iuf
 }
 catch (AlgorithmException $e) {

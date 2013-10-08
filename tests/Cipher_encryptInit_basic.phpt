@@ -37,7 +37,7 @@ catch (Crypto\AlgorithmException $e) {
 }
 
 // both
-try {
+try {	
 	$cipher->encryptInit('short_key');
 }
 catch (Crypto\AlgorithmException $e) {

@@ -6,16 +6,15 @@ $data1 = "data1";
 $data2 = "data2";
 
 $hash = new Crypto\Hash('sha256');
-$hash->init();
 $hash->update($data1);
 $hash_clone = clone $hash;
 echo $hash_clone->getAlgorithmName() . "\n";
 
 $hash->update($data2);
-echo bin2hex($hash->final()) . "\n";
+echo $hash->hexdigest() . "\n";
 
 $hash_clone->update($data2);
-echo bin2hex($hash_clone->final()) . "\n";
+echo $hash_clone->hexdigest() . "\n";
 
 echo "SUCCESS\n";
 ?>

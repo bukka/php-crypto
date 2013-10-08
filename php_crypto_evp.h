@@ -105,8 +105,6 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_INIT_FAILED),
 	PHP_CRYPTO_ALG_E(HASH_UPDATE_FAILED),
 	PHP_CRYPTO_ALG_E(HASH_FINAL_FAILED),
-	PHP_CRYPTO_ALG_E(HASH_UPDATE_STATUS),
-	PHP_CRYPTO_ALG_E(HASH_FINAL_STATUS)
 } php_crypto_algorithm_error_code;
 
 /* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
@@ -147,11 +145,11 @@ PHP_CRYPTO_METHOD(Cipher, getMode);
 /* Hash methods */
 PHP_CRYPTO_METHOD(Hash, getAlgorithms);
 PHP_CRYPTO_METHOD(Hash, hasAlgorithm);
+PHP_CRYPTO_METHOD(Hash, __callStatic);
 PHP_CRYPTO_METHOD(Hash, __construct);
-PHP_CRYPTO_METHOD(Hash, init);
 PHP_CRYPTO_METHOD(Hash, update);
-PHP_CRYPTO_METHOD(Hash, final);
 PHP_CRYPTO_METHOD(Hash, digest);
+PHP_CRYPTO_METHOD(Hash, hexdigest);
 PHP_CRYPTO_METHOD(Hash, getSize);
 PHP_CRYPTO_METHOD(Hash, getBlockSize);
 

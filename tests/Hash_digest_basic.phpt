@@ -1,9 +1,10 @@
 --TEST--
-Crypto\Hash::make basic usage.
+Crypto\Hash::digest basic usage.
 --FILE--
 <?php
 $hash = new Crypto\Hash('sha256');
-echo bin2hex($hash->digest('data1data2')) . "\n";
+$hash->update('data1data2');
+echo bin2hex($hash->digest()) . "\n";
 echo "SUCCESS\n";
 ?>
 --EXPECT--
