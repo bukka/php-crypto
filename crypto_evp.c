@@ -294,7 +294,6 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 	/* Declare AlorithmException class constants for error codes */
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
@@ -307,6 +306,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_INIT_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_ALGORITHM_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_FINAL_FAILED);
@@ -415,20 +415,6 @@ static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, 
 		return SUCCESS;
 	} else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
-		return FAILURE;
-	}
-}
-/* }}} */
-
-/* {{{ php_crypto_set_hash_algorithm */
-static int php_crypto_set_hash_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
-{
-	const EVP_MD *digest = EVP_get_digestbyname(algorithm);
-	if (digest) {
-		PHP_CRYPTO_HASH_ALG(intern) = digest;
-		return SUCCESS;
-	} else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_NOT_FOUND, "Hash '%s' algorithm not found", algorithm);
 		return FAILURE;
 	}
 }
@@ -810,63 +796,17 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 	RETURN_LONG(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
 
-/* {{{ proto string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
-   Returns hash algorithms */
-PHP_CRYPTO_METHOD(Hash, getAlgorithms)
+/* {{{ php_crypto_set_hash_algorithm */
+static int php_crypto_set_hash_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
 {
-	php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_MD_METH);
-}
-/* }}} */
-
-/* {{{ proto static bool Crypto\Hash::hasAlgorithm(string $algorithm)
-   Finds out whether algorithm exists */
-PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
-{
-	char *algorithm;
-	int algorithm_len;
-	
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
-		return;
-	}
-	
-	if (EVP_get_digestbyname(algorithm)) {
-		RETURN_TRUE;
+	const EVP_MD *digest = EVP_get_digestbyname(algorithm);
+	if (digest) {
+		PHP_CRYPTO_HASH_ALG(intern) = digest;
+		return SUCCESS;
 	} else {
-		RETURN_FALSE;
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_ALGORITHM_NOT_FOUND, "Hash algorithm '%s' not found", algorithm);
+		return FAILURE;
 	}
-}
-/* }}} */
-
-/* {{{ proto Crypto\Hash::__callStatic(string $name, array $arguments)
-   Hash magic method for calling static methods */
-PHP_CRYPTO_METHOD(Hash, __callStatic)
-{
-
-}
-/* }}} */
-
-/* {{{ proto Crypto\Hash::__construct(string $algorithm)
-   Hash constructor */
-PHP_CRYPTO_METHOD(Hash, __construct)
-{
-	php_crypto_algorithm_object *intern;
-	char *algorithm;
-	int algorithm_len;
-	
-	intern = php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
-	if (!intern) {
-		return;
-	}
-
-#ifdef PHP_CRYPTO_HAS_CMAC
-	/* CMAC algorithm uses a cipher algorithm */
-	if (intern->type == PHP_CRYPTO_ALG_CMAC) {
-		php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
-		return;
-	}
-#endif
-
-	php_crypto_set_hash_algorithm(intern, algorithm TSRMLS_CC);
 }
 /* }}} */
 
@@ -940,6 +880,100 @@ static inline char *php_crypto_hash_final(php_crypto_algorithm_object *intern, i
 		return retval;
 	}
 	return estrdup((char *) hash_value);
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
+   Returns hash algorithms */
+PHP_CRYPTO_METHOD(Hash, getAlgorithms)
+{
+	php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_MD_METH);
+}
+/* }}} */
+
+/* {{{ proto static bool Crypto\Hash::hasAlgorithm(string $algorithm)
+   Finds out whether algorithm exists */
+PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
+{
+	char *algorithm;
+	int algorithm_len;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
+		return;
+	}
+	
+	if (EVP_get_digestbyname(algorithm)) {
+		RETURN_TRUE;
+	} else {
+		RETURN_FALSE;
+	}
+}
+/* }}} */
+
+/* {{{ proto Crypto\Hash::__callStatic(string $name, array $arguments)
+   Hash magic method for calling static methods */
+PHP_CRYPTO_METHOD(Hash, __callStatic)
+{
+	char *algorithm;
+	int algorithm_len, argc;
+	zval *args;
+	zval **arg;
+	const EVP_MD *digest;
+	php_crypto_algorithm_object *intern;
+	
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
+		return;
+	}
+
+	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
+	if (argc > 1) {
+		zend_error(E_WARNING, "The static function %s can accept max one argument", algorithm);
+		RETURN_NULL();
+	}
+
+	digest = EVP_get_digestbyname(algorithm);
+	if (!digest) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_STATIC_NOT_FOUND, "Hash static function '%s' not found", algorithm);
+		return;
+	}
+
+	object_init_ex(return_value, php_crypto_hash_ce);
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(return_value TSRMLS_CC);
+	PHP_CRYPTO_HASH_ALG(intern) = digest;
+
+	if (argc == 1) {
+		zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
+		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &arg);
+		convert_to_string_ex(arg);
+		if (php_crypto_hash_update(intern, Z_STRVAL_PP(arg), Z_STRLEN_PP(arg) TSRMLS_CC) == FAILURE) {
+			RETURN_NULL();
+		}
+	}
+}
+/* }}} */
+
+/* {{{ proto Crypto\Hash::__construct(string $algorithm)
+   Hash constructor */
+PHP_CRYPTO_METHOD(Hash, __construct)
+{
+	php_crypto_algorithm_object *intern;
+	char *algorithm;
+	int algorithm_len;
+	
+	intern = php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	if (!intern) {
+		return;
+	}
+
+#ifdef PHP_CRYPTO_HAS_CMAC
+	/* CMAC algorithm uses a cipher algorithm */
+	if (intern->type == PHP_CRYPTO_ALG_CMAC) {
+		php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
+		return;
+	}
+#endif
+
+	php_crypto_set_hash_algorithm(intern, algorithm TSRMLS_CC);
 }
 /* }}} */
 
