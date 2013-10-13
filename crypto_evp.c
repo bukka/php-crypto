@@ -307,6 +307,7 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_ALGORITHM_NOT_FOUND);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_STATIC_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_FINAL_FAILED);
@@ -389,20 +390,21 @@ static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
 }
 /* }}} */
 
-/* {{{ php_crypto_get_algorithm_object
-   It is sort of Crypto\Algorithm::_construct */
+/* {{{ php_crypto_get_algorithm_object_ex */
+static php_crypto_algorithm_object *php_crypto_get_algorithm_object_ex(char *algorithm, int algorithm_len, zval *object TSRMLS_DC)
+{
+	zend_update_property_stringl(php_crypto_algorithm_ce, object, "algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
+	return (php_crypto_algorithm_object *) zend_object_store_get_object(object TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ php_crypto_get_algorithm_object */
 static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algorithm, int *algorithm_len, INTERNAL_FUNCTION_PARAMETERS)
 {
-	php_crypto_algorithm_object *intern;
-		
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", algorithm, algorithm_len) == FAILURE) {
 		return NULL;
 	}
-	zend_update_property_stringl(php_crypto_algorithm_ce, getThis(), "algorithm", sizeof("algorithm")-1, *algorithm, *algorithm_len TSRMLS_CC);
-
-	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-
-	return intern;
+	return php_crypto_get_algorithm_object_ex(*algorithm, *algorithm_len, getThis() TSRMLS_CC);
 }
 /* }}} */
 
@@ -938,7 +940,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 	}
 
 	object_init_ex(return_value, php_crypto_hash_ce);
-	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(return_value TSRMLS_CC);
+	intern = php_crypto_get_algorithm_object_ex(algorithm, algorithm_len, return_value TSRMLS_CC);
 	PHP_CRYPTO_HASH_ALG(intern) = digest;
 
 	if (argc == 1) {
