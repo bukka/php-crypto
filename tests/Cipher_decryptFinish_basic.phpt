@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Cipher::decryptFinal basic usage.
+Crypto\Cipher::decryptFinish basic usage.
 --FILE--
 <?php
 $key = str_repeat('x', 32);
@@ -11,10 +11,10 @@ $cipher = new Crypto\Cipher('aes-256-cbc');
 
 // invalid order
 try {
-	$cipher->decryptFinal();
+	$cipher->decryptFinish();
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::DECRYPT_FINAL_STATUS) {
+	if ($e->getCode() === Crypto\AlgorithmException::DECRYPT_FINISH_STATUS) {
 		echo "FINAL STATUS\n";
 	}
 }
@@ -22,7 +22,7 @@ catch (Crypto\AlgorithmException $e) {
 // init first
 $cipher->decryptInit($key, $iv);
 $result = $cipher->decryptUpdate($ciphertext);
-$result .= $cipher->decryptFinal();
+$result .= $cipher->decryptFinish();
 echo $result . "\n";
 ?>
 --EXPECT--

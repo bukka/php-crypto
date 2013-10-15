@@ -70,11 +70,11 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, encryptFinal,     NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, encryptFinish,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encrypt,          arginfo_crypto_cipher_crypt,       ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, decryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, decryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, decryptFinal,     NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, decryptFinish,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, decrypt,          arginfo_crypto_cipher_crypt,       ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getKeyLength,     NULL,                              ZEND_ACC_PUBLIC)
@@ -299,18 +299,18 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_INIT_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_UPDATE_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_FINAL_FAILED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_FINISH_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_INIT_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_FINAL_STATUS);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_FINISH_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_INIT_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINAL_STATUS);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINISH_STATUS);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_ALGORITHM_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_STATIC_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_FINAL_FAILED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_DIGEST_FAILED);
 	
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
@@ -610,8 +610,8 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 
-/* {{{ php_crypto_cipher_final */
-static inline void php_crypto_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc)
+/* {{{ php_crypto_cipher_finish */
+static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_algorithm_object *intern;
 	unsigned char *outbuf;
@@ -625,10 +625,10 @@ static inline void php_crypto_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc
 
 	/* check algorithm status */
 	if (enc && intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINAL_STATUS, "Cipher object is not initialized for encryption");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINISH_STATUS, "Cipher object is not initialized for encryption");
 		return;
 	} else if (!enc && intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_FINAL_STATUS, "Cipher object is not initialized for decryption");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_FINISH_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
 	
@@ -637,7 +637,7 @@ static inline void php_crypto_cipher_final(INTERNAL_FUNCTION_PARAMETERS, int enc
 	
 	/* finalize encryption context */
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINISH_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
 	}
@@ -675,7 +675,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	}
 	/* finalize encryption context */
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf + outbuf_update_len, &outbuf_final_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINAL_FAILED, "Finalizing of cipher failed");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINISH_FAILED, "Finalizing of cipher failed");
 		efree(outbuf);
 		return;
 	}
@@ -700,11 +700,11 @@ PHP_CRYPTO_METHOD(Cipher, encryptUpdate)
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
-/* {{{ proto string Crypto\Cipher::encryptFinal()
+/* {{{ proto string Crypto\Cipher::encryptFinish()
    Finalizes cipher encryption */
-PHP_CRYPTO_METHOD(Cipher, encryptFinal)
+PHP_CRYPTO_METHOD(Cipher, encryptFinish)
 {
-	php_crypto_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
+	php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto string Crypto\Cipher::encrypt(string $data, string $key, string $iv = null)
@@ -728,11 +728,11 @@ PHP_CRYPTO_METHOD(Cipher, decryptUpdate)
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
-/* {{{ proto string Crypto\Cipher::decryptFinal()
+/* {{{ proto string Crypto\Cipher::decryptFinish()
    Finalizes cipher decryption */
-PHP_CRYPTO_METHOD(Cipher, decryptFinal)
+PHP_CRYPTO_METHOD(Cipher, decryptFinish)
 {
-	php_crypto_cipher_final(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
+	php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto string Crypto\Cipher::decrypt(string $data, string $key, string $iv = null)
@@ -855,8 +855,8 @@ static inline void php_crypto_hash_bin2hex(char *out, const unsigned char *in, u
 }
 /* }}} */
 
-/* {{{ php_crypto_hash_final */
-static inline char *php_crypto_hash_final(php_crypto_algorithm_object *intern, int encode_to_hex TSRMLS_DC)
+/* {{{ php_crypto_hash_finish */
+static inline char *php_crypto_hash_finish(php_crypto_algorithm_object *intern, int encode_to_hex TSRMLS_DC)
 {
 	unsigned char hash_value[EVP_MAX_MD_SIZE+1];
 	unsigned hash_len;
@@ -868,7 +868,7 @@ static inline char *php_crypto_hash_final(php_crypto_algorithm_object *intern, i
 
 	/* finalize hash context */
 	if (!EVP_DigestFinal(PHP_CRYPTO_HASH_CTX(intern), hash_value, &hash_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_FINAL_FAILED, "Finalizing of hash failed");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_DIGEST_FAILED, "Finalizing of hash failed");
 		return NULL;
 	}
 	hash_value[hash_len] = 0;
@@ -1007,7 +1007,7 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 	}
 	
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	hash = php_crypto_hash_final(intern, encode_to_hex TSRMLS_CC);
+	hash = php_crypto_hash_finish(intern, encode_to_hex TSRMLS_CC);
 	if (hash) {
 		RETURN_STRING(hash, 0);
 	}

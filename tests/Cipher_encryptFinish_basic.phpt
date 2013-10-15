@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Cipher::encryptFinal basic usage.
+Crypto\Cipher::encryptFinish basic usage.
 --FILE--
 <?php
 $key = str_repeat('x', 32);
@@ -10,17 +10,17 @@ $data = str_repeat('a', 16);
 $cipher = new Crypto\Cipher('aes-256-cbc');
 // invalid order
 try {
-	$cipher->encryptFinal();
+	$cipher->encryptFinish();
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::ENCRYPT_FINAL_STATUS) {
+	if ($e->getCode() === Crypto\AlgorithmException::ENCRYPT_FINISH_STATUS) {
 		echo "FINAL STATUS\n";
 	}
 }
 // init first
 $cipher->encryptInit($key, $iv);
 echo base64_encode($cipher->encryptUpdate($data)) . "\n";
-echo base64_encode($cipher->encryptFinal()) . "\n";
+echo base64_encode($cipher->encryptFinish()) . "\n";
 
 ?>
 --EXPECT--

@@ -22,7 +22,7 @@ catch (Crypto\AlgorithmException $e) {
 // init first
 $cipher->decryptInit($key, $iv);
 $result = $cipher->decryptUpdate($ciphertext);
-$result .= $cipher->decryptFinal();
+$result .= $cipher->decryptFinish();
 echo $result . "\n";
 ?>
 --EXPECT--

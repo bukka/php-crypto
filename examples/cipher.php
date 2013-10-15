@@ -33,11 +33,11 @@ try {
 	// Simple encryption
 	$sim_ct = $cipher->encrypt($data, $key, $iv);
 	
-	// init/update/final encryption
+	// init/update/finish encryption
 	$cipher->encryptInit($key, $iv);
 	$iuf_ct  = $cipher->encryptUpdate($data1);
 	$iuf_ct .= $cipher->encryptUpdate($data2);
-	$iuf_ct .= $cipher->encryptFinal();
+	$iuf_ct .= $cipher->encryptFinish();
 
 	// Raw data output (used base64 format for printing)
 	echo "Ciphertext (sim): " . base64_encode($sim_ct) . PHP_EOL;
@@ -48,10 +48,10 @@ try {
 	// Simple decryption
 	$sim_text = $cipher->decrypt($ct, $key, $iv);
 	
-	// init/update/final decryption
+	// init/update/finish decryption
 	$cipher->decryptInit($key, $iv);
 	$iuf_text = $cipher->decryptUpdate($ct);
-	$iuf_text .= $cipher->decryptFinal();
+	$iuf_text .= $cipher->decryptFinish();
 
 	// Raw data output ($iuf_out == $sim_out)
 	echo "Text (sim): " . $sim_text . PHP_EOL;

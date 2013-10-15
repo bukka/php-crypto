@@ -15,10 +15,10 @@ $cipher_clone = clone $cipher;
 echo $cipher_clone->getAlgorithmName() . "\n";
 
 $cipher->encryptUpdate($data2);
-echo base64_encode($cipher->encryptFinal()) . "\n";
+echo base64_encode($cipher->encryptFinish()) . "\n";
 
 $cipher_clone->encryptUpdate($data2);
-echo base64_encode($cipher_clone->encryptFinal()) . "\n";
+echo base64_encode($cipher_clone->encryptFinish()) . "\n";
 
 echo "SUCCESS\n";
 ?>
