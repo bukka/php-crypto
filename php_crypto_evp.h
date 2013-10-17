@@ -28,6 +28,23 @@
 #include <openssl/cmac.h>
 #endif
 
+/* BASE 64 */
+
+typedef enum {
+	PHP_CRYPTO_BASE64_STATUS_CLEAR,
+	PHP_CRYPTO_BASE64_STATUS_ENCODE,
+	PHP_CRYPTO_BASE64_STATUS_DECODE
+} php_crypto_base64_status;
+
+typedef struct {
+	EVP_ENCODE_CTX *ctx;
+} php_crypto_base64_object;
+
+#define PHP_CRYPTO_BASE64_CTX(pobj) (pobj)->ctx
+
+
+/* ALGORITHM */
+
 typedef enum {
 	PHP_CRYPTO_ALG_NONE = 0,
 	PHP_CRYPTO_ALG_CIPHER,
@@ -80,6 +97,23 @@ typedef struct {
 #define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_HASH_ALG
 
 
+/* EXCEPTIONS */
+
+/* Base64 exceptions macros */
+#define PHP_CRYPTO_BASE64_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
+#define PHP_CRYPTO_THROW_BASE64_EXCEPTION(code, msg) \
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_algorithm_exception_ce, PHP_CRYPTO_ALG_E(code), msg)
+
+/* Base64 exception error codes */
+typedef enum {
+	PHP_CRYPTO_BASE64_E(ENCODE_UPDATE_STATUS) = 1,
+	PHP_CRYPTO_BASE64_E(ENCODE_FINISH_STATUS),
+	PHP_CRYPTO_BASE64_E(DECODE_UPDATE_STATUS),
+	PHP_CRYPTO_BASE64_E(DECODE_FINISH_STATUS),
+	PHP_CRYPTO_BASE64_E(DECODE_FAILED)
+} php_crypto_algorithm_error_code;
+
+
 /* Algorithm exceptions macros */
 #define PHP_CRYPTO_ALG_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
 #define PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(code, msg) \
@@ -111,6 +145,9 @@ typedef enum {
 /* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
 #define PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED -1
 
+
+/* CLASSES */
+
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
@@ -121,7 +158,10 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
 #endif
 
-/* Methods definitions */
+
+/* METHODS */
+
+/* Module init for Crypto EVP */
 PHP_MINIT_FUNCTION(crypto_evp);
 /* Algorithm methods */
 PHP_CRYPTO_METHOD(Algorithm, __construct);
