@@ -23,6 +23,10 @@
 
 #include <openssl/evp.h>
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_data, 0)
+ZEND_ARG_INFO(0, data)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_END_ARG_INFO()
@@ -30,10 +34,6 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_algorithm_list, 0, 0, 0)
 ZEND_ARG_INFO(0, aliases)
 ZEND_ARG_INFO(0, prefix)
-ZEND_END_ARG_INFO()
-
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm_data, 0)
-ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_alogirthm_static, 0)
@@ -57,10 +57,21 @@ ZEND_ARG_INFO(0, key)
 ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
+static const zend_function_entry php_crypto_base64_object_methods[] = {
+	PHP_CRYPTO_ME(Base64,    encode,            arginfo_crypto_data,      ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    decode,            arginfo_crypto_data,      ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    __construct,       NULL,                     ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    encodeUpdate,      arginfo_crypto_data,      ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    encodeFinish,      NULL,                     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    decodeUpdate,      arginfo_crypto_data,      ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Base64,    decodeFinish,      NULL,                     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_FE_END
+};
+
 static const zend_function_entry php_crypto_algorithm_object_methods[] = {
-	PHP_CRYPTO_ME(Algorithm, __construct,       arginfo_crypto_algorithm, ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Algorithm, __construct,       arginfo_crypto_algorithm, ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Algorithm, getAlgorithmName,  NULL,                     ZEND_ACC_PUBLIC)
-    PHP_FE_END
+	PHP_CRYPTO_FE_END
 };
 
 static const zend_function_entry php_crypto_cipher_object_methods[] = {
@@ -69,18 +80,18 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, hasMode,          arginfo_crypto_cipher_mode,        ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, encryptFinish,     NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_data,               ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, encryptFinish,    NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encrypt,          arginfo_crypto_cipher_crypt,       ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, decryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, decryptUpdate,    arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, decryptFinish,     NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, decryptUpdate,    arginfo_crypto_data,               ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, decryptFinish,    NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, decrypt,          arginfo_crypto_cipher_crypt,       ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getKeyLength,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getIVLength,      NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getMode,          NULL,                              ZEND_ACC_PUBLIC)
-    PHP_FE_END
+	PHP_CRYPTO_FE_END
 };
 
 static const zend_function_entry php_crypto_hash_object_methods[] = {
@@ -88,15 +99,16 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHP_CRYPTO_ME(Hash, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, __callStatic,     arginfo_crypto_alogirthm_static,   ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Hash, update,           arginfo_crypto_algorithm_data,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Hash, update,           arginfo_crypto_data,               ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, digest,           NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, hexdigest,        NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, getSize,          NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, getBlockSize,     NULL,                              ZEND_ACC_PUBLIC)
-	PHP_FE_END
+	PHP_CRYPTO_FE_END
 };
 
 /* class entries */
+PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
@@ -106,10 +118,85 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
 #endif
 
 /* exception entries */
+PHP_CRYPTO_API zend_class_entry *php_crypto_base64_exception_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 
 /* object handlers */
+static zend_object_handlers php_crypto_base64_object_handlers;
 static zend_object_handlers php_crypto_algorithm_object_handlers;
+
+
+/* BASE64 OBJECT HANDLERS */
+
+/* {{{ php_crypto_base64_object_dtor */
+static void php_crypto_base64_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
+{
+	zend_objects_destroy_object(object, handle TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_object_free */
+static void php_crypto_base64_object_free(zend_object *object TSRMLS_DC)
+{
+	php_crypto_base64_object *intern = (php_crypto_base64_object *) object;
+	zend_object_std_dtor(&intern->zo TSRMLS_CC);
+	efree(intern->ctx);
+	efree(intern);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_object_create_ex */
+static zend_object_value php_crypto_base64_object_create_ex(zend_class_entry *class_type, php_crypto_base64_object **ptr TSRMLS_DC)
+{
+	zend_object_value retval;
+	php_crypto_base64_object *intern;
+
+	/* Allocate memory for it */
+	intern = (php_crypto_base64_object *) emalloc(sizeof(php_crypto_base64_object));
+	memset(intern, 0, sizeof(php_crypto_base64_object));
+	if (ptr) {
+		*ptr = intern;
+	}
+	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
+	php_crypto_object_properties_init(&intern->zo, class_type);
+
+	intern->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
+
+	retval.handlers = &php_crypto_base64_object_handlers;
+	retval.handle = zend_objects_store_put(
+		intern,
+		(zend_objects_store_dtor_t) php_crypto_base64_object_dtor,
+		(zend_objects_free_object_storage_t) php_crypto_base64_object_free,
+		NULL TSRMLS_CC);
+
+	return retval;
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_object_create */
+static zend_object_value php_crypto_base64_object_create(zend_class_entry *class_type TSRMLS_DC)
+{
+	return php_crypto_base64_object_create_ex(class_type, NULL TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_object_clone */
+zend_object_value php_crypto_base64_object_clone(zval *this_ptr TSRMLS_DC)
+{
+	php_crypto_base64_object *new_obj = NULL;
+	php_crypto_base64_object *old_obj = (php_crypto_base64_object *) zend_object_store_get_object(this_ptr TSRMLS_CC);
+	zend_object_value new_ov = php_crypto_base64_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
+
+	zend_objects_clone_members(&new_obj->zo, new_ov, &old_obj->zo, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
+	new_obj->status = old_obj->status;
+	memcpy(new_obj->ctx, old_obj->ctx, sizeof (EVP_ENCODE_CTX));
+
+	return new_ov;
+}
+/* }}} */
+
+
+/* ALGORITHM OBJECT HANDLERS */
 
 #define PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object) \
 	zend_read_property(php_crypto_algorithm_ce, this_object, "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC)
@@ -270,6 +357,10 @@ copy_end:
 }
 /* }}} */
 
+
+#define PHP_CRYPTO_DECLARE_BASE64_E_CONST(aconst) \
+	zend_declare_class_constant_long(php_crypto_base64_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_BASE64_E(aconst) TSRMLS_CC)
+
 #define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst) \
 	zend_declare_class_constant_long(php_crypto_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_ALG_E(aconst) TSRMLS_CC)
 
@@ -281,6 +372,23 @@ copy_end:
 PHP_MINIT_FUNCTION(crypto_evp)
 {
 	zend_class_entry ce;
+
+	/* Base64 class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Base64), php_crypto_base64_object_methods);
+	ce.create_object = php_crypto_base64_object_create;
+	memcpy(&php_crypto_base64_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
+	php_crypto_base64_object_handlers.clone_obj = php_crypto_base64_object_clone;
+	php_crypto_base64_ce = zend_register_internal_class(&ce TSRMLS_CC);
+
+	/* Base64 Exception class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Base64Exception), NULL);
+	php_crypto_base64_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
+	/* Declare Base64Exception class constants for error codes */
+	PHP_CRYPTO_DECLARE_BASE64_E_CONST(ENCODE_UPDATE_STATUS);
+	PHP_CRYPTO_DECLARE_BASE64_E_CONST(ENCODE_FINISH_STATUS);
+	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_UPDATE_STATUS);
+	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_FINISH_STATUS);
+	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_FAILED);
 
 	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Algorithm), php_crypto_algorithm_object_methods);
@@ -358,6 +466,60 @@ PHP_MINIT_FUNCTION(crypto_evp)
 	return SUCCESS;
 }
 /* }}} */
+
+/* BASE64 METHODS */
+
+/* {{{ proto Crypto\Base64::encode(string $data)
+   Encodes string $data to base64 encoding */
+PHP_CRYPTO_METHOD(Base64, encode)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::decode(string $data)
+   Decodes base64 string $data to raw encoding */
+PHP_CRYPTO_METHOD(Base64, decode)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::__construct()
+   Base64 constructor */
+PHP_CRYPTO_METHOD(Base64, __construct)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::encode(string $data)
+   Encodes block of characters from $data and saves the reminder of the last block to the encoding context */
+PHP_CRYPTO_METHOD(Base64, encodeUpdate)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::encodeFinish()
+   Encodes characters that left in the encoding context */
+PHP_CRYPTO_METHOD(Base64, encodeFinish)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::decode(string $data)
+   Decodes block of characters from $data and saves the reminder of the last block to the encoding context */
+PHP_CRYPTO_METHOD(Base64, decodeUpdate)
+{
+
+}
+
+/* {{{ proto Crypto\Base64::decodeFinish()
+   Decodes characters that left in the encoding context */
+PHP_CRYPTO_METHOD(Base64, decodeFinish)
+{
+
+}
+
+
+/* ALGORITHM METHODS */
 
 /* do all parameter structure */
 typedef struct {

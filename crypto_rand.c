@@ -57,7 +57,7 @@ static const zend_function_entry php_crypto_rand_object_methods[] = {
 	PHP_CRYPTO_ME(Rand,   loadFile,     arginfo_crypto_rand_load_file,    ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Rand,   writeFile,    arginfo_crypto_rand_write_file,   ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Rand,   egd,          arginfo_crypto_rand_egd,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-    PHP_FE_END
+	PHP_CRYPTO_FE_END
 };
 
 /* class entry */

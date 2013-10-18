@@ -71,6 +71,12 @@ PHP_MINFO_FUNCTION(crypto);
 #define php_crypto_object_properties_init(zo, class_type) object_properties_init(zo, class_type)
 #endif
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 3 && PHP_RELEASE_VERSION >= 7) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4) || (PHP_MAJOR_VERSION > 5)
+#define PHP_CRYPTO_FE_END PHP_FE_END
+#else
+#define PHP_CRYPTO_FE_END {NULL,NULL,NULL}
+#endif
+
 /* OpenSSL features test */
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L
 #define PHP_CRYPTO_HAS_CMAC 1

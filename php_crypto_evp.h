@@ -37,10 +37,10 @@ typedef enum {
 } php_crypto_base64_status;
 
 typedef struct {
+	zend_object zo;
+	php_crypto_base64_status status;
 	EVP_ENCODE_CTX *ctx;
 } php_crypto_base64_object;
-
-#define PHP_CRYPTO_BASE64_CTX(pobj) (pobj)->ctx
 
 
 /* ALGORITHM */
@@ -100,9 +100,11 @@ typedef struct {
 /* EXCEPTIONS */
 
 /* Base64 exceptions macros */
-#define PHP_CRYPTO_BASE64_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
+#define PHP_CRYPTO_BASE64_E(code) PHP_CRYPTO_BASE64_ERROR_##code
 #define PHP_CRYPTO_THROW_BASE64_EXCEPTION(code, msg) \
-	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_algorithm_exception_ce, PHP_CRYPTO_ALG_E(code), msg)
+	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_base64_exception_ce, PHP_CRYPTO_BASE64_E(code), msg)
+#define PHP_CRYPTO_THROW_BASE64_EXCEPTION_EX(code, msg, ...) \
+	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_base64_exception_ce, PHP_CRYPTO_BASE64_E(code), msg, ##__VA_ARGS__)
 
 /* Base64 exception error codes */
 typedef enum {
@@ -111,7 +113,7 @@ typedef enum {
 	PHP_CRYPTO_BASE64_E(DECODE_UPDATE_STATUS),
 	PHP_CRYPTO_BASE64_E(DECODE_FINISH_STATUS),
 	PHP_CRYPTO_BASE64_E(DECODE_FAILED)
-} php_crypto_algorithm_error_code;
+} php_crypto_base64_error_code;
 
 
 /* Algorithm exceptions macros */
@@ -139,7 +141,7 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_STATIC_NOT_FOUND),
 	PHP_CRYPTO_ALG_E(HASH_INIT_FAILED),
 	PHP_CRYPTO_ALG_E(HASH_UPDATE_FAILED),
-	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED),
+	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
 /* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
@@ -149,6 +151,8 @@ typedef enum {
 /* CLASSES */
 
 /* Class entries */
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_base64_exception_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
@@ -163,6 +167,16 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
 
 /* Module init for Crypto EVP */
 PHP_MINIT_FUNCTION(crypto_evp);
+
+/* Base64 methods */
+PHP_CRYPTO_METHOD(Base64, encode);
+PHP_CRYPTO_METHOD(Base64, decode);
+PHP_CRYPTO_METHOD(Base64, __construct);
+PHP_CRYPTO_METHOD(Base64, encodeUpdate);
+PHP_CRYPTO_METHOD(Base64, encodeFinish);
+PHP_CRYPTO_METHOD(Base64, decodeUpdate);
+PHP_CRYPTO_METHOD(Base64, decodeFinish);
+
 /* Algorithm methods */
 PHP_CRYPTO_METHOD(Algorithm, __construct);
 PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName);
