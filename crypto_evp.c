@@ -469,38 +469,171 @@ PHP_MINIT_FUNCTION(crypto_evp)
 
 /* BASE64 METHODS */
 
-/* {{{ proto Crypto\Base64::encode(string $data)
+#define PHP_CRYPTO_BASE64_ENCODING_SIZE(data_len) (((data_len) + 2) * 4 / 3)
+#define PHP_CRYPTO_BASE64_DECODING_SIZE(data_len) (((data_len) + 2) * 3 / 4)
+
+/* {{{ php_crypto_base64_encode_init */
+static inline void php_crypto_base64_encode_init(EVP_ENCODE_CTX *ctx)
+{
+	EVP_EncodeInit(ctx);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_encode_update */
+static inline void php_crypto_base64_encode_update(EVP_ENCODE_CTX *ctx, char *out, int *outl, const char *in, int inl)
+{
+	EVP_EncodeUpdate(ctx, (unsigned char *) out, outl, (const unsigned char *) in, inl);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_encode_finish */
+static inline void php_crypto_base64_encode_finish(EVP_ENCODE_CTX *ctx, char *out, int *outl)
+{
+	EVP_EncodeFinal(ctx, (unsigned char *) out, outl);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_decode_init */
+static inline void php_crypto_base64_decode_init(EVP_ENCODE_CTX *ctx)
+{
+	EVP_DecodeInit(ctx);
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_decode_update */
+static inline int php_crypto_base64_decode_update(EVP_ENCODE_CTX *ctx, char *out, int *outl, const char *in, int inl TSRMLS_DC)
+{
+	int rc = EVP_DecodeUpdate(ctx, (unsigned char *) out, outl, (const unsigned char *) in, inl);
+	if (rc < 0) {
+		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_FAILED, "Base64 decoded string does not contain valid characters");
+	}
+	return rc;
+}
+/* }}} */
+
+/* {{{ php_crypto_base64_decode_finish */
+static inline void php_crypto_base64_decode_finish(EVP_ENCODE_CTX *ctx, char *out, int *outl)
+{
+	EVP_DecodeFinal(ctx, (unsigned char *) out, outl);
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Base64::encode(string $data)
    Encodes string $data to base64 encoding */
 PHP_CRYPTO_METHOD(Base64, encode)
 {
+	char *in, *out;
+	int in_len, out_len, final_len;
+	EVP_ENCODE_CTX ctx;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
+		return;
+	}
+
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len);
+	out = (char *) emalloc(out_len * sizeof (char));
+
+	php_crypto_base64_encode_init(&ctx);
+	php_crypto_base64_encode_update(&ctx, out, &out_len, in, in_len);
+	php_crypto_base64_encode_finish(&ctx, out, &final_len);
+	out_len += final_len;
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 }
 
-/* {{{ proto Crypto\Base64::decode(string $data)
+/* {{{ proto string Crypto\Base64::decode(string $data)
    Decodes base64 string $data to raw encoding */
 PHP_CRYPTO_METHOD(Base64, decode)
 {
+	char *in, *out;
+	int in_len, out_len, final_len;
+	EVP_ENCODE_CTX ctx;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
+		return;
+	}
+
+	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
+	out = (char *) emalloc(out_len * sizeof (char));
+
+	php_crypto_base64_decode_init(&ctx);
+	if (php_crypto_base64_decode_update(&ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
+		RETURN_FALSE;
+	}
+	php_crypto_base64_decode_finish(&ctx, out, &final_len);
+	out_len += final_len;
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 }
 
 /* {{{ proto Crypto\Base64::__construct()
    Base64 constructor */
 PHP_CRYPTO_METHOD(Base64, __construct)
 {
-
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
 }
 
 /* {{{ proto Crypto\Base64::encode(string $data)
    Encodes block of characters from $data and saves the reminder of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 {
+	char *in, *out;
+	int in_len, out_len;
+	php_crypto_base64_object *intern;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->status == PHP_CRYPTO_BASE64_STATUS_DECODE) {
+		PHP_CRYPTO_THROW_BASE64_EXCEPTION(ENCODE_UPDATE_STATUS, "The object is already used for decoding");
+		return;
+	}
+	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
+		php_crypto_base64_encode_init(intern->ctx);
+		intern->status = PHP_CRYPTO_BASE64_STATUS_ENCODE;
+	}
+
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len);
+	out = (char *) emalloc(out_len * sizeof (char));
+
+	php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 }
 
 /* {{{ proto Crypto\Base64::encodeFinish()
    Encodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
+	char *out;
+	int out_len;
+	php_crypto_base64_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->status != PHP_CRYPTO_BASE64_STATUS_ENCODE) {
+		PHP_CRYPTO_THROW_BASE64_EXCEPTION(ENCODE_FINISH_STATUS, "The object has not been intialized for encoding");
+		return;
+	}
+
+	if (intern->ctx->num == 0) {
+		RETURN_EMPTY_STRING();
+	}
+
+	out_len = intern->ctx->num + 1;
+	out = (char *) emalloc(out_len * sizeof (char));
+	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 
 }
 
@@ -508,14 +641,64 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
    Decodes block of characters from $data and saves the reminder of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 {
+	char *in, *out;
+	int in_len, out_len;
+	php_crypto_base64_object *intern;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->status == PHP_CRYPTO_BASE64_STATUS_ENCODE) {
+		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_UPDATE_STATUS, "The object is already used for encoding");
+		return;
+	}
+	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
+		php_crypto_base64_decode_init(intern->ctx);
+		intern->status = PHP_CRYPTO_BASE64_STATUS_DECODE;
+	}
+
+	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
+	out = (char *) emalloc(out_len * sizeof (char));
+
+	if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
+		efree(out);
+		return;
+	}
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 }
 
 /* {{{ proto Crypto\Base64::decodeFinish()
    Decodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeFinish)
 {
+	char *out;
+	int out_len;
+	php_crypto_base64_object *intern;
 
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+
+	if (intern->status != PHP_CRYPTO_BASE64_STATUS_DECODE) {
+		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_FINISH_STATUS, "The object has not been intialized for decoding");
+		return;
+	}
+
+	if (intern->ctx->num == 0) {
+		RETURN_EMPTY_STRING();
+	}
+
+	out_len = intern->ctx->num + 1;
+	out = (char *) emalloc(out_len * sizeof (char));
+	php_crypto_base64_decode_finish(intern->ctx, out, &out_len);
+	out[out_len] = 0;
+	RETURN_STRINGL(out, out_len, 0);
 }
 
 
