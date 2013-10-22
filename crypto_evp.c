@@ -469,8 +469,8 @@ PHP_MINIT_FUNCTION(crypto_evp)
 
 /* BASE64 METHODS */
 
-#define PHP_CRYPTO_BASE64_ENCODING_SIZE(b64ctx, data_len) (((data_len) + 2) * 4 / 3 + data_len / (b64ctx)->length + 1)
-#define PHP_CRYPTO_BASE64_DECODING_SIZE(b64ctx, data_len) (((data_len) + 2) * 3 / 4)
+#define PHP_CRYPTO_BASE64_ENCODING_SIZE(data_len, b64ctx) (((data_len) + 2) * 4 / 3 + data_len / (b64ctx)->length + 1)
+#define PHP_CRYPTO_BASE64_DECODING_SIZE(data_len) (((data_len) + 2) * 3 / 4)
 
 /* {{{ php_crypto_base64_encode_init */
 static inline void php_crypto_base64_encode_init(EVP_ENCODE_CTX *ctx)
@@ -531,7 +531,7 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	}
 
 	php_crypto_base64_encode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(&ctx, in_len);
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len, &ctx);
 	out = (char *) emalloc(out_len * sizeof (char));
 	php_crypto_base64_encode_update(&ctx, out, &out_len, in, in_len);
 	php_crypto_base64_encode_finish(&ctx, out + out_len, &final_len);
@@ -553,7 +553,7 @@ PHP_CRYPTO_METHOD(Base64, decode)
 	}
 
 	php_crypto_base64_decode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(&ctx, in_len);
+	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
 	out = (char *) emalloc(out_len * sizeof (char));
 
 	if (php_crypto_base64_decode_update(&ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
@@ -597,7 +597,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 		intern->status = PHP_CRYPTO_BASE64_STATUS_ENCODE;
 	}
 
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(intern->ctx, in_len);
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len, intern->ctx);
 	out = (char *) emalloc(out_len * sizeof (char));
 
 	php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
@@ -659,7 +659,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 		intern->status = PHP_CRYPTO_BASE64_STATUS_DECODE;
 	}
 
-	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(intern->ctx, in_len);
+	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
 	out = (char *) emalloc(out_len * sizeof (char));
 
 	if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
