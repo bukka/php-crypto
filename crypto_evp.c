@@ -627,11 +627,11 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 	if (intern->ctx->num == 0) {
 		RETURN_EMPTY_STRING();
 	}
-
-	out_len = intern->ctx->num + 1;
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(intern->ctx->length, intern->ctx);
 	out = (char *) emalloc(out_len * sizeof (char));
 	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
 	out[out_len] = 0;
+
 	RETURN_STRINGL(out, out_len, 0);
 
 }
