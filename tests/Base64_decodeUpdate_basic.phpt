@@ -6,7 +6,7 @@ $data_encoded = <<<EOI
 YWJjZGVmZ2hpamtsbW5vcHFyc3R1disqKl4lJGFiY2RlZmdoaWprbG1ub3BxcnN0
 dXYrKipeJSRhYmNkZWZnaGlqa2xtbm9wcXJzdHV2KyoqXiUkYWJjZGVmZ2hpamts
 bW5vcHFyc3R1disqKl4lJGFiY2RlZmdoaWprbG1ub3BxcnN0dXYrKipeJSRhYmNk
-ZWZnaGlqa2xtbm9wcXJzdHV2Ky
+ZWZnaGlqa2xtbm9wcXJzdHV2KyoqXiUk
 EOI;
 
 $data_chunks = str_split($data_encoded, 20);
@@ -24,12 +24,16 @@ catch (Crypto\Base64Exception $e) {
 }
 
 $b64 = new Crypto\Base64;
+echo $b64->decodeUpdate($data_encoded);
+
+$b64 = new Crypto\Base64;
 $data = '';
 foreach ($data_chunks as $data_chunk) {
 	$data .= $b64->decodeUpdate($data_chunk);
 }
 echo "$data\n";
+
 ?>
 --EXPECT--
 DECODE UPDATE STATUS EXCEPTION
-SUCCESS
+abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$

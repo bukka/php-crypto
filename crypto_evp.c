@@ -636,6 +636,8 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 
 }
 
+#define PHP_CRYPTO_BASE64_DECODE_MIN_SIZE 49
+
 /* {{{ proto Crypto\Base64::decode(string $data)
    Decodes block of characters from $data and saves the reminder of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeUpdate)
@@ -659,7 +661,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 		intern->status = PHP_CRYPTO_BASE64_STATUS_DECODE;
 	}
 
-	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
+	out_len =  MAX(PHP_CRYPTO_BASE64_DECODE_MIN_SIZE, PHP_CRYPTO_BASE64_DECODING_SIZE(in_len));
 	out = (char *) emalloc(out_len * sizeof (char));
 
 	if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
