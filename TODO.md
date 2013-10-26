@@ -1,18 +1,10 @@
 # TODO list
 
-## Encoding
-
-### Base64 class
-```php
-class Crypto\Base64 {
-  public static function encode($data) {}
-  public static function decode($data) {}
-
-  public function __construct() {}
-  public function update($data) {}
-  public function final() {}
-}
-```
+## Base64
+- Test clone
+- Memory testing
+- Why does decodeFinish always return empty string?
+- Find an input string that leads to the Base64Exception with code DECODE_FAIL
 
 ## Cipher
 
