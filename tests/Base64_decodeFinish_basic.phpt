@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Base64::decodeUpdate basic usage.
+Crypto\Base64::decodeFinish basic usage.
 --FILE--
 <?php
 
@@ -14,18 +14,14 @@ $data_chunks = str_split($data_encoded, 20);
 
 // try state exception
 $b64 = new Crypto\Base64;
-$b64->encodeUpdate("abc");
 try {
-	$b64->decodeUpdate($data_encoded);
+	$b64->decodeFinish();
 }
 catch (Crypto\Base64Exception $e) {
-	if ($e->getCode() == Crypto\Base64Exception::DECODE_UPDATE_STATUS) {
-		echo "DECODE UPDATE STATUS EXCEPTION\n";
+	if ($e->getCode() == Crypto\Base64Exception::DECODE_FINISH_STATUS) {
+		echo "DECODE FINISH STATUS EXCEPTION\n";
 	}
 }
-
-$b64 = new Crypto\Base64;
-echo $b64->decodeUpdate($data_encoded) . "\n";
 
 $b64 = new Crypto\Base64;
 $data = '';
@@ -33,9 +29,10 @@ foreach ($data_chunks as $data_chunk) {
 	$data .= $b64->decodeUpdate($data_chunk);
 }
 echo "$data\n";
-
+echo "FINISH: " . $b64->decodeFinish() . "\n";
 ?>
 --EXPECT--
-DECODE UPDATE STATUS EXCEPTION
+DECODE FINISH STATUS EXCEPTION
 abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$
-abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$abcdefghijklmnopqrstuv+**^%$
+FINISH:
+

@@ -18,8 +18,15 @@ catch (Crypto\Base64Exception $e) {
 
 $b64 = new Crypto\Base64;
 echo $b64->encodeUpdate($data);
-echo $b64->encodeFinish() . "\n";
+echo $b64->encodeFinish();
+
+$b64 = new Crypto\Base64;
+for ($i = 0; $i < 20; $i++) {
+	$b64->encodeUpdate('a');
+}
+echo $b64->encodeFinish();
 ?>
 --EXPECT--
 ENCODE FINISH STATUS EXCEPTION
 YWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWE=
+YWFhYWFhYWFhYWFhYWFhYWFhYWE=

@@ -468,9 +468,11 @@ PHP_MINIT_FUNCTION(crypto_evp)
 /* }}} */
 
 /* BASE64 METHODS */
+#define PHP_CRYPTO_BASE64_DECODING_SIZE_MIN 49
+#define PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN 65
 
-#define PHP_CRYPTO_BASE64_ENCODING_SIZE(data_len, b64ctx) (((data_len) + 2) * 4 / 3 + data_len / (b64ctx)->length + 1)
-#define PHP_CRYPTO_BASE64_DECODING_SIZE(data_len) (((data_len) + 2) * 3 / 4)
+#define PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(data_len, b64ctx) (((data_len) + 2) * 4 / 3 + data_len / (b64ctx)->length + 1)
+#define PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(data_len) (((data_len) + 2) * 3 / 4)
 
 /* {{{ php_crypto_base64_encode_init */
 static inline void php_crypto_base64_encode_init(EVP_ENCODE_CTX *ctx)
@@ -531,7 +533,7 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	}
 
 	php_crypto_base64_encode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len, &ctx);
+	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, &ctx);
 	out = (char *) emalloc(out_len * sizeof (char));
 	php_crypto_base64_encode_update(&ctx, out, &out_len, in, in_len);
 	php_crypto_base64_encode_finish(&ctx, out + out_len, &final_len);
@@ -553,7 +555,7 @@ PHP_CRYPTO_METHOD(Base64, decode)
 	}
 
 	php_crypto_base64_decode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE(in_len);
+	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
 	out = (char *) emalloc(out_len * sizeof (char));
 
 	if (php_crypto_base64_decode_update(&ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
@@ -579,7 +581,7 @@ PHP_CRYPTO_METHOD(Base64, __construct)
 PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 {
 	char *in, *out;
-	int in_len, out_len;
+	int in_len, out_len, real_len;
 	php_crypto_base64_object *intern;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
@@ -597,19 +599,28 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 		intern->status = PHP_CRYPTO_BASE64_STATUS_ENCODE;
 	}
 
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(in_len, intern->ctx);
-	out = (char *) emalloc(out_len * sizeof (char));
-
-	php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
-	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 0);
+	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, intern->ctx);
+	if (real_len < PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN) {
+		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN];
+		php_crypto_base64_encode_update(intern->ctx, buff, &out_len, in, in_len);
+		if (out_len == 0) {
+			RETURN_EMPTY_STRING();
+		}
+		buff[out_len] = 0;
+		RETURN_STRINGL(buff, out_len, 1);
+	} else {
+		out = (char *) emalloc(real_len * sizeof (char));
+		php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
+		out[out_len] = 0;
+		RETURN_STRINGL(out, out_len, 0);
+	}
 }
 
 /* {{{ proto Crypto\Base64::encodeFinish()
    Encodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
-	char *out;
+	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN];
 	int out_len;
 	php_crypto_base64_object *intern;
 
@@ -624,26 +635,20 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 		return;
 	}
 
-	if (intern->ctx->num == 0) {
+	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
+	if (out_len == 0) {
 		RETURN_EMPTY_STRING();
 	}
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE(intern->ctx->length, intern->ctx);
-	out = (char *) emalloc(out_len * sizeof (char));
-	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
 	out[out_len] = 0;
-
-	RETURN_STRINGL(out, out_len, 0);
-
+	RETURN_STRINGL(out, out_len, 1);
 }
-
-#define PHP_CRYPTO_BASE64_DECODE_MIN_SIZE 49
 
 /* {{{ proto Crypto\Base64::decode(string $data)
    Decodes block of characters from $data and saves the reminder of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 {
 	char *in, *out;
-	int in_len, out_len;
+	int in_len, out_len, real_len;
 	php_crypto_base64_object *intern;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
@@ -661,22 +666,33 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 		intern->status = PHP_CRYPTO_BASE64_STATUS_DECODE;
 	}
 
-	out_len =  MAX(PHP_CRYPTO_BASE64_DECODE_MIN_SIZE, PHP_CRYPTO_BASE64_DECODING_SIZE(in_len));
-	out = (char *) emalloc(out_len * sizeof (char));
-
-	if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
-		efree(out);
-		return;
+	real_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
+	if (real_len < PHP_CRYPTO_BASE64_DECODING_SIZE_MIN) {
+		char buff[PHP_CRYPTO_BASE64_DECODING_SIZE_MIN];
+		if (php_crypto_base64_decode_update(intern->ctx, buff, &out_len, in, in_len TSRMLS_CC) < 0) {
+			return;
+		}
+		if (out_len == 0) {
+			RETURN_EMPTY_STRING();
+		}
+		buff[out_len] = 0;
+		RETURN_STRINGL(buff, out_len, 1);
+	} else {
+		out = (char *) emalloc(real_len * sizeof (char));
+		if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
+			efree(out);
+			return;
+		}
+		out[out_len] = 0;
+		RETURN_STRINGL(out, out_len, 0);
 	}
-	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 0);
 }
 
 /* {{{ proto Crypto\Base64::decodeFinish()
    Decodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeFinish)
 {
-	char *out;
+	char out[PHP_CRYPTO_BASE64_DECODING_SIZE_MIN];
 	int out_len;
 	php_crypto_base64_object *intern;
 
@@ -691,15 +707,12 @@ PHP_CRYPTO_METHOD(Base64, decodeFinish)
 		return;
 	}
 
-	if (intern->ctx->num == 0) {
+	php_crypto_base64_decode_finish(intern->ctx, out, &out_len);
+	if (out_len == 0) {
 		RETURN_EMPTY_STRING();
 	}
-
-	out_len = intern->ctx->num + 1;
-	out = (char *) emalloc(out_len * sizeof (char));
-	php_crypto_base64_decode_finish(intern->ctx, out, &out_len);
 	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 0);
+	RETURN_STRINGL(out, out_len, 1);
 }
 
 
