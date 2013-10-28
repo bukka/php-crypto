@@ -1,7 +1,6 @@
 # TODO list
 
 ## Base64
-- Test clone
 - Memory testing
 - Why does decodeFinish always return empty string?
 - Find an input string that leads to the Base64Exception with code DECODE_FAIL
