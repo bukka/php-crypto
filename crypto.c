@@ -24,7 +24,8 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_crypto.h"
-#include "php_crypto_evp.h"
+#include "php_crypto_alg.h"
+#include "php_crypto_base64.h"
 #include "php_crypto_rand.h"
 
 
@@ -58,8 +59,9 @@ ZEND_GET_MODULE(crypto)
  */
 PHP_MINIT_FUNCTION(crypto)
 {
+	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
+	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
-	PHP_MINIT(crypto_evp)(INIT_FUNC_ARGS_PASSTHRU);
 	
 	return SUCCESS;
 }
