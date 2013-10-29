@@ -89,7 +89,7 @@ PHP_MINIT_FUNCTION(crypto_rand)
 }
 /* }}} */
 
-/* {{{ proto string Rand::generate(int $num, bool $must_be_strong = true, &bool $returned_strong_result = true)
+/* {{{ proto static string Crypto\Rand::generate(int $num, bool $must_be_strong = true, &bool $returned_strong_result = true)
    Generates pseudo random bytes */
 PHP_CRYPTO_METHOD(Rand, generate)
 {
@@ -122,7 +122,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 }
 /* }}} */
 
-/* {{{ proto void Rand::seed(string $buf, float $entropy = (float) strlen($buf))
+/* {{{ proto static void Crypto\Rand::seed(string $buf, float $entropy = (float) strlen($buf))
    Mixes bytes in $buf into PRNG state */
 PHP_CRYPTO_METHOD(Rand, seed)
 {
@@ -142,7 +142,7 @@ PHP_CRYPTO_METHOD(Rand, seed)
 }
 /* }}} */
 
-/* {{{ proto void Rand::cleanup()
+/* {{{ proto static void Crypto\Rand::cleanup()
    Cleans up PRNG state */
 PHP_CRYPTO_METHOD(Rand, cleanup)
 {
@@ -153,7 +153,7 @@ PHP_CRYPTO_METHOD(Rand, cleanup)
 }
 /* }}} */
 
-/* {{{ proto int Rand::loadFile(string $filename, int $max_bytes = -1)
+/* {{{ proto static int Crypto\Rand::loadFile(string $filename, int $max_bytes = -1)
    Reads a number of bytes from file $filename and adds them to the PRNG. If max_bytes is non-negative,
    up to to max_bytes are read; if $max_bytes is -1, the complete file is read */
 PHP_CRYPTO_METHOD(Rand, loadFile)
@@ -171,7 +171,7 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 /* }}} */
 
 
-/* {{{ proto int Rand::writeFile(string $filename)
+/* {{{ proto static int Crypto\Rand::writeFile(string $filename)
    Writes a number of random bytes (currently 1024) to file $filename which can be used to initialize
    the PRNG by calling Crypto\Rand::loadFile() in a later session */
 PHP_CRYPTO_METHOD(Rand, writeFile)
@@ -192,7 +192,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 }
 /* }}} */
 
-/* {{{ proto mixed Rand::egd(string $path, int $bytes = 255, bool $seed = true)
+/* {{{ proto static mixed Crypto\Rand::egd(string $path, int $bytes = 255, bool $seed = true)
    Queries the entropy gathering daemon EGD on socket path. It queries $bytes bytes and if $seed is true,
    then the data are seeded, otherwise the data are returned */
 PHP_CRYPTO_METHOD(Rand, egd)

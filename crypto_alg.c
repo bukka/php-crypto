@@ -445,7 +445,7 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::getAlgorithms(bool $aliases = false, string $prefix = null)
+/* {{{ proto static string Crypto\Cipher::getAlgorithms(bool $aliases = false, string $prefix = null)
    Returns cipher algorithms */
 PHP_CRYPTO_METHOD(Cipher, getAlgorithms)
 {
@@ -890,7 +890,7 @@ static inline char *php_crypto_hash_finish(php_crypto_algorithm_object *intern, 
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
+/* {{{ proto static string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
    Returns hash algorithms */
 PHP_CRYPTO_METHOD(Hash, getAlgorithms)
 {
@@ -917,7 +917,7 @@ PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
 }
 /* }}} */
 
-/* {{{ proto Crypto\Hash::__callStatic(string $name, array $arguments)
+/* {{{ proto static Crypto\Hash::__callStatic(string $name, array $arguments)
    Hash magic method for calling static methods */
 PHP_CRYPTO_METHOD(Hash, __callStatic)
 {

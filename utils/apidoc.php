@@ -9,51 +9,68 @@ class Apidoc {
 		'classes' => array(
 			array(
 				'name' => 'Crypto\Algorithm',
-				'prefix' => 'abstract',
 				'description' => 'Alorithm class (parent of cipher and digest algorithms)',
-				'methods' => array(
-					array(
-						'prefix' => 'abstract public',
-						'name' => '__construct',
-						'params' => array(
-							array( 'name' => '$algorithm', 'type' => 'string' )
-						),
-						'description' => 'Algorithm class abstract constructor',
-					),
-				),
 				'vars' => array(
 					array(
 						'prefix' => 'protected',
 						'name' => '$algorithm',
 						'description' => 'Algorithm name',
 						'type' => 'string',
+						'isref' => false,
 					)
 				),
 			),
 			array(
 				'name' => 'Crypto\Cipher',
 				'parent' => 'Crypto\Algorithm',
-				'description' => 'Class wrapping cipher algorithms',
+				'description' => 'Class providing cipher algorithms',
+				'constants' => array(
+					array( 'name' => 'MODE_ECB', 'value' => 0x1 ),
+					array( 'name' => 'MODE_CBC', 'value' => 0x2 ),
+					array( 'name' => 'MODE_CFB', 'value' => 0x3 ),
+					array( 'name' => 'MODE_OFB', 'value' => 0x4 ),
+					array( 'name' => 'MODE_CTR', 'value' => 0x5 ),
+					array( 'name' => 'MODE_GCM', 'value' => 0x6 ),
+					array( 'name' => 'MODE_CCM', 'value' => 0x7 ),
+					array( 'name' => 'MODE_XTS', 'value' => 0x10001 ),
+				),
 			),
 			array(
-				'name' => 'Crypto\Digest',
+				'name' => 'Crypto\Hash',
 				'parent' => 'Crypto\Algorithm',
-				'description' => 'Class wrapping digest algorithms',
+				'description' => 'Class providing hash algorithms',
 			),
 			array(
 				'name' => 'Crypto\AlgorithmException',
 				'parent' => 'Exception',
 				'description' => 'Exception class for algorithms errors',
 			),
+			array(
+				'name' => 'Crypto\Base64',
+				'description' => 'Class for base64 encoding and docoding',
+			),
+			array(
+				'name' => 'Crypto\Base64Exception',
+				'parent' => 'Exception',
+				'description' => 'Exception class for base64 errors',
+			),
+			array(
+				'name' => 'Crypto\Rand',
+				'description' => 'Class for generating random numbers',
+			),
 		),
 		'methods' => array(
-			'files' => array( '/crypto_evp.c' ),
+			'files' => array( '/crypto_alg.c', '/crypto_base64.c', '/crypto_rand.c' ),
 			'macro' => 'PHP_CRYPTO_METHOD',
 		),
 		'constants' => array(
 			'Crypto\AlgorithmException' => array(
-				'file' => '/php_crypto_evp.h',
+				'file' => '/php_crypto_alg.h',
 				'macro' => 'PHP_CRYPTO_ALG_E',
+			),
+			'Crypto\Base64Exception' => array(
+				'file' => '/php_crypto_base64.h',
+				'macro' => 'PHP_CRYPTO_BASE64_E',
 			),
 		)
 	);
@@ -72,19 +89,18 @@ class Apidoc {
 	}
 
 	private function makeConstants() {
-		$c = array();
-		// Crypto\AlgorithmException
-		$cname = 'Crypto\AlgorithmException';
-		$conf = $this->conf['constants'][$cname];
-		$macro = $conf['macro'];
-		$file = $this->getFile($conf['file']);
-		$value = 1;
-		foreach ($file as $line) {
-			if ((strpos(trim($line), $macro) === 0) && preg_match("/$macro\(([^)]*)/", $line, $matches)) {
-				$c[] = array( 'name' => $matches[1], 'value' => $value++ );
+		foreach ($this->conf['constants'] as $cname => $conf) {
+			$macro = $conf['macro'];
+			$file = $this->getFile($conf['file']);
+			$value = 1;
+			$c = array();
+			foreach ($file as $line) {
+				if ((strpos(trim($line), $macro) === 0) && preg_match("/$macro\(([^)]*)/", $line, $matches)) {
+					$c[] = array( 'name' => $matches[1], 'value' => $value++ );
+				}
 			}
+			$this->s[$cname]['constants'] = $c;
 		}
-		$this->s[$cname]['constants'] = $c;
 	}
 
 	private function makeMethods() {
@@ -103,7 +119,7 @@ class Apidoc {
 						$m['description'] .= ' ' . $comment;
 					}
 				}
-				elseif (preg_match("/proto\s+(static\s+)?(\w+)\s+([^:]+)::(\w+)\(([^)]*)/", $line, $matches)) {
+				elseif (preg_match("/proto\s+(static\s+)?(\w+\s+)?([^:]+)::(\w+)\(([^)]*)/", $line, $matches)) {
 					$params = array();
 					if (strlen($matches[5])) {
 						$pss = explode(',', $matches[5]);
@@ -112,10 +128,18 @@ class Apidoc {
 							if (!is_null($pdefault))
 								$pdefault = trim($pdefault);
 							list ($ptype, $pname) = explode(' ', trim($ptn));
+							if ($ptype{0} == '&') {
+								$isref = true;
+								$ptype = substr($ptype, 1);
+							} else {
+								$isref = false;
+							}	
+							
 							$params[] = array(
 								'name' => $pname,
 								'type' => $ptype,
 								'default' => $pdefault,
+								'isref' => $isref,
 							);
 						}
 					}
@@ -124,7 +148,7 @@ class Apidoc {
 						'prefix' => empty($matches[1]) ? 'public' : 'public static',
 						'name' => $matches[4],
 						'params' => $params,
-						'return' => $matches[2],
+						'return' => empty($matches[2]) ? null : rtrim($matches[2]),
 						'description' => '',
 					);
 					if (!strpos($line, '*/'))
@@ -195,7 +219,7 @@ class Apidoc {
 					if ($this->ckey_exists('params', $m)) {
 						foreach ($m['params'] as $p) {
 							$this->out(' * @param %s %s', $p['type'], $p['name']);
-							$params[] = $p['name'] . (isset($p['default']) && strlen($p['default']) ? ' = ' . $p['default'] : '');
+							$params[] = ($p['isref'] ? '&' : '') . $p['name'] . (isset($p['default']) && strlen($p['default']) ? ' = ' . $p['default'] : '');
 						}
 					}
 					if (isset($m['return']) && !is_null($m['return'])) {

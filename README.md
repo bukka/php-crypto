@@ -33,10 +33,7 @@ to the `php.ini`
 
 ### Windows
 
-The `php_crypto.dll` for Windows is available inside this PHP 5.4.19 build:
-
-[https://dl.dropboxusercontent.com/u/8954372/php-5.4.19-nts-Win32-VC9-x86.zip](https://dl.dropboxusercontent.com/u/8954372/php-5.4.19-nts-Win32-VC9-x86.zip)
-
+The `php_crypto.dll` is part of Jan-E Windows builds on [https://www.apachelounge.com/viewforum.php?f=6](Apache Lounge).
 
 ## API
 
@@ -53,7 +50,7 @@ The internal code is written in C so the body of methods is not shown.
 /**
  * Alorithm class (parent of cipher and digest algorithms)
  */
-abstract class Crypto\Algorithm {
+class Crypto\Algorithm {
     /**
      * Algorithm name
      * @var string
@@ -61,29 +58,59 @@ abstract class Crypto\Algorithm {
     protected $algorithm;
     
     /**
-     * Algorithm class abstract constructor
+     * Algorithm constructor
      * @param string $algorithm
      */
-    abstract public function __construct($algorithm);
+    public function __construct($algorithm) {}
     
     /**
      * Returns algorithm string
      * @return string
      */
-    public function getAlgorithm() {}
+    public function getAlgorithmName() {}
     
 }
 
 /**
- * Class wrapping cipher algorithms
+ * Class providing cipher algorithms
  */
 class Crypto\Cipher extends Crypto\Algorithm {
+    const MODE_ECB = 1;
+    const MODE_CBC = 2;
+    const MODE_CFB = 3;
+    const MODE_OFB = 4;
+    const MODE_CTR = 5;
+    const MODE_GCM = 6;
+    const MODE_CCM = 7;
+    const MODE_XTS = 65537;
+    
+    /**
+     * Returns cipher algorithms
+     * @param bool $aliases
+     * @param string $prefix
+     * @return string
+     */
+    public static function getAlgorithms($aliases = false, $prefix = null) {}
+    
     /**
      * Finds out whether algorithm exists
      * @param string $algorithm
      * @return bool
      */
     public static function hasAlgorithm($algorithm) {}
+    
+    /**
+     * Finds out whether the cipher mode is defined in the used OpenSSL library
+     * @param int $mode
+     * @return bool
+     */
+    public static function hasMode($mode) {}
+    
+    /**
+     * Cipher constructor
+     * @param string $algorithm
+     */
+    public function __construct($algorithm) {}
     
     /**
      * Initializes cipher encryption
@@ -104,7 +131,7 @@ class Crypto\Cipher extends Crypto\Algorithm {
      * Finalizes cipher encryption
      * @return string
      */
-    public function encryptFinal() {}
+    public function encryptFinish() {}
     
     /**
      * Enrypts text to ciphertext
@@ -134,7 +161,7 @@ class Crypto\Cipher extends Crypto\Algorithm {
      * Finalizes cipher decryption
      * @return string
      */
-    public function decryptFinal() {}
+    public function decryptFinish() {}
     
     /**
      * Decrypts ciphertext to decrypted text
@@ -163,12 +190,26 @@ class Crypto\Cipher extends Crypto\Algorithm {
      */
     public function getIVLength() {}
     
+    /**
+     * Returns cipher mode
+     * @return int
+     */
+    public function getMode() {}
+    
 }
 
 /**
- * Class wrapping digest algorithms
+ * Class providing hash algorithms
  */
-class Crypto\Digest extends Crypto\Algorithm {
+class Crypto\Hash extends Crypto\Algorithm {
+    /**
+     * Returns hash algorithms
+     * @param bool $aliases
+     * @param string $prefix
+     * @return string
+     */
+    public static function getAlgorithms($aliases = false, $prefix = null) {}
+    
     /**
      * Finds out whether algorithm exists
      * @param string $algorithm
@@ -177,39 +218,45 @@ class Crypto\Digest extends Crypto\Algorithm {
     public static function hasAlgorithm($algorithm) {}
     
     /**
-     * Initializes digest
-     * @return null
+     * Hash magic method for calling static methods
+     * @param string $name
+     * @param array $arguments
      */
-    public function init() {}
+    public static function __callStatic($name, $arguments) {}
     
     /**
-     * Updates digest
+     * Hash constructor
+     * @param string $algorithm
+     */
+    public function __construct($algorithm) {}
+    
+    /**
+     * Updates hash
      * @param string $data
      * @return null
      */
     public function update($data) {}
     
     /**
-     * Finalizes digest
+     * Return hash digest in raw foramt
      * @return string
      */
-    public function final() {}
+    public function digest() {}
     
     /**
-     * Makes digest
-     * @param string $data
+     * Return hash digest in hex format
      * @return string
      */
-    public function make($data) {}
+    public function hexdigest() {}
     
     /**
-     * Returns digest block size
+     * Returns hash block size
      * @return int
      */
     public function getBlockSize() {}
     
     /**
-     * Returns digest size
+     * Returns hash size
      * @return int
      */
     public function getSize() {}
@@ -225,140 +272,139 @@ class Crypto\AlgorithmException extends Exception {
     const CIPHER_IV_LENGTH = 3;
     const CIPHER_INIT_FAILED = 4;
     const CIPHER_UPDATE_FAILED = 5;
-    const CIPHER_FINAL_FAILED = 6;
+    const CIPHER_FINISH_FAILED = 6;
     const ENCRYPT_INIT_STATUS = 7;
     const ENCRYPT_UPDATE_STATUS = 8;
-    const ENCRYPT_FINAL_STATUS = 9;
+    const ENCRYPT_FINISH_STATUS = 9;
     const DECRYPT_INIT_STATUS = 10;
     const DECRYPT_UPDATE_STATUS = 11;
-    const DECRYPT_FINAL_STATUS = 12;
-    const DIGEST_NOT_FOUND = 13;
-    const DIGEST_INIT_FAILED = 14;
-    const DIGEST_UPDATE_FAILED = 15;
-    const DIGEST_FINAL_FAILED = 16;
-    const DIGEST_UPDATE_STATUS = 17;
-    const DIGEST_FINAL_STATUS = 18;
+    const DECRYPT_FINISH_STATUS = 12;
+    const HASH_ALGORITHM_NOT_FOUND = 13;
+    const HASH_STATIC_NOT_FOUND = 14;
+    const HASH_INIT_FAILED = 15;
+    const HASH_UPDATE_FAILED = 16;
+    const HASH_DIGEST_FAILED = 17;
+    
+}
+
+/**
+ * Class for base64 encoding and docoding
+ */
+class Crypto\Base64 {
+    /**
+     * Encodes string $data to base64 encoding
+     * @param string $data
+     * @return string
+     */
+    public function encode($data) {}
+    
+    /**
+     * Decodes base64 string $data to raw encoding
+     * @param string $data
+     * @return string
+     */
+    public function decode($data) {}
+    
+    /**
+     * Base64 constructor
+     */
+    public function __construct() {}
+    
+    /**
+     * Encodes block of characters from $data and saves the reminder of the last block to the encoding context
+     * @param string $data
+     */
+    public function encode($data) {}
+    
+    /**
+     * Encodes characters that left in the encoding context
+     */
+    public function encodeFinish() {}
+    
+    /**
+     * Decodes block of characters from $data and saves the reminder of the last block to the encoding context
+     * @param string $data
+     */
+    public function decode($data) {}
+    
+    /**
+     * Decodes characters that left in the encoding context
+     */
+    public function decodeFinish() {}
+    
+}
+
+/**
+ * Exception class for base64 errors
+ */
+class Crypto\Base64Exception extends Exception {
+    const ENCODE_UPDATE_STATUS = 1;
+    const ENCODE_FINISH_STATUS = 2;
+    const DECODE_UPDATE_STATUS = 3;
+    const DECODE_FINISH_STATUS = 4;
+    const DECODE_FAILED = 5;
+    
+}
+
+/**
+ * Class for generating random numbers
+ */
+class Crypto\Rand {
+    /**
+     * Generates pseudo random bytes
+     * @param int $num
+     * @param bool $must_be_strong
+     * @param bool $returned_strong_result
+     * @return string
+     */
+    public static function generate($num, $must_be_strong = true, &$returned_strong_result = true) {}
+    
+    /**
+     * Mixes bytes in $buf into PRNG state
+     * @param string $buf
+     * @param float $entropy
+     * @return null
+     */
+    public static function seed($buf, $entropy = (float) {}
+    
+    /**
+     * Cleans up PRNG state
+     * @return null
+     */
+    public static function cleanup() {}
+    
+    /**
+     * Reads a number of bytes from file $filename and adds them to the PRNG. If max_bytes is non-negative, up to to max_bytes are read; if $max_bytes is -1, the complete file is read
+     * @param string $filename
+     * @param int $max_bytes
+     * @return int
+     */
+    public static function loadFile($filename, $max_bytes = -1) {}
+    
+    /**
+     * Writes a number of random bytes (currently 1024) to file $filename which can be used to initialize the PRNG by calling Crypto\Rand::loadFile() in a later session
+     * @param string $filename
+     * @return int
+     */
+    public static function writeFile($filename) {}
+    
+    /**
+     * Queries the entropy gathering daemon EGD on socket path. It queries $bytes bytes and if $seed is true, then the data are seeded, otherwise the data are returned
+     * @param string $path
+     * @param int $bytes
+     * @param bool $seed
+     * @return mixed
+     */
+    public static function egd($path, $bytes = 255, $seed = true) {}
     
 }
 ```
 
 ## Examples
 
-### Cipher example
+The examples can be found in [the example directory](https://github.com/bukka/php-crypto/tree/master/examples).
 
-Cipher class is for cipher encryption and decryption of the text. The following example shows usage of the Cipher API.
-
-```php
-<?php
-namespace Crypto;
-
-$algorithm = 'aes-256-cbc';
-
-if (!Cipher::hasAlgorithm($algorithm)) {
-	die("Algorithm $algorithm not found" . PHP_EOL);
-}
-
-try {
-	$cipher = new Cipher($algorithm);
-
-	// Algorithm method for retrieving algorithm
-	echo "Algorithm: " . $cipher->getAlgorithm() . PHP_EOL;
-
-	// Params
-	$key_len = $cipher->getKeyLength();
-	$iv_len = $cipher->getIVLength();
-	
-	echo "Key length: " . $key_len . PHP_EOL;
-	echo "IV length: "  . $iv_len . PHP_EOL;
-	echo "Block size: " . $cipher->getBlockSize() . PHP_EOL;
-
-	// This is just for this example. You shoul never use such key and IV!
-	$key = str_repeat('x', $key_len);
-	$iv = str_repeat('i', $iv_len);
-
-	// Test data
-	$data1 = "Test";
-	$data2 = "Data";
-	$data = $data1 . $data2;
-
-	// Simple encryption
-	$sim_ct = $cipher->encrypt($data, $key, $iv);
-	
-	// init/update/final encryption
-	$cipher->encryptInit($key, $iv);
-	$iuf_ct  = $cipher->encryptUpdate($data1);
-	$iuf_ct .= $cipher->encryptUpdate($data2);
-	$iuf_ct .= $cipher->encryptFinal();
-
-	// Raw data output (used base64 format for printing)
-	echo "Ciphertext (sim): " . base64_encode($sim_ct) . PHP_EOL;
-	echo "Ciphertext (iuf): " . base64_encode($iuf_ct) . PHP_EOL;
-	// $iuf_out == $sim_out
-	$ct = $sim_ct;
-	
-	// Simple decryption
-	$sim_text = $cipher->decrypt($ct, $key, $iv);
-	
-	// init/update/final decryption
-	$cipher->decryptInit($key, $iv);
-	$iuf_text = $cipher->decryptUpdate($ct);
-	$iuf_text .= $cipher->decryptFinal();
-
-	// Raw data output ($iuf_out == $sim_out)
-	echo "Text (sim): " . $sim_text . PHP_EOL;
-	echo "Text (iuf): " . $iuf_text . PHP_EOL;
-}
-catch (AlgorithmException $e) {
-	echo $e->getMessage() . PHP_EOL;
-}
-```
-
-Digest class is for creating message digest. The following example shows usage of the Digest API.
-
-```php
-<?php
-namespace Crypto;
-
-$algorithm = 'sha256';
-
-if (!Digest::hasAlgorithm($algorithm)) {
-	die("Algorithm $algorithm not found" . PHP_EOL);
-}
-
-try {
-	$digest = new Digest($algorithm);
-
-	// Algorithm method for retrieving algorithm
-	echo "Algorithm: " . $digest->getAlgorithm() . PHP_EOL;
-
-	// Params
-	echo "Size: " . $digest->getSize() . PHP_EOL;
-	echo "Block size: " . $digest->getBlockSize() . PHP_EOL;
-
-	// Test data
-	$data1 = "Test";
-	$data2 = "Data";
-	$data = $data1 . $data2;
-
-	// Simple digest
-	$sim_digest = $digest->make($data);
-	
-	// init/update/final digest
-	$digest->init();
-	$digest->update($data1);
-	$digest->update($data2);
-	$iuf_digest = $digest->final();
-
-	// Raw data output (used hex format for printing)
-	echo "Digest (sim): " . bin2hex($sim_digest) . PHP_EOL;
-	echo "Digest (iuf): " . bin2hex($iuf_digest) . PHP_EOL;
-	// sim == iuf
-}
-catch (AlgorithmException $e) {
-	echo $e->getMessage() . PHP_EOL;
-}
-```
 
 ## TODO list
 
-You can find my TODO list [here](https://github.com/bukka/php-crypto/blob/master/TODO.md).
+The TODO list can be found [here](https://github.com/bukka/php-crypto/blob/master/TODO.md).
