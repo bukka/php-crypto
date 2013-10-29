@@ -39,7 +39,7 @@ The `php_crypto.dll` is part of Jan-E Windows builds on [https://www.apacheloung
 
 The extension is still in development so the API is not stabilized yet.
 
-All classes are defined in namespace `Crypto`. Currently there are 3 classes and 1 exception class.
+All classes are defined in namespace `Crypto`.
 
 ### PHP definition for the classes
 
