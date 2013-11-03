@@ -42,6 +42,11 @@ ZEND_ARG_INFO(0, name)
 ZEND_ARG_INFO(0, arguments)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_construct, 0, 0, 1)
+ZEND_ARG_INFO(0, algorithm)
+ZEND_ARG_INFO(0, mode)
+ZEND_ARG_INFO(0, extra_info)
+ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_init, 0, 0, 1)
 ZEND_ARG_INFO(0, key)
@@ -68,7 +73,8 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getAlgorithms,    arginfo_crypto_alg_list,           ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, hasAlgorithm,     arginfo_crypto_algorithm,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, hasMode,          arginfo_crypto_cipher_mode,        ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_algorithm,          ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, __callStatic,     arginfo_crypto_alg_static,         ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, __construct,      arginfo_crypto_cipher_construct,   ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptInit,      arginfo_crypto_cipher_init,        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptUpdate,    arginfo_crypto_alg_data,           ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, encryptFinish,    NULL,                              ZEND_ACC_PUBLIC)
@@ -95,6 +101,35 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHP_CRYPTO_ME(Hash, getSize,          NULL,                                ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, getBlockSize,     NULL,                                ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_FE_END
+};
+
+/* cipher modes lookup table */
+static const php_crypto_cipher_mode php_crypto_cipher_modes[] = {
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(ECB, EVP_CIPH_ECB_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CBC, EVP_CIPH_CBC_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CFB, EVP_CIPH_CFB_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(OFB, EVP_CIPH_OFB_MODE)
+#ifdef EVP_CIPH_CTR_MODE
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CTR, EVP_CIPH_CTR_MODE)
+#else
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(CTR)
+#endif
+#ifdef EVP_CIPH_GCM_MODE
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(GCM, EVP_CIPH_GCM_MODE)
+#else
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(GCM)
+#endif
+#ifdef EVP_CIPH_CCM_MODE
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CCM, EVP_CIPH_CCM_MODE)
+#else
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(CCM)
+#endif
+#ifdef EVP_CIPH_XTS_MODE
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(XTS, EVP_CIPH_XTS_MODE)
+#else
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(XTS)
+#endif
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_END
 };
 
 /* class entries */
@@ -276,14 +311,11 @@ copy_end:
 #define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst) \
 	zend_declare_class_constant_long(php_crypto_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_ALG_E(aconst) TSRMLS_CC)
 
-#define PHP_CRYPTO_DECLARE_CIPHER_CONST(const_name, const_value) \
-	zend_declare_class_constant_long(php_crypto_cipher_ce, #const_name, sizeof(#const_name)-1, const_value TSRMLS_CC)
-
-
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_alg)
 {
 	zend_class_entry ce;
+	const php_crypto_cipher_mode *mode;
 
 	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Algorithm), php_crypto_algorithm_object_methods);
@@ -319,30 +351,9 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
 	php_crypto_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
 	/* Cipher constants for modes */
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_ECB, EVP_CIPH_ECB_MODE);
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CBC, EVP_CIPH_CBC_MODE);
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CFB, EVP_CIPH_CFB_MODE);
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_OFB, EVP_CIPH_OFB_MODE);
-#ifdef EVP_CIPH_CTR_MODE
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CTR, EVP_CIPH_CTR_MODE);
-#else
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CTR, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
-#endif
-#ifdef EVP_CIPH_GCM_MODE
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_GCM, EVP_CIPH_GCM_MODE);
-#else
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_GCM, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
-#endif
-#ifdef EVP_CIPH_CCM_MODE
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CCM, EVP_CIPH_CCM_MODE);
-#else
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_CCM, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
-#endif
-#ifdef EVP_CIPH_XTS_MODE
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, EVP_CIPH_XTS_MODE);
-#else
-	PHP_CRYPTO_DECLARE_CIPHER_CONST(MODE_XTS, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED);
-#endif
+	for (mode = php_crypto_cipher_modes; mode->name[0]; mode++) {
+		zend_declare_class_constant_long(php_crypto_cipher_ce, mode->constant, strlen(mode->constant), mode->value TSRMLS_CC);
+	}
 
 	/* Hash class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Hash), php_crypto_hash_object_methods);
@@ -414,7 +425,7 @@ static php_crypto_algorithm_object *php_crypto_get_algorithm_object(char **algor
 /* }}} */
 
 /* {{{ php_crypto_set_cipher_algorithm */
-static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
+static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, const char *algorithm TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher = EVP_get_cipherbyname(algorithm);
 	if (cipher) {
@@ -424,6 +435,13 @@ static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, 
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
 		return FAILURE;
 	}
+}
+/* }}} */
+
+/* {{{ php_crypto_set_cipher_algorithm */
+static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *intern, const char *algorithm, zval *mode, zval *extra_info TSRMLS_DC)
+{
+
 }
 /* }}} */
 
@@ -486,19 +504,67 @@ PHP_CRYPTO_METHOD(Cipher, hasMode)
 }
 /* }}} */
 
-/* {{{ proto Crypto\Cipher::__construct(string $algorithm)
+/* {{{ proto static Crypto\Cipher::__callStatic(string $name, array $arguments)
+   Cipher magic method for calling static methods */
+PHP_CRYPTO_METHOD(Cipher, __callStatic)
+{
+	char *algorithm;
+	int algorithm_len, argc;
+	zval *args;
+	zval **arg;
+	const EVP_MD *digest;
+	php_crypto_algorithm_object *intern;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
+		return;
+	}
+
+	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
+	if (argc > 2) {
+		zend_error(E_WARNING, "The static function %s can accept max two arguments", algorithm);
+		RETURN_NULL();
+	}
+
+	/*
+	digest = EVP_get_digestbyname(algorithm);
+	if (!digest) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_STATIC_NOT_FOUND, "Hash static function '%s' not found", algorithm);
+		return;
+	}
+
+	object_init_ex(return_value, php_crypto_hash_ce);
+	intern = php_crypto_get_algorithm_object_ex(algorithm, algorithm_len, return_value TSRMLS_CC);
+	PHP_CRYPTO_HASH_ALG(intern) = digest;
+
+	if (argc == 1) {
+		zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
+		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &arg);
+		convert_to_string_ex(arg);
+		if (php_crypto_hash_update(intern, Z_STRVAL_PP(arg), Z_STRLEN_PP(arg) TSRMLS_CC) == FAILURE) {
+			RETURN_NULL();
+		}
+	}
+	*/
+}
+/* }}} */
+
+/* {{{ proto Crypto\Cipher::__construct(string $algorithm, int $mode = NULL, string $extra_info = NULL)
    Cipher constructor */
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
 	php_crypto_algorithm_object *intern;
 	char *algorithm;
 	int algorithm_len;
+	zval *mode = NULL, *extra_info = NULL;
 
-	intern = php_crypto_get_algorithm_object(&algorithm, &algorithm_len, INTERNAL_FUNCTION_PARAM_PASSTHRU);
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", algorithm, algorithm_len, &mode, &extra_info) == FAILURE) {
+		return;
+	}
+	intern = php_crypto_get_algorithm_object_ex(algorithm, algorithm_len, getThis() TSRMLS_CC);
 	if (!intern) {
 		return;
 	}
-	php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_ex(intern, algorithm, mode, extra_info TSRMLS_CC);
 }
 /* }}} */
 

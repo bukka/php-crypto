@@ -107,8 +107,20 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
-/* Value for cipher mode that is not implemented (when using old version of OpenSSL) */
+/* Cipher mode lookup table entry struct */
+typedef struct {
+	const char name[4];
+	const char constant[9];
+	int value;
+} php_crypto_cipher_mode;
+
+/* Constant value for cipher mode that is not implemented (when using old version of OpenSSL) */
 #define PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED -1
+
+/* Macros for cipher mode lookup table */
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name, mode_value) { #mode_name, "MODE_" #mode_name, mode_value },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) { #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_END { "", "", 0 }
 
 
 /* CLASSES */
@@ -136,6 +148,7 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName);
 PHP_CRYPTO_METHOD(Cipher, getAlgorithms);
 PHP_CRYPTO_METHOD(Cipher, hasAlgorithm);
 PHP_CRYPTO_METHOD(Cipher, hasMode);
+PHP_CRYPTO_METHOD(Cipher, __callStatic);
 PHP_CRYPTO_METHOD(Cipher, __construct);
 PHP_CRYPTO_METHOD(Cipher, encryptInit);
 PHP_CRYPTO_METHOD(Cipher, encryptUpdate);
