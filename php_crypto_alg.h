@@ -79,6 +79,9 @@ typedef struct {
 #define PHP_CRYPTO_HMAC_CTX(pobj)   (pobj)->evp.hash.ctx.hmac
 #define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_HASH_ALG
 
+/* Algorithm string max length */
+#define PHP_CRYPTO_CIPHER_ALG_MAX_LEN 32
+
 /* Algorithm exceptions macros */
 #define PHP_CRYPTO_ALG_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
 #define PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(code, msg) \
@@ -107,10 +110,13 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
+/* Mode string length */
+#define PHP_CRYPTO_CIPHER_MODE_LEN 3
+
 /* Cipher mode lookup table entry struct */
 typedef struct {
-	const char name[4];
-	const char constant[9];
+	const char name[PHP_CRYPTO_CIPHER_MODE_LEN+1];
+	const char constant[PHP_CRYPTO_CIPHER_MODE_LEN+6];
 	int value;
 } php_crypto_cipher_mode;
 
