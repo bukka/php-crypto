@@ -79,9 +79,6 @@ typedef struct {
 #define PHP_CRYPTO_HMAC_CTX(pobj)   (pobj)->evp.hash.ctx.hmac
 #define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_HASH_ALG
 
-/* Algorithm string max length */
-#define PHP_CRYPTO_CIPHER_ALG_MAX_LEN 32
-
 /* Algorithm exceptions macros */
 #define PHP_CRYPTO_ALG_E(code) PHP_CRYPTO_ALGORITHM_ERROR_##code
 #define PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(code, msg) \
@@ -92,6 +89,7 @@ typedef struct {
 /* Algorithm exception error codes */
 typedef enum {
 	PHP_CRYPTO_ALG_E(CIPHER_NOT_FOUND) = 1,
+	PHP_CRYPTO_ALG_E(CIPHER_MODE_NOT_FOUND),
 	PHP_CRYPTO_ALG_E(CIPHER_KEY_LENGTH),
 	PHP_CRYPTO_ALG_E(CIPHER_IV_LENGTH),
 	PHP_CRYPTO_ALG_E(CIPHER_INIT_FAILED),
@@ -110,6 +108,9 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
+/* Algorithm string max length */
+#define PHP_CRYPTO_CIPHER_ALG_MAX_LEN 32
+
 /* Mode string length */
 #define PHP_CRYPTO_CIPHER_MODE_LEN 3
 
@@ -117,7 +118,7 @@ typedef enum {
 typedef struct {
 	const char name[PHP_CRYPTO_CIPHER_MODE_LEN+1];
 	const char constant[PHP_CRYPTO_CIPHER_MODE_LEN+6];
-	int value;
+	long value;
 } php_crypto_cipher_mode;
 
 /* Constant value for cipher mode that is not implemented (when using old version of OpenSSL) */
