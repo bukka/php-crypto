@@ -20,6 +20,7 @@
 #include "php_crypto.h"
 #include "php_crypto_alg.h"
 #include "zend_exceptions.h"
+#include "ext/standard/php_string.h"
 
 #include <openssl/evp.h>
 
@@ -467,8 +468,9 @@ static inline void php_crypto_throw_cipher_not_found_exception(const char *algor
 /* }}} */
 
 /* {{{ php_crypto_set_cipher_algorithm */
-static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, const char *algorithm TSRMLS_DC)
+static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, char *algorithm, int algorithm_len TSRMLS_DC)
 {
+	php_strtoupper(algorithm, algorithm_len);
 	const EVP_CIPHER *cipher = EVP_get_cipherbyname(algorithm);
 	if (!cipher) {
 		php_crypto_throw_cipher_not_found_exception(algorithm TSRMLS_CC);
@@ -481,7 +483,7 @@ static int php_crypto_set_cipher_algorithm(php_crypto_algorithm_object *intern, 
 
 /* {{{ php_crypto_set_cipher_algorithm */
 static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *intern,
-		const char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_extra_info TSRMLS_DC)
+		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_extra_info TSRMLS_DC)
 {
 	const php_crypto_cipher_mode *mode;
 	char alg_buf[PHP_CRYPTO_CIPHER_ALG_MAX_LEN+1], *alg_ptr;
@@ -489,7 +491,7 @@ static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *inter
 	int alg_len;
 
 	if (!pz_mode) {
-		return php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
+		return php_crypto_set_cipher_algorithm(intern, algorithm, algorithm_len TSRMLS_CC);
 	}
 
 	if (algorithm_len >= (PHP_CRYPTO_CIPHER_ALG_MAX_LEN - PHP_CRYPTO_CIPHER_MODE_LEN - 2)) {
@@ -520,20 +522,20 @@ static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *inter
 
 	if (!pz_extra_info) {
 		*alg_ptr = '\0';
-		return php_crypto_set_cipher_algorithm(intern, alg_buf TSRMLS_CC);
+		return php_crypto_set_cipher_algorithm(intern, alg_buf, algorithm_len + PHP_CRYPTO_CIPHER_MODE_LEN + 1 TSRMLS_CC);
 	}
 
 	ppz_extra_info = &pz_extra_info;
 	convert_to_string_ex(ppz_extra_info);
-	alg_len = algorithm_len + PHP_CRYPTO_CIPHER_MODE_LEN + Z_STRLEN_PP(ppz_extra_info);
+	alg_len = algorithm_len + PHP_CRYPTO_CIPHER_MODE_LEN + Z_STRLEN_PP(ppz_extra_info) + 2;
 	if (alg_len > PHP_CRYPTO_CIPHER_ALG_MAX_LEN) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher algorithm with name length %d does not exists", alg_len);
 		return FAILURE;
 	}
 	*alg_ptr = '-';
-	memcpy(alg_ptr, Z_STRVAL_PP(ppz_extra_info), Z_STRLEN_PP(ppz_extra_info) * sizeof (char));
+	memcpy(alg_ptr + 1, Z_STRVAL_PP(ppz_extra_info), Z_STRLEN_PP(ppz_extra_info) * sizeof (char));
 	alg_buf[alg_len] = '\0';
-	return php_crypto_set_cipher_algorithm(intern, alg_buf TSRMLS_CC);
+	return php_crypto_set_cipher_algorithm(intern, alg_buf, alg_len TSRMLS_CC);
 }
 /* }}} */
 
@@ -649,7 +651,7 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 	int algorithm_len;
 	zval *mode = NULL, *extra_info = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", algorithm, algorithm_len, &mode, &extra_info) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", &algorithm, &algorithm_len, &mode, &extra_info) == FAILURE) {
 		return;
 	}
 	intern = php_crypto_get_algorithm_object_ex(algorithm, algorithm_len, getThis() TSRMLS_CC);
@@ -962,8 +964,9 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 }
 
 /* {{{ php_crypto_set_hash_algorithm */
-static int php_crypto_set_hash_algorithm(php_crypto_algorithm_object *intern, char *algorithm TSRMLS_DC)
+static int php_crypto_set_hash_algorithm(php_crypto_algorithm_object *intern, char *algorithm, int algorithm_len TSRMLS_DC)
 {
+	php_strtoupper(algorithm, algorithm_len);
 	const EVP_MD *digest = EVP_get_digestbyname(algorithm);
 	if (digest) {
 		PHP_CRYPTO_HASH_ALG(intern) = digest;
@@ -1133,12 +1136,12 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC algorithm uses a cipher algorithm */
 	if (intern->type == PHP_CRYPTO_ALG_CMAC) {
-		php_crypto_set_cipher_algorithm(intern, algorithm TSRMLS_CC);
+		php_crypto_set_cipher_algorithm(intern, algorithm, algorithm_len TSRMLS_CC);
 		return;
 	}
 #endif
 
-	php_crypto_set_hash_algorithm(intern, algorithm TSRMLS_CC);
+	php_crypto_set_hash_algorithm(intern, algorithm, algorithm_len TSRMLS_CC);
 }
 /* }}} */
 

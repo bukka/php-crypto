@@ -15,6 +15,9 @@ catch (Crypto\AlgorithmException $e) {
 		echo "NOT FOUND\n";
 	}
 }
+
+$cipher = new Crypto\Cipher('aes', Crypto\Cipher::MODE_CBC, 256);
+
 // sub classing
 class SubCipher extends Crypto\Cipher {
 	function __construct($algorithm) {
