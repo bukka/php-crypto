@@ -38,4 +38,10 @@ $subcipher = new SubCipher('aes', Crypto\Cipher::MODE_CBC, 256);
 --EXPECT--
 FOUND
 NOT FOUND
-aes-256-cbc
+AES-256-CBC
+RC4
+RC4-40
+AES-128-CFB8
+AES-256-CBC
+AES-256-CBC
+

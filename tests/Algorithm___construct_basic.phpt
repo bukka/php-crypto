@@ -18,4 +18,4 @@ $subalg = new SubAlgorithm('custom_subalg');
 ?>
 --EXPECT--
 created
-custom_subalg
+CUSTOM_SUBALG

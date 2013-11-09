@@ -7,4 +7,4 @@ $algorithm = new Crypto\Algorithm('custom_alg');
 echo $algorithm->getAlgorithmName() . "\n"
 ?>
 --EXPECT--
-custom_alg
+CUSTOM_ALG

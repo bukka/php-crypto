@@ -23,7 +23,7 @@ echo base64_encode($cipher_clone->encryptFinish()) . "\n";
 echo "SUCCESS\n";
 ?>
 --EXPECT--
-aes-256-cbc
+AES-256-CBC
 JH13/w5qiyhS89Egcsq5FQ==
 JH13/w5qiyhS89Egcsq5FQ==
 SUCCESS

@@ -27,4 +27,4 @@ $subcipher = new SubHash('sha256');
 --EXPECT--
 FOUND
 NOT FOUND
-sha256
+SHA256

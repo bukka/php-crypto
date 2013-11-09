@@ -109,9 +109,6 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
-/* Algorithm string max length */
-#define PHP_CRYPTO_CIPHER_ALG_MAX_LEN 32
-
 /* Mode string length */
 #define PHP_CRYPTO_CIPHER_MODE_LEN 3
 
