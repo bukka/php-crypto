@@ -107,10 +107,19 @@ class Crypto\Cipher extends Crypto\Algorithm {
     public static function hasMode($mode) {}
     
     /**
+     * Cipher magic method for calling static methods
+     * @param string $name
+     * @param array $arguments
+     */
+    public static function __callStatic($name, $arguments) {}
+    
+    /**
      * Cipher constructor
      * @param string $algorithm
+     * @param int $mode
+     * @param string $key_size
      */
-    public function __construct($algorithm) {}
+    public function __construct($algorithm, $mode = NULL, $key_size = NULL) {}
     
     /**
      * Initializes cipher encryption
@@ -268,22 +277,24 @@ class Crypto\Hash extends Crypto\Algorithm {
  */
 class Crypto\AlgorithmException extends Exception {
     const CIPHER_NOT_FOUND = 1;
-    const CIPHER_KEY_LENGTH = 2;
-    const CIPHER_IV_LENGTH = 3;
-    const CIPHER_INIT_FAILED = 4;
-    const CIPHER_UPDATE_FAILED = 5;
-    const CIPHER_FINISH_FAILED = 6;
-    const ENCRYPT_INIT_STATUS = 7;
-    const ENCRYPT_UPDATE_STATUS = 8;
-    const ENCRYPT_FINISH_STATUS = 9;
-    const DECRYPT_INIT_STATUS = 10;
-    const DECRYPT_UPDATE_STATUS = 11;
-    const DECRYPT_FINISH_STATUS = 12;
-    const HASH_ALGORITHM_NOT_FOUND = 13;
-    const HASH_STATIC_NOT_FOUND = 14;
-    const HASH_INIT_FAILED = 15;
-    const HASH_UPDATE_FAILED = 16;
-    const HASH_DIGEST_FAILED = 17;
+    const CIPHER_MODE_NOT_FOUND = 2;
+    const CIPHER_MODE_NOT_AVAILABLE = 3;
+    const CIPHER_KEY_LENGTH = 4;
+    const CIPHER_IV_LENGTH = 5;
+    const CIPHER_INIT_FAILED = 6;
+    const CIPHER_UPDATE_FAILED = 7;
+    const CIPHER_FINISH_FAILED = 8;
+    const ENCRYPT_INIT_STATUS = 9;
+    const ENCRYPT_UPDATE_STATUS = 10;
+    const ENCRYPT_FINISH_STATUS = 11;
+    const DECRYPT_INIT_STATUS = 12;
+    const DECRYPT_UPDATE_STATUS = 13;
+    const DECRYPT_FINISH_STATUS = 14;
+    const HASH_ALGORITHM_NOT_FOUND = 15;
+    const HASH_STATIC_NOT_FOUND = 16;
+    const HASH_INIT_FAILED = 17;
+    const HASH_UPDATE_FAILED = 18;
+    const HASH_DIGEST_FAILED = 19;
     
 }
 

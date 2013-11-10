@@ -410,7 +410,7 @@ static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
 }
 /* }}} */
 
-/* {{{ php_crypto_get_cipher_mode_by_value */
+/* {{{ php_crypto_get_cipher_mode */
 static const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
 {
 	const php_crypto_cipher_mode *mode;
@@ -421,18 +421,6 @@ static const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
 		}
 	}
 	return NULL;
-}
-/* }}} */
-
-/* {{{ php_crypto_throw_cipher_not_found_exception */
-static inline void php_crypto_throw_cipher_not_found_exception(const char *algorithm, int algorithm_len TSRMLS_DC)
-{
-	if (algorithm) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
-	} else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher algorithm with name length %d does not exists", algorithm_len);
-	}
-
 }
 /* }}} */
 
@@ -449,7 +437,7 @@ static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *inter
 {
 	const EVP_CIPHER *cipher = EVP_get_cipherbyname(algorithm);
 	if (!cipher) {
-		php_crypto_throw_cipher_not_found_exception(algorithm, algorithm_len TSRMLS_CC);
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
 		return FAILURE;
 	}
 	PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
@@ -593,10 +581,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 {
 	char *algorithm;
 	int algorithm_len, argc;
-	zval *args;
-	zval **arg;
-	const EVP_MD *digest;
-	php_crypto_algorithm_object *intern;
+	zval **ppz_mode, **ppz_key_size, *args;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
@@ -608,41 +593,37 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 		RETURN_NULL();
 	}
 
-	/*
-	digest = EVP_get_digestbyname(algorithm);
-	if (!digest) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(HASH_STATIC_NOT_FOUND, "Hash static function '%s' not found", algorithm);
+	object_init_ex(return_value, php_crypto_cipher_ce);
+
+	if (argc == 0) {
+		php_crypto_set_cipher_algorithm(return_value, algorithm, algorithm_len TSRMLS_CC);
 		return;
 	}
 
-	object_init_ex(return_value, php_crypto_hash_ce);
-	intern = php_crypto_get_algorithm_object_ex(algorithm, algorithm_len, return_value TSRMLS_CC);
-	PHP_CRYPTO_HASH_ALG(intern) = digest;
-
+	zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
+	zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_mode);
 	if (argc == 1) {
-		zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
-		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &arg);
-		convert_to_string_ex(arg);
-		if (php_crypto_hash_update(intern, Z_STRVAL_PP(arg), Z_STRLEN_PP(arg) TSRMLS_CC) == FAILURE) {
-			RETURN_NULL();
-		}
+		php_crypto_set_cipher_algorithm_from_params(return_value, algorithm, algorithm_len, *ppz_mode, NULL TSRMLS_CC);
+		return;
 	}
-	*/
+	zend_hash_move_forward(Z_ARRVAL_P(args));
+	zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
+	php_crypto_set_cipher_algorithm_from_params(return_value, algorithm, algorithm_len, *ppz_mode, *ppz_key_size TSRMLS_CC);
 }
 /* }}} */
 
-/* {{{ proto Crypto\Cipher::__construct(string $algorithm, int $mode = NULL, string $extra_info = NULL)
+/* {{{ proto Crypto\Cipher::__construct(string $algorithm, int $mode = NULL, string $key_size = NULL)
    Cipher constructor */
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
 	char *algorithm;
 	int algorithm_len;
-	zval *mode = NULL, *extra_info = NULL;
+	zval *mode = NULL, *key_size = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", &algorithm, &algorithm_len, &mode, &extra_info) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", &algorithm, &algorithm_len, &mode, &key_size) == FAILURE) {
 		return;
 	}
-	php_crypto_set_cipher_algorithm_from_params(getThis(), algorithm, algorithm_len, mode, extra_info TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_from_params(getThis(), algorithm, algorithm_len, mode, key_size TSRMLS_CC);
 }
 /* }}} */
 
