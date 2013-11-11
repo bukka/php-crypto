@@ -7,16 +7,20 @@ The php-crypto is an objective wrapper for OpenSSL Crypto library.
 
 ### Linux
 
+Before starting with installation this extensions, the `OpenSSL` library has to be installed. It is defaultly installed on the most Linux distribution.
+
+Currently PHP needs to be compiled with OpenSSL extension (`--with-openssl`). This dependency will be removed in the future.
+
 First download the source
+```
+wget -O - https://github.com/bukka/php-crypto/archive/master.tar.gz | tar xzp
+```
+or if you prefer to clone the repository
 ```
 git clone https://github.com/bukka/php-crypto.git
 ```
 
-Before you start installation make sure that you have `OpenSSL` library installed. It is defaultly installed on the most Linux distribution.
-
-Currently you need to have PHP compiled with OpenSSL extension (`--with-openssl`). This dependency will be removed in the future.
-
-Then go to the created source directory and compile the extension. You need to have a php development package installed (command `phpize` must be available).
+After downloading the source go to the created directory and compile the extension. PHP development package needs to be installed (command `phpize` must be available).
 ```
 cd php-crypto
 phpize
@@ -25,15 +29,15 @@ make
 sudo make install
 ```
 
-Finally you need to add
+Finally the following line needs to be added to `php.ini`
 ```
 extension=crypto.so
 ```
-to the `php.ini`
 
 ### Windows
 
 The `php_crypto.dll` is part of Jan-E Windows builds on [https://www.apachelounge.com/viewforum.php?f=6](Apache Lounge).
+
 
 ## API
 
