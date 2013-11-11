@@ -59,6 +59,14 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_mode, 0)
 ZEND_ARG_INFO(0, mode)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_tag, 0)
+ZEND_ARG_INFO(0, tag)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_aad, 0)
+ZEND_ARG_INFO(0, aad)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_crypt, 0, 0, 2)
 ZEND_ARG_INFO(0, data)
 ZEND_ARG_INFO(0, key)
@@ -89,6 +97,10 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getKeyLength,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getIVLength,      NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getMode,          NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, getTag,           NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, setTag,           arginfo_crypto_cipher_tag,         ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, getAAD,           NULL,                              ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, setAAD,           arginfo_crypto_cipher_aad,         ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_FE_END
 };
 
@@ -107,27 +119,27 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 
 /* cipher modes lookup table */
 static const php_crypto_cipher_mode php_crypto_cipher_modes[] = {
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(ECB, EVP_CIPH_ECB_MODE)
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(CBC, EVP_CIPH_CBC_MODE)
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(CFB, EVP_CIPH_CFB_MODE)
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(OFB, EVP_CIPH_OFB_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(ECB)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CBC)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CFB)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(OFB)
 #ifdef EVP_CIPH_CTR_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(CTR, EVP_CIPH_CTR_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(CTR)
 #else
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(CTR)
 #endif
 #ifdef EVP_CIPH_GCM_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(GCM, EVP_CIPH_GCM_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(GCM, 1)
 #else
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(GCM)
 #endif
 #ifdef EVP_CIPH_CCM_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(CCM, EVP_CIPH_CCM_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(CCM, 1)
 #else
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(CCM)
 #endif
 #ifdef EVP_CIPH_XTS_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY(XTS, EVP_CIPH_XTS_MODE)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY(XTS)
 #else
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(XTS)
 #endif
@@ -334,6 +346,8 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_MODE_NOT_FOUND);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_MODE_NOT_AVAILABLE);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AUTHENTICATION_NOT_SUPPORTED);
+	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AUTHENTICATION_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_INIT_FAILED);
@@ -927,6 +941,100 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	RETURN_LONG(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
 }
+/* }}} */
+
+/* {{{ php_crypto_cipher_mode_is_authenticated */
+static int php_crypto_cipher_mode_is_authenticated(php_crypto_algorithm_object *intern TSRMLS_DC)
+{
+	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(intern)));
+	if (!mode) { /* this should never happen */
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_MODE_NOT_FOUND, "Cipher mode not found");
+		return FAILURE;
+	}
+	if (!mode->auth_enc) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_AUTHENTICATION_NOT_SUPPORTED,
+			"The authentication is not supported for %s cipher mode", mode->name);
+		return FAILURE;
+	}
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Cipher::getTag()
+   Returns authentication tag */
+PHP_CRYPTO_METHOD(Cipher, getTag)
+{
+	php_crypto_algorithm_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
+		return;
+	}
+	/* TODO: logic */
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Cipher::setTag(string $tag)
+   Sets authentication tag */
+PHP_CRYPTO_METHOD(Cipher, setTag)
+{
+	php_crypto_algorithm_object *intern;
+	char *tag;
+	int tag_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &tag, &tag_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
+		return;
+	}
+	/* TODO: logic */
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Cipher::getAAD()
+   Returns additional application data for authenticated encryption */
+PHP_CRYPTO_METHOD(Cipher, getAAD)
+{
+	php_crypto_algorithm_object *intern;
+
+	if (zend_parse_parameters_none() == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
+		return;
+	}
+	/* TODO: logic */
+}
+/* }}} */
+
+/* {{{ proto string Crypto\Cipher::setTag(string $aad)
+   Sets additional application data for authenticated encryption */
+PHP_CRYPTO_METHOD(Cipher, setAAD)
+{
+	php_crypto_algorithm_object *intern;
+	char *aad;
+	int aad_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &aad, &aad_len) == FAILURE) {
+		return;
+	}
+
+	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
+		return;
+	}
+	/* TODO: logic */
+}
+/* }}} */
 
 /* {{{ php_crypto_hash_init */
 static inline int php_crypto_hash_init(php_crypto_algorithm_object *intern TSRMLS_DC)

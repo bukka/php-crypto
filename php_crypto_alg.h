@@ -91,6 +91,8 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(CIPHER_NOT_FOUND) = 1,
 	PHP_CRYPTO_ALG_E(CIPHER_MODE_NOT_FOUND),
 	PHP_CRYPTO_ALG_E(CIPHER_MODE_NOT_AVAILABLE),
+	PHP_CRYPTO_ALG_E(CIPHER_AUTHENTICATION_NOT_SUPPORTED),
+	PHP_CRYPTO_ALG_E(CIPHER_AUTHENTICATION_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_KEY_LENGTH),
 	PHP_CRYPTO_ALG_E(CIPHER_IV_LENGTH),
 	PHP_CRYPTO_ALG_E(CIPHER_INIT_FAILED),
@@ -117,14 +119,16 @@ typedef struct {
 	const char name[PHP_CRYPTO_CIPHER_MODE_LEN+1];
 	const char constant[PHP_CRYPTO_CIPHER_MODE_LEN+6];
 	long value;
+	zend_bool auth_enc; /* authenticated encryption */
 } php_crypto_cipher_mode;
 
 /* Constant value for cipher mode that is not implemented (when using old version of OpenSSL) */
 #define PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED -1
 
 /* Macros for cipher mode lookup table */
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name, mode_value) { #mode_name, "MODE_" #mode_name, mode_value },
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) { #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, mode_auth_enc) { #mode_name, "MODE_" #mode_name, EVP_CIPH_ ## mode_name ## _MODE, mode_auth_enc },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name) PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, 0)
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) { #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED, 0 },
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_END { "", "", 0 }
 
 
@@ -167,6 +171,10 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize);
 PHP_CRYPTO_METHOD(Cipher, getKeyLength);
 PHP_CRYPTO_METHOD(Cipher, getIVLength);
 PHP_CRYPTO_METHOD(Cipher, getMode);
+PHP_CRYPTO_METHOD(Cipher, getTag);
+PHP_CRYPTO_METHOD(Cipher, setTag);
+PHP_CRYPTO_METHOD(Cipher, getAAD);
+PHP_CRYPTO_METHOD(Cipher, setAAD);
 /* Hash methods */
 PHP_CRYPTO_METHOD(Hash, getAlgorithms);
 PHP_CRYPTO_METHOD(Hash, hasAlgorithm);
