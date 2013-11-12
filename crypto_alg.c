@@ -687,10 +687,10 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 	}
 	
 	/* check algorithm status */
-	if (enc && intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT) {
+	if (enc && intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_INIT_STATUS, "Cipher object is already used for decryption");
 		return NULL;
-	} else if (!enc && intern->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT) {
+	} else if (!enc && intern->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_INIT_STATUS, "Cipher object is already used for encryption");
 		return NULL;
 	}
@@ -699,7 +699,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_FAILED, "Initialization of cipher failed");
 		return NULL;
 	}
-	intern->status = (enc ? PHP_CRYPTO_ALG_STATUS_ENCRYPT : PHP_CRYPTO_ALG_STATUS_DECRYPT);
+	intern->status = (enc ? PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT : PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT);
 	return intern;
 }
 /* }}} */
@@ -733,10 +733,10 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	/* check algorithm status */
-	if (enc && intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT) {
+	if (enc && intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_UPDATE_STATUS, "Cipher object is not initialized for encryption");
 		return;
-	} else if (!enc && intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT) {
+	} else if (!enc && intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_UPDATE_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
@@ -768,10 +768,10 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	/* check algorithm status */
-	if (enc && intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT) {
+	if (enc && intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_FINISH_STATUS, "Cipher object is not initialized for encryption");
 		return;
-	} else if (!enc && intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT) {
+	} else if (!enc && intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_FINISH_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
@@ -786,7 +786,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 	outbuf[outbuf_len] = 0;
-	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
+	intern->status = enc ? PHP_CRYPTO_ALG_STATUS_ENCRYPT_DONE : PHP_CRYPTO_ALG_STATUS_DECRYPT_DONE;
 	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 /* }}} */
@@ -825,7 +825,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	}
 	outbuf_len = outbuf_update_len + outbuf_final_len;
 	outbuf[outbuf_len] = 0;
-	intern->status = PHP_CRYPTO_ALG_STATUS_CLEAR;
+	intern->status = enc ? PHP_CRYPTO_ALG_STATUS_ENCRYPT_DONE : PHP_CRYPTO_ALG_STATUS_DECRYPT_DONE;
 	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
 }
 /* }}} */
