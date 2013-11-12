@@ -58,6 +58,9 @@ typedef struct {
 				CMAC_CTX *cmac;
 #endif
 			} ctx;
+			unsigned char *aad;
+			unsigned char *tag;
+			zend_bool auth_ok;
 		} cipher;
 		struct {
 			const EVP_MD *alg;
