@@ -40,9 +40,11 @@ typedef enum {
 	PHP_CRYPTO_ALG_STATUS_CLEAR,
 	PHP_CRYPTO_ALG_STATUS_HASH,
 	PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT,
-	PHP_CRYPTO_ALG_STATUS_ENCRYPT_DONE,
+	PHP_CRYPTO_ALG_STATUS_ENCRYPT_UPDATE,
+	PHP_CRYPTO_ALG_STATUS_ENCRYPT_FINAL,
 	PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT,
-	PHP_CRYPTO_ALG_STATUS_DECRYPT_DONE,
+	PHP_CRYPTO_ALG_STATUS_DECRYPT_UPDATE,
+	PHP_CRYPTO_ALG_STATUS_DECRYPT_FINAL
 } php_crypto_algorithm_status;
 
 typedef struct {
@@ -71,6 +73,14 @@ typedef struct {
 		} hash;
 	} evp;
 } php_crypto_algorithm_object;
+
+/* Cipher status accessors */
+#define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(pobj) \
+	((pobj)->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT || (pobj)->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_UPDATE)
+#define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(pobj) \
+	((pobj)->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT || (pobj)->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_UPDATE)
+#define PHP_CRYPTO_CIPHER_SET_STATUS(pobj, is_enc, status_name) \
+	(pobj)->status = ((is_enc) ? PHP_CRYPTO_ALG_STATUS_ENCRYPT_ ## status_name : PHP_CRYPTO_ALG_STATUS_DECRYPT_ ## status_name)
 
 /* Algorithm object accessors */
 #define PHP_CRYPTO_CIPHER_CTX(pobj) (pobj)->evp.cipher.ctx.cipher
