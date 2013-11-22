@@ -47,7 +47,7 @@ ZEND_END_ARG_INFO()
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_construct, 0, 0, 1)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_ARG_INFO(0, mode)
-ZEND_ARG_INFO(0, extra_info)
+ZEND_ARG_INFO(0, key_size)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_cipher_init, 0, 0, 1)
@@ -59,11 +59,19 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_mode, 0)
 ZEND_ARG_INFO(0, mode)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_tag, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_get_tag, 0)
+ZEND_ARG_INFO(0, tag_size)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_set_tag, 0)
 ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_aad, 0)
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_get_aad, 0)
+ZEND_ARG_INFO(0, aad_size)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_set_aad, 0)
 ZEND_ARG_INFO(0, aad)
 ZEND_END_ARG_INFO()
 
@@ -97,10 +105,10 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getKeyLength,     NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getIVLength,      NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getMode,          NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, getTag,           NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, setTag,           arginfo_crypto_cipher_tag,         ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, getAAD,           NULL,                              ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, setAAD,           arginfo_crypto_cipher_aad,         ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, getTag,           arginfo_crypto_cipher_get_tag,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, setTag,           arginfo_crypto_cipher_set_tag,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, getAAD,           arginfo_crypto_cipher_get_aad,     ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(Cipher, setAAD,           arginfo_crypto_cipher_set_aad,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_FE_END
 };
 
@@ -963,13 +971,14 @@ static int php_crypto_cipher_mode_is_authenticated(php_crypto_algorithm_object *
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::getTag()
+/* {{{ proto string Crypto\Cipher::getTag(int $tag_size)
    Returns authentication tag */
 PHP_CRYPTO_METHOD(Cipher, getTag)
 {
 	php_crypto_algorithm_object *intern;
+	long tag_len;
 
-	if (zend_parse_parameters_none() == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len) == FAILURE) {
 		return;
 	}
 
@@ -1001,15 +1010,17 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::getAAD()
+/* {{{ proto string Crypto\Cipher::getAAD(int $aad_size)
    Returns additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, getAAD)
 {
 	php_crypto_algorithm_object *intern;
+	long aad_len;
 
-	if (zend_parse_parameters_none() == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &aad_len) == FAILURE) {
 		return;
 	}
+
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
