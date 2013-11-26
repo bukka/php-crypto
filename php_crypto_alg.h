@@ -61,7 +61,6 @@ typedef struct {
 #endif
 			} ctx;
 			unsigned char *aad;
-			unsigned char *tag;
 			zend_bool auth_ok;
 		} cipher;
 		struct {
@@ -85,6 +84,7 @@ typedef struct {
 /* Algorithm object accessors */
 #define PHP_CRYPTO_CIPHER_CTX(pobj) (pobj)->evp.cipher.ctx.cipher
 #define PHP_CRYPTO_CIPHER_ALG(pobj) (pobj)->evp.cipher.alg
+#define PHP_CRYPTO_CIPHER_AAD(pobj) (pobj)->evp.cipher.aad
 #ifdef PHP_CRYPTO_HAS_CMAC
 #define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->evp.cipher.ctx.cmac
 #define PHP_CRYPTO_CMAC_ALG PHP_CRYPTO_CIPHER_ALG

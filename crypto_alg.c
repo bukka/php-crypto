@@ -204,6 +204,10 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 		efree(PHP_CRYPTO_CMAC_CTX(intern));
 	}
 #endif
+
+	if (PHP_CRYPTO_CIPHER_AAD(intern)) {
+		efree(PHP_CRYPTO_CIPHER_AAD(intern));
+	}
 	
 	zend_object_std_dtor(&intern->zo TSRMLS_CC);
 	efree(intern);
@@ -1108,7 +1112,7 @@ PHP_CRYPTO_METHOD(Cipher, getAAD)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::setTag(string $aad)
+/* {{{ proto void Crypto\Cipher::setTag(string $aad)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
@@ -1124,7 +1128,13 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 	if (php_crypto_cipher_mode_is_authenticated(intern TSRMLS_CC) == FAILURE) {
 		return;
 	}
-	/* TODO: logic */
+
+	if (intern->status != PHP_CRYPTO_ALG_STATUS_CLEAR || intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FLOW, "AAD setter has to be called only before data encryption");
+		return;
+	}
+
+	PHP_CRYPTO_CIPHER_AAD(intern) = (unsigned char *) estrdup(aad);
 }
 /* }}} */
 
