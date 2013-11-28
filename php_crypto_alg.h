@@ -61,7 +61,9 @@ typedef struct {
 #endif
 			} ctx;
 			unsigned char *aad;
-			zend_bool auth_ok;
+			int aad_len;
+			unsigned char *tag;
+			int tag_len;
 		} cipher;
 		struct {
 			const EVP_MD *alg;
@@ -85,6 +87,9 @@ typedef struct {
 #define PHP_CRYPTO_CIPHER_CTX(pobj) (pobj)->evp.cipher.ctx.cipher
 #define PHP_CRYPTO_CIPHER_ALG(pobj) (pobj)->evp.cipher.alg
 #define PHP_CRYPTO_CIPHER_AAD(pobj) (pobj)->evp.cipher.aad
+#define PHP_CRYPTO_CIPHER_AAD_LEN(pobj) (pobj)->evp.cipher.aad_len
+#define PHP_CRYPTO_CIPHER_TAG(pobj) (pobj)->evp.cipher.tag
+#define PHP_CRYPTO_CIPHER_TAG_LEN(pobj) (pobj)->evp.cipher.tag_len
 #ifdef PHP_CRYPTO_HAS_CMAC
 #define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->evp.cipher.ctx.cmac
 #define PHP_CRYPTO_CMAC_ALG PHP_CRYPTO_CIPHER_ALG
@@ -112,12 +117,14 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(CIPHER_IV_LENGTH),
 	PHP_CRYPTO_ALG_E(CIPHER_AAD_GETTER_FLOW),
 	PHP_CRYPTO_ALG_E(CIPHER_AAD_SETTER_FLOW),
+	PHP_CRYPTO_ALG_E(CIPHER_AAD_SETTER_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_GETTER_FLOW),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_SETTER_FLOW),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_GETTER_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_SETTER_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_LENGTH_UNDER),
 	PHP_CRYPTO_ALG_E(CIPHER_TAG_LENGTH_OVER),
+	PHP_CRYPTO_ALG_E(CIPHER_TAG_VARIFY_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_INIT_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_UPDATE_FAILED),
 	PHP_CRYPTO_ALG_E(CIPHER_FINISH_FAILED),
@@ -143,6 +150,9 @@ typedef struct {
 	const char constant[PHP_CRYPTO_CIPHER_MODE_LEN+6];
 	long value;
 	zend_bool auth_enc; /* authenticated encryption */
+	int auth_ivlen_flag;
+	int auth_set_tag_flag;
+	int auth_get_tag_flag;
 } php_crypto_cipher_mode;
 
 /* Constant value for cipher mode that is not implemented (when using old version of OpenSSL) */
@@ -151,11 +161,15 @@ typedef struct {
 /* Cipher mode value (EVP code) */
 #define PHP_CRYPTO_CIPHER_MODE_VALUE(pobj) EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(pobj))
 
+
 /* Macros for cipher mode lookup table */
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, mode_auth_enc) { #mode_name, "MODE_" #mode_name, EVP_CIPH_ ## mode_name ## _MODE, mode_auth_enc },
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name) PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, 0)
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) { #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED, 0 },
-#define PHP_CRYPTO_CIPHER_MODE_ENTRY_END { "", "", 0 }
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, mode_auth_enc, mode_auth_ivlen_flag, mode_auth_stag_flag, mode_auth_gtag_flag) \
+	{ #mode_name, "MODE_" #mode_name, EVP_CIPH_ ## mode_name ## _MODE, \
+	mode_auth_enc, mode_auth_ivlen_flag, mode_auth_stag_flag, mode_auth_gtag_flag },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name) PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, 0, 0, 0, 0)
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) \
+	{ #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED, 0, 0, 0, 0 },
+#define PHP_CRYPTO_CIPHER_MODE_ENTRY_END { "", "", 0, 0, 0, 0, 0 }
 
 
 /* CLASSES */
