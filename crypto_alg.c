@@ -451,6 +451,39 @@ static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
 }
 /* }}} */
 
+/* {{{ php_crypto_get_algorithm_object_ex */
+static void php_crypto_set_algorithm_name(zval *object, char *algorithm, int algorithm_len TSRMLS_DC)
+{
+	php_strtoupper(algorithm, algorithm_len);
+	zend_update_property_stringl(php_crypto_algorithm_ce, object, "algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
+}
+/* }}} */
+
+/* {{{ proto Crypto\Algorithm::__construct(string $algorithm)
+   Algorithm constructor */
+PHP_CRYPTO_METHOD(Algorithm, __construct)
+{
+	char *algorithm;
+	int algorithm_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
+		return;
+	}
+	php_crypto_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
+}
+
+/* {{{ proto string Crypto\Algorithm::getAlgorithmName()
+   Returns algorithm string */
+PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
+{
+	zval *algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
+	RETURN_ZVAL(algorithm, 1, 0);
+}
+/* }}} */
+
+
+/* CIPHER METHODS */
+
 /* {{{ php_crypto_get_cipher_mode */
 static const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
 {
@@ -462,14 +495,6 @@ static const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
 		}
 	}
 	return NULL;
-}
-/* }}} */
-
-/* {{{ php_crypto_get_algorithm_object_ex */
-static void php_crypto_set_algorithm_name(zval *object, char *algorithm, int algorithm_len TSRMLS_DC)
-{
-	php_strtoupper(algorithm, algorithm_len);
-	zend_update_property_stringl(php_crypto_algorithm_ce, object, "algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
 }
 /* }}} */
 
@@ -552,31 +577,6 @@ static int php_crypto_set_cipher_algorithm_from_params(zval *object, char *algor
 	return rc;
 }
 /* }}} */
-
-/* {{{ proto Crypto\Algorithm::__construct(string $algorithm)
-   Algorithm constructor */
-PHP_CRYPTO_METHOD(Algorithm, __construct)
-{
-	char *algorithm;
-	int algorithm_len;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
-		return;
-	}
-	php_crypto_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
-}
-
-/* {{{ proto string Crypto\Algorithm::getAlgorithmName()
-   Returns algorithm string */
-PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
-{
-	zval *algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
-	RETURN_ZVAL(algorithm, 1, 0);
-}
-/* }}} */
-
-
-/* CIPHER METHODS */
 
 /* {{{ php_crypto_cipher_mode_is_authenticated_ex */
 static int php_crypto_cipher_mode_is_authenticated_ex(const php_crypto_cipher_mode *mode TSRMLS_DC)
