@@ -33,14 +33,23 @@ $gcm_tag = pack(
 );
 
 
-// ENCRYPTION
-print_r(Cipher::getAlgorithms());
-
-echo "Plaintext:\n" . bin2hex($gcm_pt);
+// ENCRYPTION 
+echo "------- ENCRYPTION -------" . PHP_EOL;
+echo "Plaintext: " . bin2hex($gcm_pt) . PHP_EOL;
 $cipher = Cipher::aes(Cipher::MODE_GCM, 256);
 $cipher->encryptInit($gcm_key, $gcm_iv);
 $cipher->setAAD($gcm_aad);
 $ct = $cipher->encryptUpdate($gcm_pt) . $cipher->encryptFinish();
-echo "Ciphertext:\n" . bin2hex($ct);
-$tag = $cipher->getTag();
-echo "Tag:\n" . bin2hex($tag);
+echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
+$tag = $cipher->getTag(strlen($gcm_tag));
+echo "Tag: " . bin2hex($tag) . PHP_EOL;
+
+echo PHP_EOL;
+echo "------- DECRYPTION -------\n";
+echo "Ciphertext: " . bin2hex($gcm_ct) . PHP_EOL;
+$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
+$cipher->decryptInit($gcm_key, $gcm_iv);
+$cipher->setTag($gcm_tag);
+$aad = $cipher->getAAD(strlen($gcm_aad));
+$pt = $cipher->decryptUpdate($gcm_ct) . $cipher->decryptFinish();
+echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
