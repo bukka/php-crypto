@@ -781,8 +781,9 @@ static inline int php_crypto_cipher_read_aad(php_crypto_algorithm_object *intern
 static inline int php_crypto_cipher_read_empty_aad(php_crypto_algorithm_object *intern, int enc TSRMLS_CC)
 {
 	unsigned char buf[4];
+	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
-	if (enc || php_crypto_cipher_is_mode_authenticated(intern TSRMLS_CC) == FAILURE || PHP_CRYPTO_CIPHER_AAD(intern)) {
+	if (enc || !mode->auth_enc || PHP_CRYPTO_CIPHER_AAD(intern)) {
 		/* it's either encoding or mode is authenticated or the aad has been already read */
 		return SUCCESS;
 	}
