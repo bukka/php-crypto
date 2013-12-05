@@ -1174,7 +1174,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		return;
 	}
 
-	if (intern->status != PHP_CRYPTO_ALG_STATUS_CLEAR) {
+	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR) {
 		if (!PHP_CRYPTO_CIPHER_TAG(intern)) {
 			PHP_CRYPTO_CIPHER_TAG(intern) = emalloc(tag_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_TAG_LEN(intern) < tag_len) {
@@ -1182,7 +1182,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		}
 		memcpy(PHP_CRYPTO_CIPHER_TAG(intern), tag, tag_len + 1);
 		PHP_CRYPTO_CIPHER_TAG_LEN(intern) = tag_len;
-	} else if (intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
+	} else if (intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len);
 	} else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_TAG_SETTER_FLOW, "Tag setter has to be called before decryption");
@@ -1234,7 +1234,7 @@ PHP_CRYPTO_METHOD(Cipher, getAAD)
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Cipher::setTag(string $aad)
+/* {{{ proto void Crypto\Cipher::setAAD(string $aad)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
@@ -1251,7 +1251,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		return;
 	}
 
-	if (intern->status != PHP_CRYPTO_ALG_STATUS_CLEAR) {
+	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR) {
 		if (!PHP_CRYPTO_CIPHER_AAD(intern)) {
 			PHP_CRYPTO_CIPHER_AAD(intern) = emalloc(aad_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_AAD_LEN(intern) < aad_len) {
@@ -1259,8 +1259,6 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		}
 		memcpy(PHP_CRYPTO_CIPHER_AAD(intern), aad, aad_len + 1);
 		PHP_CRYPTO_CIPHER_AAD_LEN(intern) = aad_len;
-	} else if (intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT) {
-		php_crypto_cipher_set_aad(intern, (unsigned char *) aad, aad_len);
 	} else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FLOW, "AAD setter has to be called before encryption");
 	}
