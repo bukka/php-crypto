@@ -67,10 +67,6 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_set_tag, 0)
 ZEND_ARG_INFO(0, tag)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_get_aad, 0)
-ZEND_ARG_INFO(0, aad_size)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_set_aad, 0)
 ZEND_ARG_INFO(0, aad)
 ZEND_END_ARG_INFO()
@@ -107,7 +103,6 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getMode,          NULL,                              ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, getTag,           arginfo_crypto_cipher_get_tag,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, setTag,           arginfo_crypto_cipher_set_tag,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Cipher, getAAD,           arginfo_crypto_cipher_get_aad,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, setAAD,           arginfo_crypto_cipher_set_aad,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_FE_END
 };
@@ -365,9 +360,7 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AUTHENTICATION_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_GETTER_FLOW);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_SETTER_FLOW);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_GETTER_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_SETTER_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_GETTER_FLOW);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_SETTER_FLOW);
@@ -764,30 +757,23 @@ static inline void php_crypto_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 }
 /* }}} */
 
-/* {{{ php_crypto_cipher_read_aad */
-static inline int php_crypto_cipher_read_aad(php_crypto_algorithm_object *intern, unsigned char *aad, int aad_len TSRMLS_CC)
+/* {{{ php_crypto_cipher_write_aad */
+static inline int php_crypto_cipher_write_aad(php_crypto_algorithm_object *intern TSRMLS_CC)
 {
-	int outlen;
+	int outlen, ret;
 
-	if (!EVP_DecryptUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, aad, aad_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_GETTER_FAILED, "AAD getter failed");
+	if (PHP_CRYPTO_CIPHER_AAD(intern)) {
+		ret = EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern));
+	} else {
+		unsigned char buf[4];
+		ret = EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, buf, 0);
+	}
+
+	if (!ret) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FAILED, "AAD setter failed");
 		return FAILURE;
 	}
 	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ php_crypto_cipher_read_empty_aad */
-static inline int php_crypto_cipher_read_empty_aad(php_crypto_algorithm_object *intern, int enc TSRMLS_CC)
-{
-	unsigned char buf[4];
-	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
-
-	if (enc || !mode->auth_enc || PHP_CRYPTO_CIPHER_AAD(intern)) {
-		/* it's either encoding or mode is authenticated or the aad has been already read */
-		return SUCCESS;
-	}
-	return php_crypto_cipher_read_aad(intern, buf, 0 TSRMLS_CC);
 }
 /* }}} */
 
@@ -795,6 +781,7 @@ static inline int php_crypto_cipher_read_empty_aad(php_crypto_algorithm_object *
 static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_algorithm_object *intern;
+	const php_crypto_cipher_mode *mode;
 	unsigned char *outbuf;
 	char *data;
 	int data_len, outbuf_len;
@@ -814,7 +801,9 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 
-	if (php_crypto_cipher_read_empty_aad(intern, enc TSRMLS_CC) == FAILURE) {
+	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+
+	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
 		return;
 	}
 
@@ -874,6 +863,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	php_crypto_algorithm_object *intern;
+	const php_crypto_cipher_mode *mode;
 	unsigned char *outbuf;
 	char *data, *key, *iv = NULL;
 	int outbuf_len, outbuf_update_len, outbuf_final_len, data_len, key_len, iv_len = 0;
@@ -887,7 +877,9 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 		return;
 	}
 
-	if (php_crypto_cipher_read_empty_aad(intern, enc TSRMLS_CC) == FAILURE) {
+	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+
+	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
 		return;
 	}
 
@@ -1190,50 +1182,6 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::getAAD(int $aad_size)
-   Returns additional application data for authenticated encryption */
-PHP_CRYPTO_METHOD(Cipher, getAAD)
-{
-	php_crypto_algorithm_object *intern;
-	unsigned char *aad;
-	long aad_len;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &aad_len) == FAILURE) {
-		return;
-	}
-
-	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	if (php_crypto_cipher_is_mode_authenticated(intern TSRMLS_CC) == FAILURE) {
-		return;
-	}
-
-	if (intern->status != PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_GETTER_FLOW,
-			"AAD getter has to be called immediately after initializing of decryption");
-	}
-
-	if (aad_len < 1) {
-		RETURN_EMPTY_STRING();
-	}
-
-	if (PHP_CRYPTO_CIPHER_AAD(intern)) {
-		RETURN_STRINGL((char *) PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern), 1);
-	}
-
-	aad = emalloc(aad_len + 1);
-	aad[aad_len] = 0;
-
-	if (php_crypto_cipher_read_aad(intern, aad, aad_len TSRMLS_CC) == FAILURE) {
-		efree(aad);
-		return;
-	}
-
-	PHP_CRYPTO_CIPHER_AAD(intern) = aad;
-	PHP_CRYPTO_CIPHER_AAD_LEN(intern) = aad_len;
-	RETURN_STRINGL((char *) aad, aad_len, 1);
-}
-/* }}} */
-
 /* {{{ proto void Crypto\Cipher::setAAD(string $aad)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
@@ -1251,7 +1199,9 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		return;
 	}
 
-	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR) {
+	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR ||
+			intern->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT ||
+			intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		if (!PHP_CRYPTO_CIPHER_AAD(intern)) {
 			PHP_CRYPTO_CIPHER_AAD(intern) = emalloc(aad_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_AAD_LEN(intern) < aad_len) {
@@ -1260,7 +1210,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		memcpy(PHP_CRYPTO_CIPHER_AAD(intern), aad, aad_len + 1);
 		PHP_CRYPTO_CIPHER_AAD_LEN(intern) = aad_len;
 	} else {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FLOW, "AAD setter has to be called before encryption");
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FLOW, "AAD setter has to be called before encryption or decryption");
 	}
 }
 /* }}} */
