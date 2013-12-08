@@ -15,17 +15,17 @@ $cipher_clone = clone $cipher;
 echo $cipher_clone->getAlgorithmName() . "\n";
 
 $cipher->encryptUpdate($data2);
-echo base64_encode($cipher->encryptFinish()) . "\n";
+echo bin2hex($cipher->encryptFinish()) . "\n";
 
 $cipher_clone->encryptUpdate($data2);
-echo base64_encode($cipher_clone->encryptFinish()) . "\n";
+echo bin2hex($cipher_clone->encryptFinish()) . "\n";
 
 echo "SUCCESS\n";
 ?>
 --EXPECT--
 AES-256-CBC
-JH13/w5qiyhS89Egcsq5FQ==
-JH13/w5qiyhS89Egcsq5FQ==
+247d77ff0e6a8b2852f3d12072cab915
+247d77ff0e6a8b2852f3d12072cab915
 SUCCESS
 
 

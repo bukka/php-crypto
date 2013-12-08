@@ -19,9 +19,9 @@ catch (Crypto\AlgorithmException $e) {
 }
 // init first
 $cipher->encryptInit($key, $iv);
-echo base64_encode($cipher->encryptUpdate($data)) . "\n";
+echo bin2hex($cipher->encryptUpdate($data)) . "\n";
 
 ?>
 --EXPECT--
 UPDATE STATUS
-j4hToWhWBxM8ue4Px6W4pQ==
+8f8853a1685607133cb9ee0fc7a5b8a5

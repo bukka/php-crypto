@@ -5,7 +5,6 @@ Crypto\Cipher::decryptInit basic usage.
 $cipher = new Crypto\Cipher('aes-256-cbc');
 $key = str_repeat('x', 32);
 $iv = str_repeat('i', 16);
-$ciphertext = base64_decode('j4hToWhWBxM8ue4Px6W4pXEDk1y8OepoDe8NsHZ+lU4=');
 
 // key length
 try {

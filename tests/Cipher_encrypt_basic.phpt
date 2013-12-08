@@ -10,8 +10,8 @@ $data = str_repeat('a', 16);
 $cipher = new Crypto\Cipher('aes-256-cbc');
 
 // init first
-echo base64_encode($cipher->encrypt($data, $key, $iv)) . "\n";
+echo bin2hex($cipher->encrypt($data, $key, $iv)) . "\n";
 
 ?>
 --EXPECT--
-j4hToWhWBxM8ue4Px6W4pXEDk1y8OepoDe8NsHZ+lU4=
+8f8853a1685607133cb9ee0fc7a5b8a57103935cbc39ea680def0db0767e954e
