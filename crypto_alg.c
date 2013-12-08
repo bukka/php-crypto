@@ -758,7 +758,7 @@ static inline void php_crypto_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 /* }}} */
 
 /* {{{ php_crypto_cipher_write_aad */
-static inline int php_crypto_cipher_write_aad(php_crypto_algorithm_object *intern TSRMLS_CC)
+static inline int php_crypto_cipher_write_aad(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
 	int outlen, ret;
 
@@ -1175,7 +1175,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		memcpy(PHP_CRYPTO_CIPHER_TAG(intern), tag, tag_len + 1);
 		PHP_CRYPTO_CIPHER_TAG_LEN(intern) = tag_len;
 	} else if (intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
-		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len);
+		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_TAG_SETTER_FLOW, "Tag setter has to be called before decryption");
 	}
