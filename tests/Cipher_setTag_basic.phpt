@@ -27,7 +27,18 @@ $cipher = new Crypto\Cipher('aes-256-gcm');
 $cipher->setTag($tag);
 echo $cipher->decrypt($data, $key, $iv) . "\n";
 
+
+try {
+    $cipher->setTag($tag);
+}
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_TAG_SETTER_FLOW) {
+		echo "FLOW\n";
+	}
+}
+
 ?>
 --EXPECT--
 FAILED
 aaaaaaaaaaaaaaaa
+FLOW
