@@ -456,3 +456,8 @@ The examples can be found in [the example directory](https://github.com/bukka/ph
 ## TODO list
 
 The TODO list can be found [here](https://github.com/bukka/php-crypto/blob/master/TODO.md).
+
+
+## History
+
+The release history can be found [here](https://github.com/bukka/php-crypto/blob/master/HISTORY.md).

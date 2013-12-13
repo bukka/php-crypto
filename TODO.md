@@ -44,3 +44,15 @@ class Crypto\HMAC extends Crypto\Hash { /* methods description */ }
 ## X509
 - Iterator based class
 - ASN.1 elements - namespace `Crypto\ASN1`
+
+
+# Upcoming releases
+
+## 0.2.0 (devel)
+- crypto stream
+  - BIO wrapper
+- improved exceptions
+
+## 0.3.0 (devel)
+- ASN.1 classes
+- X.509 classes
