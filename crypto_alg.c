@@ -671,7 +671,6 @@ static int php_crypto_cipher_check_key_len(zval *zobject, php_crypto_algorithm_o
 static int php_crypto_cipher_check_iv_len(zval *zobject, php_crypto_algorithm_object *intern, const php_crypto_cipher_mode *mode, int iv_len TSRMLS_DC)
 {
 	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(intern));
-	
 	if (iv_len == alg_iv_len) {
 		return SUCCESS;
 	}
@@ -727,16 +726,9 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 	}
 	PHP_CRYPTO_CIPHER_SET_STATUS(intern, enc, INIT);
 
-	if (mode->auth_enc) {
-		if (enc) {
-			if (php_crypto_cipher_set_aad(intern, PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern) TSRMLS_CC) == FAILURE) {
-				return NULL;
-			}
-		} else {
-			if (!php_crypto_cipher_set_tag(intern, mode, PHP_CRYPTO_CIPHER_TAG(intern), PHP_CRYPTO_CIPHER_TAG_LEN(intern) TSRMLS_CC) == FAILURE) {
-				return NULL;
-			}
-		}
+	if (mode->auth_enc && !enc &&
+			php_crypto_cipher_set_tag(intern, mode, PHP_CRYPTO_CIPHER_TAG(intern), PHP_CRYPTO_CIPHER_TAG_LEN(intern) TSRMLS_CC) == FAILURE) {
+		return NULL;
 	}
 
 	return intern;
@@ -1118,7 +1110,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 	php_crypto_algorithm_object *intern;
 	const php_crypto_cipher_mode *mode;
 	long tag_len;
-	char *tag;
+	unsigned char *tag;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len) == FAILURE) {
 		return;
@@ -1143,7 +1135,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 		return;
 	}
 
-	RETURN_STRINGL(tag, tag_len, 0);
+	RETURN_STRINGL((char *) tag, tag_len, 0);
 }
 /* }}} */
 

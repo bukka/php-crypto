@@ -22,18 +22,34 @@ $cipher->setTag($tag);
 $cipher->setAAD($aad);
 echo $cipher->decrypt($ct, $key, $iv) . "\n";
 
-
 // flow exception
 try {
 	$cipher->setAAD($aad);
 }
 catch (Crypto\AlgorithmException $e) {
 	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_AAD_SETTER_FLOW) {
-		echo "FLOW\n";
+		echo "CIPHER_AAD_SETTER_FLOW\n";
 	}
 }
 
 
+// decryption withou setting AAD
+try {
+	$cipher = new Crypto\Cipher('aes-256-gcm');
+	$cipher->setTag($tag);
+	echo $cipher->decrypt($ct, $key, $iv) . "\n";
+}
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_FINISH_FAILED) {
+		echo "CIPHER_FINISH_FAILED\n";
+	}
+}
+
+
+
 ?>
 --EXPECT--
-FLOW
+622070d3bea6f720943d1198a7e6afa5
+aaaaaaaaaaaaaaaa
+CIPHER_AAD_SETTER_FLOW
+CIPHER_FINISH_FAILED
