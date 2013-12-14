@@ -1,6 +1,51 @@
 <?php
 namespace Crypto;
 
+/**
+ * Encrypt plaintext using AES cipher with GCM mode and 256 bit key
+ * @param string $pt Plaintext
+ * @param string $key Key
+ * @param string $iv Initial vector
+ * @param string $aad Additional application data
+ * @return array array with resulted ciphertext (idx 0) authentication tag (idx 1)
+ * @throw Crypto\AlgorithmException if any of the method fails
+ */
+function gcm_encrypt($pt, $key, $iv, $aad) {
+	echo "------- ENCRYPTION -------" . PHP_EOL;
+	echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
+	$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
+	$cipher->setAAD($aad);
+	$cipher->encryptInit($key, $iv);
+	$ct = $cipher->encryptUpdate($pt);
+	$ct .= $cipher->encryptFinish();
+	echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
+	$tag = $cipher->getTag(16);
+	echo "Tag: " . bin2hex($tag) . PHP_EOL;
+	return array($ct, $tag);
+}
+
+/**
+ * Decrypt ciphertext using AES cipher with GCM mode and 256 bit key
+ * @param string $ct Ciphertext
+ * @param string $key Key
+ * @param string $iv Initial vector
+ * @param string $aad Additional application data
+ * @param string $tag Authentication tag
+ * @return string Plaintext
+ * @throw Crypto\AlgorithmException if any of the method fails
+ */
+function gcm_decrypt($ct, $key, $iv, $aad, $tag) {
+	echo "------- DECRYPTION -------\n";
+	echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
+	$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
+	$cipher->setTag($tag);
+	$cipher->setAAD($aad);
+	$cipher->decryptInit($key, $iv);
+	$pt = $cipher->decryptUpdate($ct);
+	$ct .= $cipher->decryptFinish();
+	echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
+}
+
 $gcm_key = pack(
 	"C*",
 	0xee,0xbc,0x1f,0x57,0x48,0x7f,0x51,0x92,0x1c,0x04,0x65,0x66,
@@ -21,35 +66,15 @@ $gcm_aad = pack(
 	0x4d,0x23,0xc3,0xce,0xc3,0x34,0xb4,0x9b,0xdb,0x37,0x0c,0x43,
 	0x7f,0xec,0x78,0xde
 );
-$gcm_ct = pack(
-	"C*",
-	0xf7,0x26,0x44,0x13,0xa8,0x4c,0x0e,0x7c,0xd5,0x36,0x86,0x7e,
-	0xb9,0xf2,0x17,0x36
-);
-$gcm_tag = pack(
-	"C*",
-	0x67,0xba,0x05,0x10,0x26,0x2a,0xe4,0x87,0xd7,0x37,0xee,0x62,
-	0x98,0xf7,0x7e,0x0c
-);
 
-
-// ENCRYPTION 
-echo "------- ENCRYPTION -------" . PHP_EOL;
-echo "Plaintext: " . bin2hex($gcm_pt) . PHP_EOL;
-$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
-$cipher->setAAD($gcm_aad);
-$cipher->encryptInit($gcm_key, $gcm_iv);
-$ct = $cipher->encryptUpdate($gcm_pt) . $cipher->encryptFinish();
-echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
-$tag = $cipher->getTag(strlen($gcm_tag));
-echo "Tag: " . bin2hex($tag) . PHP_EOL;
-
-echo PHP_EOL;
-echo "------- DECRYPTION -------\n";
-echo "Ciphertext: " . bin2hex($gcm_ct) . PHP_EOL;
-$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
-$cipher->setTag($gcm_tag);
-$cipher->setAAD($gcm_aad);
-$cipher->decryptInit($gcm_key, $gcm_iv);
-$pt = $cipher->decryptUpdate($gcm_ct) . $cipher->decryptFinish();
-echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
+try {
+	// encryption
+	list($ct, $tag) = gcm_encrypt($gcm_pt, $gcm_key, $gcm_iv, $gcm_aad);
+	echo PHP_EOL;
+	
+	// decryption
+	$pt = gcm_decrypt($ct, $gcm_key, $gcm_iv, $gcm_aad, $tag);
+}
+catch (AlgorithmException $e) {
+	echo $e->getMessage() . PHP_EOL;
+}
