@@ -800,7 +800,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	}
 
 	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
-	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
+	outbuf = emalloc(outbuf_len + 1);
 	
 	/* update encryption context */
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
@@ -837,7 +837,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	}
 	
 	outbuf_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
-	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
+	outbuf = emalloc(outbuf_len + 1);
 	
 	/* finalize encryption context */
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len)) {
@@ -876,7 +876,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	}
 
 	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
-	outbuf = emalloc((outbuf_len + 1) * sizeof(unsigned char));
+	outbuf = emalloc(outbuf_len + 1);
 
 	/* update encryption context */
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
