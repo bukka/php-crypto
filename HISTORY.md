@@ -14,10 +14,11 @@
   - HMAC and CMAC as subclasses of Hash
 - Rand
  - CSPRNG methods
- - seeding
- - methods for saving and retreiving PRNG status
+ - seeding methods
+ - methods for saving and retrieving PRNG status
 - Base64
   - incremental updating (context methods)
+  - automatic wrapping rows (suitable for encoding and decoding certificates)
 - Exception classes
   - AlgorithmException (for all Cipher and Hash exceptions)
   - Base64Exception
