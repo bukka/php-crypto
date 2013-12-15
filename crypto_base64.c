@@ -77,7 +77,7 @@ static zend_object_value php_crypto_base64_object_create_ex(zend_class_entry *cl
 		*ptr = intern;
 	}
 	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
-	php_crypto_object_properties_init(&intern->zo, class_type);
+	PHP_CRYPTO_OBJECT_PROPERTIES_INIT(&intern->zo, class_type);
 
 	intern->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
 

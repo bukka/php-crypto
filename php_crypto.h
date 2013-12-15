@@ -59,7 +59,7 @@ PHP_MINFO_FUNCTION(crypto);
 
 /* macro for initializing properties in obejct (new definition for PHP 5.3) */
 #if PHP_VERSION_ID < 50399
-#define php_crypto_object_properties_init(zo, class_type) { \
+#define PHP_CRYPTO_OBJECT_PROPERTIES_INIT(zo, class_type) { \
 	zval *tmp; \
 	zend_hash_copy((*(zo)).properties, \
 		&(class_type)->default_properties, \
@@ -67,8 +67,10 @@ PHP_MINFO_FUNCTION(crypto);
 		(void *) &tmp, \
 		sizeof(zval *)); \
 }
+#define PHP_CRYPTO_PATH_FMT "s"
 #else
-#define php_crypto_object_properties_init(zo, class_type) object_properties_init(zo, class_type)
+#define PHP_CRYPTO_OBJECT_PROPERTIES_INIT(zo, class_type) object_properties_init(zo, class_type)
+#define PHP_CRYPTO_PATH_FMT "p"
 #endif
 
 #if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 3 && PHP_RELEASE_VERSION >= 7) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 4) || (PHP_MAJOR_VERSION > 5)
