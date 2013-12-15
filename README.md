@@ -36,7 +36,7 @@ extension=crypto.so
 
 ### Windows
 
-The `php_crypto.dll` is part of Jan-E Windows builds on [https://www.apachelounge.com/viewforum.php?f=6](Apache Lounge).
+The `php_crypto.dll` is part of Jan-E Windows builds on [Apache Lounge](https://www.apachelounge.com/viewforum.php?f=6).
 
 
 ## API
