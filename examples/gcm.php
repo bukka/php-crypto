@@ -15,9 +15,7 @@ function gcm_encrypt($pt, $key, $iv, $aad) {
 	echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
 	$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
 	$cipher->setAAD($aad);
-	$cipher->encryptInit($key, $iv);
-	$ct = $cipher->encryptUpdate($pt);
-	$ct .= $cipher->encryptFinish();
+	$ct = $cipher->encrypt($pt, $key, $iv);
 	echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
 	$tag = $cipher->getTag(16);
 	echo "Tag: " . bin2hex($tag) . PHP_EOL;
@@ -40,9 +38,7 @@ function gcm_decrypt($ct, $key, $iv, $aad, $tag) {
 	$cipher = Cipher::aes(Cipher::MODE_GCM, 256);
 	$cipher->setTag($tag);
 	$cipher->setAAD($aad);
-	$cipher->decryptInit($key, $iv);
-	$pt = $cipher->decryptUpdate($ct);
-	$ct .= $cipher->decryptFinish();
+	$pt = $cipher->decrypt($ct, $key, $iv);
 	echo "Plaintext: " . bin2hex($pt) . PHP_EOL;
 }
 
