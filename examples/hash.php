@@ -8,6 +8,7 @@ if (!Hash::hasAlgorithm($algorithm)) {
 }
 
 try {
+	// create Hash object
 	$hash = new Hash($algorithm);
 
 	// Algorithm method for retrieving algorithm
@@ -22,20 +23,24 @@ try {
 	$data2 = "Data";
 	$data = $data1 . $data2;
 
-	// Simple hash
+	// Simple hash (object created using static method)
+	$hash = Hash::sha256();
 	$hash->update($data);
 	$sim_hash = $hash->hexdigest();
 	
 	// init/update/final hash
-	$hash = new Hash($algorithm);
 	$hash->update($data1);
 	$hash->update($data2);
 	$iuf_hash = $hash->hexdigest();
 
+	// Create hash in one expression
+	$one_hash = Hash::sha256($data)->hexdigest();
+	
 	// Raw data output (used hex format for printing)
 	echo "Hash (sim): " . $sim_hash . PHP_EOL;
 	echo "Hash (iuf): " . $iuf_hash . PHP_EOL;
-	// sim == iuf
+	echo "Hash (one): " . $one_hash . PHP_EOL;
+	// sim = iuf = con 
 }
 catch (AlgorithmException $e) {
 	echo $e->getMessage() . PHP_EOL;

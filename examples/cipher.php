@@ -44,7 +44,10 @@ try {
 	echo "Ciphertext (iuf): " . base64_encode($iuf_ct) . PHP_EOL;
 	// $iuf_out == $sim_out
 	$ct = $sim_ct;
-	
+
+	// Another way how to create a new cipher object (using the same algorithm and mode)
+	$cipher = Cipher::aes(Cipher::MODE_CBC, 256);
+
 	// Simple decryption
 	$sim_text = $cipher->decrypt($ct, $key, $iv);
 	
