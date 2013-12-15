@@ -21,7 +21,7 @@ try {
 	echo "IV length: "  . $iv_len . PHP_EOL;
 	echo "Block size: " . $cipher->getBlockSize() . PHP_EOL;
 
-	// This is just for this example. You shoul never use such key and IV!
+	// This is just for this example. You should never use such key and IV!
 	$key = str_repeat('x', $key_len);
 	$iv = str_repeat('i', $iv_len);
 
