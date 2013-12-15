@@ -7,8 +7,8 @@ Crypto\Cipher::setTag basic usage.
 $key = str_repeat('x', 32);
 $iv = str_repeat('i', 16);
 
-$data = hex2bin('622070d3bea6f720943d1198a7e6afa5');
-$tag = hex2bin('ed39e13f9a9fdf19036ad2f1ed5d2d1f');
+$data = pack("H*", '622070d3bea6f720943d1198a7e6afa5');
+$tag = pack("H*", 'ed39e13f9a9fdf19036ad2f1ed5d2d1f');
 
 str_repeat('a', 16);
 
