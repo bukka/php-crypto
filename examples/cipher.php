@@ -1,5 +1,6 @@
 <?php
-namespace Crypto;
+use Crypto\Cipher;
+use Crypto\AlgorihtmException;
 
 $algorithm = 'aes-256-cbc';
 

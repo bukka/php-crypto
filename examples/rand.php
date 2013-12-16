@@ -1,5 +1,5 @@
 <?php
-namespace Crypto;
+use Crypto\Rand;
 
 /* this is just for testing - you should use a proper random seed
    or nothing as it is seeded from RAND_poll anyway */

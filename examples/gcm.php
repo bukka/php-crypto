@@ -1,5 +1,6 @@
 <?php
-namespace Crypto;
+use Crypto\Cipher;
+use Crypto\AlgorihtmException;
 
 /**
  * Encrypt plaintext using AES cipher with GCM mode and 256 bit key

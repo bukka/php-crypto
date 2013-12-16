@@ -1,4 +1,7 @@
 <?php
+use Crypto\Hash;
+use Crypto\AlgorihtmException;
+
 namespace Crypto;
 
 $algorithm = 'sha256';
