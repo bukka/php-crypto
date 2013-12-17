@@ -1,5 +1,10 @@
 # TODO list
 
+## Internal issue
+- add open_basedir check
+- memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
+- Hash::update returns copy of object (check if data are not copied)
+		
 ## Exception
 - more OO - add more classes and better structure (class diagram)
   - fix test
