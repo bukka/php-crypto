@@ -34,6 +34,9 @@ extern zend_module_entry crypto_module_entry;
 #include "TSRM.h"
 #endif
 
+/* crypto version */
+#define PHP_CRYPTO_VERSION "0.1.0"
+
 PHP_MINIT_FUNCTION(crypto);
 PHP_MSHUTDOWN_FUNCTION(crypto);
 PHP_MINFO_FUNCTION(crypto);
