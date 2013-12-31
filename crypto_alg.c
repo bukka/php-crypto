@@ -1417,6 +1417,7 @@ PHP_CRYPTO_METHOD(Hash, update)
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	php_crypto_hash_update(intern, data, data_len TSRMLS_CC);
+	ZVAL_ZVAL(return_value, getThis(), 1, 0);
 }
 /* }}} */
 
