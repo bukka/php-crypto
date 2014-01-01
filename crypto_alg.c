@@ -607,22 +607,6 @@ static int php_crypto_cipher_is_mode_authenticated(php_crypto_algorithm_object *
 }
 /* }}} */
 
-/* {{{ php_crypto_cipher_set_aad */
-static int php_crypto_cipher_set_aad(php_crypto_algorithm_object *intern, unsigned char *aad, int aad_len TSRMLS_DC)
-{
-	int outlen;
-	if (!aad) {
-		aad = (unsigned char *) "";
-		aad_len = 0;
-	}
-	if (!EVP_EncryptUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, aad, aad_len)) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_AAD_SETTER_FAILED, "AAD setter failed");
-		return FAILURE;
-	}
-	return SUCCESS;
-}
-/* }}} */
-
 /* {{{ php_crypto_cipher_set_tag */
 static int php_crypto_cipher_set_tag(php_crypto_algorithm_object *intern, const php_crypto_cipher_mode *mode, unsigned char *tag, int tag_len TSRMLS_DC)
 {
