@@ -1,0 +1,127 @@
+<?xml version="1.0"?>
+<package xmlns="http://pear.php.net/dtd/package-2.0"
+         xmlns:tasks="http://pear.php.net/dtd/tasks-1.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="2.0"
+         xsi:schemaLocation="http://pear.php.net/dtd/tasks-1.0
+                             http://pear.php.net/dtd/tasks-1.0.xsd
+                             http://pear.php.net/dtd/package-2.0
+                             http://pear.php.net/dtd/package-2.0.xsd">
+ <name>crypto</name>
+ <channel>pecl.php.net</channel>
+ <summary>Wrapper for OpenSSL Crypto Library</summary>
+ <description>This package provides an objective wrapper for OpenSSL Crypto Library</description>
+ <lead>
+  <name>Jakub Zelenka</name>
+  <user>bukka</user>
+  <email>bukka@php.net</email>
+  <active>yes</active>
+ </lead>
+ <date>2014-01-01</date>
+ <version>
+  <release>0.1.0</release>
+  <api>0.1.0</api>
+ </version>
+ <stability>
+  <release>devel</release>
+  <api>devel</api>
+ </stability>
+ <license uri="http://www.php.net/license">PHP 3.01</license>
+ <notes><![CDATA[
+ * Incremental cipher decryption and encryption
+ * Support for authenticated encryption and decryption (GCM and CCM modes)
+ * Incremental hash creation
+ * Methods for retrieving informations about cipher and hash algorithms
+ * HMAC and CMAC creation
+ * Random numbers API including seeding and saving/loading PRNG state
+ * Incremental Base64 decoding and encoding
+ ]]></notes>
+ <contents>
+  <dir name="/">
+   <file role="doc" name="CREDITS"/>
+   <file role="doc" name="LICENSE"/>
+   <file role="doc" name="README.md"/>
+   <file role="doc" name="HISTORY.md"/>
+   <file role="doc" name="TODO.md"/>
+   <file role="src" name="config.m4" />
+   <file role="src" name="config.w32" />
+   <file role="src" name="php_crypto.h"/>
+   <file role="src" name="php_crypto_alg.h"/>
+   <file role="src" name="php_crypto_base64.h"/>
+   <file role="src" name="php_crypto_rand.h"/>
+   <file role="src" name="crypto.c"/>
+   <file role="src" name="crypto_alg.c"/>
+   <file role="src" name="crypto_base64.c"/>
+   <file role="src" name="crypto_rand.c"/>
+   <dir name="examples">
+    <file role="doc" name="cipher.php"/>
+    <file role="doc" name="gcm.php"/>
+    <file role="doc" name="hash.php"/>
+    <file role="doc" name="rand.php"/>
+   </dir>
+   <dir name="tests">
+    <file role="test" name="001.phpt"/>
+    <file role="test" name="Algorithm___construct_basic.phpt"/>
+    <file role="test" name="Algorithm_getAlgorithmName_basic.phpt"/>
+    <file role="test" name="Base64___clone_basic.phpt"/>
+    <file role="test" name="Base64___construct_basic.phpt"/>
+    <file role="test" name="Base64_decodeFinish_basic.phpt"/>
+    <file role="test" name="Base64_decodeUpdate_basic.phpt"/>
+    <file role="test" name="Base64_decode_basic.phpt"/>
+    <file role="test" name="Base64_encodeFinish_basic.phpt"/>
+    <file role="test" name="Base64_encodeUpdate_basic.phpt"/>
+    <file role="test" name="Base64_encode_basic.phpt"/>
+    <file role="test" name="Cipher___callStatic_basic.phpt"/>
+    <file role="test" name="Cipher___clone_basic.phpt"/>
+    <file role="test" name="Cipher___construct_basic.phpt"/>
+    <file role="test" name="Cipher_decryptFinish_basic.phpt"/>
+    <file role="test" name="Cipher_decryptInit_basic.phpt"/>
+    <file role="test" name="Cipher_decryptUpdate_basic.phpt"/>
+    <file role="test" name="Cipher_decrypt_basic.phpt"/>
+    <file role="test" name="Cipher_encryptFinish_basic.phpt"/>
+    <file role="test" name="Cipher_encryptInit_basic.phpt"/>
+    <file role="test" name="Cipher_encryptUpdate_basic.phpt"/>
+    <file role="test" name="Cipher_encrypt_basic.phpt"/>
+    <file role="test" name="Cipher_getAlgorithms_basic.phpt"/>
+    <file role="test" name="Cipher_getBlockSize_basic.phpt"/>
+    <file role="test" name="Cipher_getIVLength_basic.phpt"/>
+    <file role="test" name="Cipher_getKeyLength_basic.phpt"/>
+    <file role="test" name="Cipher_getMode_basic.phpt"/>
+    <file role="test" name="Cipher_getTag_basic.phpt"/>
+    <file role="test" name="Cipher_hasAlgorithm_basic.phpt"/>
+    <file role="test" name="Cipher_hasMode_basic.phpt"/>
+    <file role="test" name="Cipher_setAAD_basic.phpt"/>
+    <file role="test" name="Cipher_setTag_basic.phpt"/>
+    <file role="test" name="Hash___callStatic_basic.phpt"/>
+    <file role="test" name="Hash___clone_basic.phpt"/>
+    <file role="test" name="Hash___construct_basic.phpt"/>
+    <file role="test" name="Hash_digest_basic.phpt"/>
+    <file role="test" name="Hash_getAlgorithms_basic.phpt"/>
+    <file role="test" name="Hash_getBlockSize_basic.phpt"/>
+    <file role="test" name="Hash_getSize_basic.phpt"/>
+    <file role="test" name="Hash_hasAlgorithm_basic.phpt"/>
+    <file role="test" name="Hash_hexdigest_basic.phpt"/>
+    <file role="test" name="Hash_update_basic.phpt"/>
+    <file role="test" name="Rand_cleanup_basic.phpt"/>
+    <file role="test" name="Rand_egd_basic.phpt"/>
+    <file role="test" name="Rand_generate_basic.phpt"/>
+    <file role="test" name="Rand_loadFile_basic.phpt"/>
+    <file role="test" name="Rand_seed_basic.phpt"/>
+    <file role="test" name="Rand_writeFile_basic.phpt"/>
+   </dir>
+  </dir>
+ </contents>
+ <dependencies>
+  <required>
+   <php>
+    <min>5.3.0</min>
+   </php>
+   <pearinstaller>
+    <min>1.4.0a1</min>
+   </pearinstaller>
+  </required>
+ </dependencies>
+ <providesextension>crypto</providesextension>
+ <extsrcrelease/>
+ <changelog>
+ </changelog>
+</package>
