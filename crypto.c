@@ -31,7 +31,7 @@
 
 /* {{{ crypto_functions[] */
 const zend_function_entry crypto_functions[] = {
-	PHP_FE_END
+	PHP_CRYPTO_FE_END
 };
 /* }}} */
 
@@ -62,7 +62,7 @@ PHP_MINIT_FUNCTION(crypto)
 	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
-	
+
 	return SUCCESS;
 }
 /* }}} */
