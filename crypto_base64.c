@@ -270,7 +270,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 
 	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, intern->ctx);
 	if (real_len < PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN) {
-		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN];
+		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
 		php_crypto_base64_encode_update(intern->ctx, buff, &out_len, in, in_len);
 		if (out_len == 0) {
 			RETURN_EMPTY_STRING();
@@ -278,7 +278,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 		buff[out_len] = 0;
 		RETURN_STRINGL(buff, out_len, 1);
 	} else {
-		out = (char *) emalloc(real_len);
+		out = (char *) emalloc(real_len+1);
 		php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
 		out[out_len] = 0;
 		RETURN_STRINGL(out, out_len, 0);
@@ -289,7 +289,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
    Encodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
-	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN];
+	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
 	int out_len;
 	php_crypto_base64_object *intern;
 
