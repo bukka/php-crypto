@@ -289,7 +289,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
    Encodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
-	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN];
+	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
 	int out_len;
 	php_crypto_base64_object *intern;
 
