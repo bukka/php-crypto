@@ -77,14 +77,14 @@ PHP_MINIT_FUNCTION(crypto_rand)
 	/* Rand class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Rand), php_crypto_rand_object_methods);
 	php_crypto_rand_ce = zend_register_internal_class(&ce TSRMLS_CC);
-	
+
 	/* Rand Exception class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(RandException), NULL);
 	php_crypto_rand_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 	/* Declare RandException class constants for error codes */
 	PHP_CRYPTO_DECLARE_RAND_E_CONST(GENERATE_PREDICTABLE);
 	PHP_CRYPTO_DECLARE_RAND_E_CONST(FILE_WRITE_PREDICTABLE);
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -103,7 +103,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 	}
 
 	buf = emalloc(sizeof(buf) * num + 1);
-		
+
 	if (must_be_strong) {
 		if (!RAND_bytes((unsigned char *) buf, num)) {
 			PHP_CRYPTO_THROW_RAND_EXCEPTION(GENERATE_PREDICTABLE, "The PRNG state is not yet unpridactable");
@@ -161,7 +161,7 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 	char *path;
 	int path_len;
 	long max_bytes = -1;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHP_CRYPTO_PATH_FMT"|l", &path, &path_len, &max_bytes) == FAILURE) {
 		return;
 	}
@@ -202,7 +202,7 @@ PHP_CRYPTO_METHOD(Rand, egd)
 	long bytes = 255;
 	zend_bool seed;
 	unsigned char *buf = NULL;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|lb", &path, &path_len, &bytes, &seed) == FAILURE) {
 		return;
 	}

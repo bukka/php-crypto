@@ -250,14 +250,14 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 	else {
 		intern->type = PHP_CRYPTO_ALG_NONE;
 	}
-	
+
 	retval.handlers = &php_crypto_algorithm_object_handlers;
 	retval.handle = zend_objects_store_put(
 		intern,
 		(zend_objects_store_dtor_t) php_crypto_algorithm_object_dtor,
 		(zend_objects_free_object_storage_t) php_crypto_algorithm_object_free,
 		NULL TSRMLS_CC);
-	
+
 	return retval;
 }
 /* }}} */
@@ -326,10 +326,9 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 	}
 
 copy_end:
-   if (!copy_success) {
+	if (!copy_success) {
 		php_error(E_ERROR, "Cloning of Algorithm object failed");
 	}
-	
 	return new_ov;
 }
 /* }}} */
@@ -351,7 +350,7 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	php_crypto_algorithm_object_handlers.clone_obj = php_crypto_algorithm_object_clone;
 	php_crypto_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	zend_declare_property_null(php_crypto_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
-	
+
 	/* Algorithm Exception class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
@@ -387,7 +386,7 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
 	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_DIGEST_FAILED);
-	
+
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
 	php_crypto_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
@@ -409,7 +408,7 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(CMAC), NULL);
 	php_crypto_cmac_ce = zend_register_internal_class_ex(&ce, php_crypto_hash_ce, NULL TSRMLS_CC);
 #endif
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -643,7 +642,7 @@ static int php_crypto_cipher_check_tag_len(long tag_len TSRMLS_DC)
 static int php_crypto_cipher_check_key_len(zval *zobject, php_crypto_algorithm_object *intern, int key_len TSRMLS_DC)
 {
 	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(intern));
-	
+
 	if (key_len != alg_key_len && !EVP_CIPHER_CTX_set_key_length(PHP_CRYPTO_CIPHER_CTX(intern), key_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_KEY_LENGTH,
 			"Invalid length of key for cipher '%s' algorithm (required length: %d)",
@@ -677,7 +676,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 {
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(zobject TSRMLS_CC);
 	const php_crypto_cipher_mode *mode;
-	
+
 	/* check algorithm status */
 	if (enc && PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(ENCRYPT_INIT_STATUS, "Cipher object is already used for decryption");
@@ -705,7 +704,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 	if (php_crypto_cipher_check_iv_len(zobject, intern, mode, iv_len TSRMLS_CC) == FAILURE) {
 		return NULL;
 	}
-	
+
 	/* initialize encryption */
 	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(intern), NULL, NULL, (unsigned char *) key, (unsigned char *) iv, enc)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_INIT_CTX_FAILED, "Initialization of cipher context failed");
@@ -764,7 +763,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	unsigned char *outbuf;
 	char *data;
 	int data_len, outbuf_len;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
 		return;
 	}
@@ -822,10 +821,10 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(DECRYPT_FINISH_STATUS, "Cipher object is not initialized for decryption");
 		return;
 	}
-	
+
 	outbuf_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
 	outbuf = emalloc(outbuf_len + 1);
-	
+
 	/* finalize encryption context */
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len)) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_FINISH_FAILED, "Finalizing of cipher failed");
@@ -1038,7 +1037,7 @@ PHP_CRYPTO_METHOD(Cipher, decrypt)
 PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1052,7 +1051,7 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1066,7 +1065,7 @@ PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 PHP_CRYPTO_METHOD(Cipher, getIVLength)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1080,7 +1079,7 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
 PHP_CRYPTO_METHOD(Cipher, getMode)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1222,7 +1221,7 @@ static inline int php_crypto_hash_update(php_crypto_algorithm_object *intern, ch
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(HASH_UPDATE_FAILED, "Updating of hash failed");
 		return FAILURE;
 	}
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -1301,11 +1300,11 @@ PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
 {
 	char *algorithm;
 	int algorithm_len;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
 		return;
 	}
-	
+
 	if (EVP_get_digestbyname(algorithm)) {
 		RETURN_TRUE;
 	} else {
@@ -1324,7 +1323,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 	zval **arg;
 	const EVP_MD *digest;
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
 	}
@@ -1365,7 +1364,7 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 	char *algorithm;
 	int algorithm_len;
 	const EVP_MD *digest;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &algorithm, &algorithm_len) == FAILURE) {
 		return;
 	}
@@ -1397,7 +1396,7 @@ PHP_CRYPTO_METHOD(Hash, update)
 	php_crypto_algorithm_object *intern;
 	char *data;
 	int data_len;
-	
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
 		return;
 	}
@@ -1429,7 +1428,7 @@ PHP_CRYPTO_METHOD(Hash, hexdigest)
 PHP_CRYPTO_METHOD(Hash, getBlockSize)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
@@ -1443,7 +1442,7 @@ PHP_CRYPTO_METHOD(Hash, getBlockSize)
 PHP_CRYPTO_METHOD(Hash, getSize)
 {
 	php_crypto_algorithm_object *intern;
-	
+
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
