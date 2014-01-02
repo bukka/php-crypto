@@ -321,6 +321,9 @@ zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
 		copy_success = CMAC_CTX_copy(PHP_CRYPTO_CMAC_CTX(new_obj), PHP_CRYPTO_CMAC_CTX(old_obj));
 	}
 #endif
+	else {
+		copy_success = 0;
+	}
 
 copy_end:
    if (!copy_success) {
