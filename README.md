@@ -20,6 +20,30 @@ or if you prefer to clone the repository
 git clone https://github.com/bukka/php-crypto.git
 ```
 
+#### Fedora
+
+The RPM package for PHP Crypto is available in Remi's repository: http://rpms.famillecollet.com/
+
+It is available for Fedora, RHEL and clones (CentOS, SC and others).
+
+After downloading remi-release RPM, the package can be installed by executing following command:
+```
+$ sudo yum --enablerepo=remi install php-pecl-crypto
+```
+
+#### PECL
+
+This extension is available on PECL. The package is not currently stable. If the config `preferre_state` is stable, thne the version needs to be specified.
+
+```
+$ sudo pecl install crypto-0.x.y
+```
+
+where `x` is an installed minor version number and `y` bug fixing version number.
+
+
+#### Manual Installation
+
 After downloading the source go to the created directory and compile the extension. PHP development package needs to be installed (command `phpize` must be available).
 ```
 cd php-crypto
@@ -36,7 +60,9 @@ extension=crypto.so
 
 ### Windows
 
-The `php_crypto.dll` is part of Jan-E Windows builds on [Apache Lounge](https://www.apachelounge.com/viewforum.php?f=6).
+Precompiled binary `dll` libraries for php-crypto are available on [the PECL crypto page](http://pecl.php.net/package/crypto).
+
+The php-crypto `dll` is also available in Jan-E Windows builds on [Apache Lounge](https://www.apachelounge.com/viewforum.php?f=6).
 
 
 ## API
