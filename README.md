@@ -11,15 +11,6 @@ Before starting with installation this extensions, the `OpenSSL` library has to 
 
 Currently PHP needs to be compiled with OpenSSL extension (`--with-openssl`). This dependency will be removed in the future.
 
-First download the source
-```
-wget -O - https://github.com/bukka/php-crypto/archive/master.tar.gz | tar xzp
-```
-or if you prefer to clone the repository
-```
-git clone https://github.com/bukka/php-crypto.git
-```
-
 #### Fedora
 
 The RPM package for PHP Crypto is available in Remi's repository: http://rpms.famillecollet.com/
@@ -44,7 +35,16 @@ where `x` is an installed minor version number and `y` bug fixing version number
 
 #### Manual Installation
 
-After downloading the source go to the created directory and compile the extension. PHP development package needs to be installed (command `phpize` must be available).
+First download the source
+```
+wget -O - https://github.com/bukka/php-crypto/archive/master.tar.gz | tar xzp
+```
+or if you prefer to clone the repository
+```
+git clone https://github.com/bukka/php-crypto.git
+```
+
+Then go to the created directory and compile the extension. The PHP development package has to be installed (command `phpize` must be available).
 ```
 cd php-crypto
 phpize
