@@ -16,9 +16,9 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2014-01-01</date>
+ <date>2014-01-04</date>
  <version>
-  <release>0.1.0</release>
+  <release>0.1.1</release>
   <api>0.1.0</api>
  </version>
  <stability>
@@ -27,13 +27,8 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Incremental cipher decryption and encryption
- * Support for authenticated encryption and decryption (GCM and CCM modes)
- * Incremental hash creation
- * Methods for retrieving informations about cipher and hash algorithms
- * HMAC and CMAC creation
- * Random numbers API including seeding and saving/loading PRNG state
- * Incremental Base64 decoding and encoding
+ * Added linking of openssl shared lib to the config.m4
+ * Fixed buffer overflow in Base64 encoding
  ]]></notes>
  <contents>
   <dir name="/">
@@ -123,5 +118,26 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+    <date>2014-01-01</date>
+	<version>
+	 <release>0.1.0</release>
+	 <api>0.1.0</api>
+	</version>
+	<stability>
+	 <release>devel</release>
+	 <api>devel</api>
+	</stability>
+	<license uri="http://www.php.net/license">PHP 3.01</license>
+	<notes><![CDATA[
+	* Incremental cipher decryption and encryption
+	* Support for authenticated encryption and decryption (GCM and CCM modes)
+	* Incremental hash creation
+	* Methods for retrieving informations about cipher and hash algorithms
+	* HMAC and CMAC creation
+	* Random numbers API including seeding and saving/loading PRNG state
+	* Incremental Base64 decoding and encoding
+	]]></notes>
+  </release>
  </changelog>
 </package>

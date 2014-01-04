@@ -1,5 +1,9 @@
 # Release history
 
+## 0.1.1 (devel)
+- Added linking of openssl shared lib to the config.m4
+- Fixed buffer overflow in Base64 encoding
+
 ## 0.1.0 (devel)
 - Cipher
   - incremental encryption & decryption (context methods)

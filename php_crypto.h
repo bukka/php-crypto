@@ -35,7 +35,7 @@ extern zend_module_entry crypto_module_entry;
 #endif
 
 /* crypto version */
-#define PHP_CRYPTO_VERSION "0.1.0"
+#define PHP_CRYPTO_VERSION "0.1.1"
 
 PHP_MINIT_FUNCTION(crypto);
 PHP_MSHUTDOWN_FUNCTION(crypto);
