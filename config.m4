@@ -21,6 +21,12 @@ if test "$PHP_CRYPTO" != "no"; then
 
     AC_DEFINE(HAVE_CRYPTOLIB,1,[Enable objective OpenSSL Crypto wrapper])
     PHP_SUBST(CRYPTO_SHARED_LIBADD)
-    PHP_NEW_EXTENSION(crypto, crypto.c crypto_alg.c crypto_base64.c crypto_rand.c, $ext_shared)
+    PHP_NEW_EXTENSION(crypto, 
+      crypto.c \
+      crypto_alg.c \
+      crypto_base64.c \
+      crypto_stream.c \
+      crypto_rand.c,
+      $ext_shared)
   fi
 fi

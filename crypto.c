@@ -26,6 +26,7 @@
 #include "php_crypto.h"
 #include "php_crypto_alg.h"
 #include "php_crypto_base64.h"
+#include "php_crypto_stream.h"
 #include "php_crypto_rand.h"
 
 
@@ -61,6 +62,7 @@ PHP_MINIT_FUNCTION(crypto)
 {
 	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
+	PHP_MINIT(crypto_stream)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
 
 	return SUCCESS;
