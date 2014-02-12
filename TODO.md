@@ -12,7 +12,11 @@
 - replace variadic macros
 
 ## BIO
-- new crypto stream using OpenSSL BIO
+- new streams
+  - connect
+  - fd
+  - socket
+- persistent connection
 
 ## Base64
 - Memory testing
