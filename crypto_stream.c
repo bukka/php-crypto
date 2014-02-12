@@ -83,7 +83,42 @@ php_stream_ops  php_crypto_stream_ops = {
 static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const char *path, const char *mode,
 		int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
+	char *realpath;
+	php_stream *stream;
+	php_crypto_stream_data *self;
 	
+	if (strncasecmp(PHP_CRYPTO_STREAM_FILE_SCHEME, path, PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE) == 0) {
+		path += PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE;
+	}
+	
+	if (((options & STREAM_DISABLE_OPEN_BASEDIR) == 0) && php_check_open_basedir(path TSRMLS_CC)) {
+		return NULL;
+	}
+	
+	if (options & STREAM_ASSUME_REALPATH) {
+		realpath = estrdup(path);
+	} else if ((realpath = expand_filepath(path, NULL TSRMLS_CC)) == NULL) {
+		return NULL;
+	}
+	
+	self = emalloc(sizeof(*self));
+	self->bio = BIO_new_file(realpath, mode);
+	if (self->bio == NULL) {
+		efree(realpath);
+		return NULL;
+	}
+	
+	stream = php_stream_alloc_rel(&php_crypto_stream_ops, self, 0, mode);
+	if (stream) {
+		if (opened_path) {
+			*opened_path = realpath;
+			realpath = NULL;
+		}
+		if (realpath) {
+			efree(realpath);
+		}
+	}
+	return stream;
 }
 /* }}} */
 
@@ -109,6 +144,6 @@ static php_stream_wrapper php_crypto_stream_wrapper = {
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_stream)
 {
-	php_register_url_stream_wrapper("crypto.file", &php_crypto_stream_wrapper TSRMLS_CC);
+	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_IDENT, &php_crypto_stream_wrapper TSRMLS_CC);
 }
 /* }}} */
