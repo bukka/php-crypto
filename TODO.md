@@ -1,9 +1,11 @@
 # TODO list
 
-## Internal issue
+## Internal issues
 - add open_basedir check
 - memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
 - Hash::update returns copy of object (check if data are not copied)
+- why SEEK_CUR is 0 when passed to crypto_stream_seek?
+  - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 		
 ## Exception
 - more OO - add more classes and better structure (class diagram)

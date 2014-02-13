@@ -23,6 +23,7 @@
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 
+/* crypto stream data */
 typedef struct {
 	BIO *bio;
 } php_crypto_stream_data;
@@ -30,51 +31,75 @@ typedef struct {
 /* {{{ php_crypto_stream_write */
 static size_t php_crypto_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
 {
-	
+	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
+	int bytes_written = BIO_write(data->bio, buf, count > INT_MAX ? INT_MAX : count);
+	return bytes_written <= 0 ? 0 : (size_t) bytes_written;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_read */
 static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
 {
-	
+	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
+	int bytes_read = BIO_read(data->bio, buf, count > INT_MAX ? INT_MAX : count);
+	if (bytes_read > 0) {
+		return (size_t) bytes_read;
+	}
+	stream->eof = !BIO_should_retry(data->bio);
+	return 0;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_close */
 static int php_crypto_stream_close(php_stream *stream, int close_handle TSRMLS_DC)
 {
-	
+	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
+	BIO_free_all(data->bio);
+	efree(data);
+	return 0;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_flush */
 static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 {
-	
+	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
+	BIO_flush(data->bio);
+	return 0;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_seek */
 static int php_crypto_stream_seek(php_stream *stream, off_t offset, int whence, off_t *newoffset TSRMLS_DC)
 {
+	int ret;
+	php_crypto_stream_data *data;
+		
+	/* The only supported value in OpenSSL */
+	if (whence != SEEK_SET) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only SEEK_SET is allowed");
+		return -1;
+	}
+	/* Don't allow offset greater than INT_MAX due to BIO_ctrl return value casting */
+	if (offset > INT_MAX) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The offset greater than %d is not allowed", INT_MAX);
+		return -1;
+	}
 	
+	data = (php_crypto_stream_data *) stream->abstract;
+	ret = BIO_seek(data->bio, offset);
+	*newoffset = (off_t) BIO_tell(data->bio);
+	return ret;
 }
 /* }}} */
 
-/* {{{ php_crypto_stream_cast */
-static int php_crypto_stream_cast(php_stream *stream, int castas, void **ret TSRMLS_DC)
-{
-	
-}
-/* }}} */
-
+/* crypto stream options */
 php_stream_ops  php_crypto_stream_ops = {
 	php_crypto_stream_write, php_crypto_stream_read,
 	php_crypto_stream_close, php_crypto_stream_flush,
 	"crypto",
 	php_crypto_stream_seek,
-	php_crypto_stream_cast,
+	NULL, /* cast */
 	NULL, /* stat */
 	NULL  /* set_option */
 };
@@ -104,6 +129,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const c
 	self = emalloc(sizeof(*self));
 	self->bio = BIO_new_file(realpath, mode);
 	if (self->bio == NULL) {
+		efree(self);
 		efree(realpath);
 		return NULL;
 	}
@@ -122,6 +148,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const c
 }
 /* }}} */
 
+/* crypto stream wrapper options */
 static php_stream_wrapper_ops php_crypto_stream_wrapper_ops = {
 	php_crypto_stream_opener,
 	NULL,
@@ -135,6 +162,7 @@ static php_stream_wrapper_ops php_crypto_stream_wrapper_ops = {
 	NULL
 };
 
+/* crypto stream wrapper */
 static php_stream_wrapper php_crypto_stream_wrapper = {
 	&php_crypto_stream_wrapper_ops,
 	NULL,
@@ -145,5 +173,7 @@ static php_stream_wrapper php_crypto_stream_wrapper = {
 PHP_MINIT_FUNCTION(crypto_stream)
 {
 	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_IDENT, &php_crypto_stream_wrapper TSRMLS_CC);
+	
+	return SUCCESS;
 }
 /* }}} */
