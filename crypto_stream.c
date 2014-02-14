@@ -177,3 +177,12 @@ PHP_MINIT_FUNCTION(crypto_stream)
 	return SUCCESS;
 }
 /* }}} */
+
+/* {{{ PHP_MSHUTDOWN_FUNCTION */
+PHP_MSHUTDOWN_FUNCTION(crypto_stream)
+{
+	php_unregister_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_IDENT TSRMLS_CC);
+	
+	return SUCCESS;
+}
+/* }}} */

@@ -73,6 +73,8 @@ PHP_MINIT_FUNCTION(crypto)
  */
 PHP_MSHUTDOWN_FUNCTION(crypto)
 {
+	PHP_MSHUTDOWN(crypto_stream)(SHUTDOWN_FUNC_ARGS_PASSTHRU);
+	
 	return SUCCESS;
 }
 /* }}} */
