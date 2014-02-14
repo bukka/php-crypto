@@ -119,7 +119,7 @@ class Apidoc {
 						$m['description'] .= ' ' . $comment;
 					}
 				}
-				elseif (preg_match("/proto\s+(static\s+)?(\w+\s+)?([^:]+)::(\w+)\(([^)]*)/", $line, $matches)) {
+				elseif (preg_match("/proto\s+(static\s+)?(\w+\s+)?([^:]+)::(\w+)\((.*)\)/", $line, $matches)) {
 					$params = array();
 					if (strlen($matches[5])) {
 						$pss = explode(',', $matches[5]);
