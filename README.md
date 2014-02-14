@@ -439,7 +439,7 @@ class Crypto\Rand {
      * @param float $entropy
      * @return null
      */
-    public static function seed($buf, $entropy = (float) {}
+    public static function seed($buf, $entropy = (float) strlen($buf)) {}
     
     /**
      * Cleans up PRNG state
