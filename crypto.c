@@ -29,6 +29,8 @@
 #include "php_crypto_stream.h"
 #include "php_crypto_rand.h"
 
+#include <openssl/evp.h>
+
 
 /* {{{ crypto_functions[] */
 const zend_function_entry crypto_functions[] = {
@@ -60,6 +62,8 @@ ZEND_GET_MODULE(crypto)
  */
 PHP_MINIT_FUNCTION(crypto)
 {
+	OpenSSL_add_all_algorithms();
+	
 	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_stream)(INIT_FUNC_ARGS_PASSTHRU);
@@ -74,6 +78,8 @@ PHP_MINIT_FUNCTION(crypto)
 PHP_MSHUTDOWN_FUNCTION(crypto)
 {
 	PHP_MSHUTDOWN(crypto_stream)(SHUTDOWN_FUNC_ARGS_PASSTHRU);
+	
+	EVP_cleanup();
 	
 	return SUCCESS;
 }
