@@ -104,16 +104,31 @@ php_stream_ops  php_crypto_stream_ops = {
 	NULL  /* set_option */
 };
 
+/* {{{ php_crypto_stream_set_cipher */
+static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_context *context TSRMLS_DC)
+{
+	zval **option;
+	if (php_stream_context_get_option(context, wrappername, "cipher", &option) == FAILURE) {
+		/* no need to do anything */
+		return SUCCESS;
+	}
+	
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ php_crypto_stream_opener */
 static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const char *path, const char *mode,
 		int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
 	char *realpath;
+	const char *wrappername;
 	php_stream *stream;
 	php_crypto_stream_data *self;
 	
 	if (strncasecmp(PHP_CRYPTO_STREAM_FILE_SCHEME, path, PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE) == 0) {
 		path += PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE;
+		wrappername = PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME;
 	}
 	
 	if (((options & STREAM_DISABLE_OPEN_BASEDIR) == 0) && php_check_open_basedir(path TSRMLS_CC)) {
@@ -129,6 +144,13 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const c
 	self = emalloc(sizeof(*self));
 	self->bio = BIO_new_file(realpath, mode);
 	if (self->bio == NULL) {
+		efree(self);
+		efree(realpath);
+		return NULL;
+	}
+	
+	if (php_crypto_stream_set_cipher(wrappername, context TSRMLS_CC)) {
+		BIO_free_all(self->bio);
 		efree(self);
 		efree(realpath);
 		return NULL;
@@ -172,7 +194,7 @@ static php_stream_wrapper php_crypto_stream_wrapper = {
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_stream)
 {
-	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_IDENT, &php_crypto_stream_wrapper TSRMLS_CC);
+	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME, &php_crypto_stream_wrapper TSRMLS_CC);
 	
 	return SUCCESS;
 }
@@ -181,7 +203,7 @@ PHP_MINIT_FUNCTION(crypto_stream)
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(crypto_stream)
 {
-	php_unregister_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_IDENT TSRMLS_CC);
+	php_unregister_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME TSRMLS_CC);
 	
 	return SUCCESS;
 }
