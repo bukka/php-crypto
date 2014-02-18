@@ -480,7 +480,7 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 /* CIPHER METHODS */
 
 /* {{{ php_crypto_get_cipher_algorithm */
-static const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len)
+PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len)
 {
 	const EVP_CIPHER *cipher;
 	php_strtoupper(algorithm, algorithm_len);
@@ -493,17 +493,75 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int al
 }
 /* }}} */
 
-/* {{{ php_crypto_get_cipher_mode */
-static const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
+/* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
+static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
-	const php_crypto_cipher_mode *mode;
+	const EVP_CIPHER *cipher;
+	smart_str alg_buf = {0};
 
-	for (mode = php_crypto_cipher_modes; mode->name[0]; mode++) {
-		if (mode_value == mode->value) {
-			return mode;
+	if (!pz_mode || Z_TYPE_P(pz_mode) == IS_NULL) {
+		return php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
+	}
+
+	smart_str_appendl(&alg_buf, algorithm, algorithm_len);
+	smart_str_appendc(&alg_buf, '-');
+
+	/* copy key size if available */
+	if (pz_key_size && Z_TYPE_P(pz_key_size) != IS_NULL) {
+		if (Z_TYPE_P(pz_key_size) == IS_STRING) {
+			smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_key_size), Z_STRLEN_P(pz_key_size));
+		} else {
+			zval z_key_size = *pz_key_size;
+			zval_copy_ctor(&z_key_size);
+			convert_to_string(&z_key_size);
+			smart_str_appendl(&alg_buf, Z_STRVAL(z_key_size), Z_STRLEN(z_key_size));
+			smart_str_appendc(&alg_buf, '-');
+			zval_dtor(&z_key_size);
 		}
 	}
-	return NULL;
+
+	/* copy mode */
+	if (Z_TYPE_P(pz_mode) == IS_LONG) {
+		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(Z_LVAL_P(pz_mode));
+		if (!mode) {
+			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_MODE_NOT_FOUND, "Cipher mode with integer value %d does not exist", Z_LVAL_P(pz_mode));
+			smart_str_free(&alg_buf);
+			return NULL;
+		}
+		if (mode->value == PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED) {
+			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_MODE_NOT_AVAILABLE, "Cipher mode %s is not available in installed OpenSSL library", mode->name);
+			smart_str_free(&alg_buf);
+			return NULL;
+		}
+		smart_str_appendl(&alg_buf, mode->name, PHP_CRYPTO_CIPHER_MODE_LEN);
+	} else if (Z_TYPE_P(pz_mode) == IS_STRING) {
+		smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_mode), Z_STRLEN_P(pz_mode));
+	} else {
+		zval z_mode = *pz_mode;
+		zval_copy_ctor(&z_mode);
+		convert_to_string(&z_mode);
+		smart_str_appendl(&alg_buf, Z_STRVAL(z_mode), Z_STRLEN(z_mode));
+		zval_dtor(&z_mode);
+	}
+
+	smart_str_0(&alg_buf);
+	cipher = php_crypto_get_cipher_algorithm(alg_buf.c, alg_buf.len);
+	if (!cipher) {
+		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", alg_buf.c);
+	} else if (object) {
+		php_crypto_set_algorithm_name(object, algorithm, algorithm_len TSRMLS_CC);
+	}
+	smart_str_free(&alg_buf);
+	return cipher;
+}
+/* }}} */
+
+/* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
+PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
+		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
+{
+	return php_crypto_get_cipher_algorithm_from_params_ex(NULL, algorithm, algorithm_len, pz_mode, pz_key_size TSRMLS_CC);
 }
 /* }}} */
 
@@ -530,60 +588,33 @@ static int php_crypto_set_cipher_algorithm(zval *object, char *algorithm, int al
 /* }}} */
 
 /* {{{ php_crypto_set_cipher_algorithm_from_params */
-static int php_crypto_set_cipher_algorithm_from_params(zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
+static int php_crypto_set_cipher_algorithm_from_params(
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
-	smart_str alg_buf = {0};
-	int rc;
-
-	if (!pz_mode || Z_TYPE_P(pz_mode) == IS_NULL) {
-		return php_crypto_set_cipher_algorithm(object, algorithm, algorithm_len TSRMLS_CC);
+	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(object TSRMLS_CC);
+	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm_from_params_ex(
+			object, algorithm, algorithm_len, pz_mode, pz_key_size TSRMLS_CC);
+	
+	if (!cipher) {
+		return FAILURE;
 	}
+	
+	PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
+	return SUCCESS;
+}
+/* }}} */
 
-	smart_str_appendl(&alg_buf, algorithm, algorithm_len);
-	smart_str_appendc(&alg_buf, '-');
+/* {{{ php_crypto_get_cipher_mode */
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
+{
+	const php_crypto_cipher_mode *mode;
 
-	/* copy key size if available */
-	if (pz_key_size && Z_TYPE_P(pz_key_size) != IS_NULL) {
-		if (Z_TYPE_P(pz_key_size) == IS_STRING) {
-			smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_key_size), Z_STRLEN_P(pz_key_size));
-		} else {
-			zval z_key_size = *pz_key_size;
-			zval_copy_ctor(&z_key_size);
-			convert_to_string(&z_key_size);
-			smart_str_appendl(&alg_buf, Z_STRVAL(z_key_size), Z_STRLEN(z_key_size));
-			smart_str_appendc(&alg_buf, '-');
-			zval_dtor(&z_key_size);
+	for (mode = php_crypto_cipher_modes; mode->name[0]; mode++) {
+		if (mode_value == mode->value) {
+			return mode;
 		}
 	}
-
-	/* copy mode */
-	if (Z_TYPE_P(pz_mode) == IS_LONG) {
-		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(Z_LVAL_P(pz_mode));
-		if (!mode) {
-			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_MODE_NOT_FOUND, "Cipher mode with integer value %d does not exist", Z_LVAL_P(pz_mode));
-			smart_str_free(&alg_buf);
-			return FAILURE;
-		}
-		if (mode->value == PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED) {
-			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_MODE_NOT_AVAILABLE, "Cipher mode %s is not available in installed OpenSSL library", mode->name);
-			smart_str_free(&alg_buf);
-			return FAILURE;
-		}
-		smart_str_appendl(&alg_buf, mode->name, PHP_CRYPTO_CIPHER_MODE_LEN);
-	} else if (Z_TYPE_P(pz_mode) == IS_STRING) {
-		smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_mode), Z_STRLEN_P(pz_mode));
-	} else {
-		zval z_mode = *pz_mode;
-		zval_copy_ctor(&z_mode);
-		convert_to_string(&z_mode);
-		smart_str_appendl(&alg_buf, Z_STRVAL(z_mode), Z_STRLEN(z_mode));
-		zval_dtor(&z_mode);
-	}
-
-	smart_str_0(&alg_buf);
-	rc = php_crypto_set_cipher_algorithm(object, alg_buf.c, alg_buf.len TSRMLS_CC);
-	smart_str_free(&alg_buf);
-	return rc;
+	return NULL;
 }
 /* }}} */
 

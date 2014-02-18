@@ -184,8 +184,7 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
 #endif
 
-
-/* METHODS */
+/* USER METHODS */
 
 /* Module init for Crypto Algorithm */
 PHP_MINIT_FUNCTION(crypto_alg);
@@ -225,6 +224,12 @@ PHP_CRYPTO_METHOD(Hash, digest);
 PHP_CRYPTO_METHOD(Hash, hexdigest);
 PHP_CRYPTO_METHOD(Hash, getSize);
 PHP_CRYPTO_METHOD(Hash, getBlockSize);
+
+/* CRYPTO API FUNCTIONS */
+PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len);
+PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
+		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC);
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 
