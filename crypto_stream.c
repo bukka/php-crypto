@@ -107,8 +107,9 @@ php_stream_ops  php_crypto_stream_ops = {
 /* {{{ php_crypto_stream_set_cipher */
 static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_context *context TSRMLS_DC)
 {
-	zval **option;
-	if (php_stream_context_get_option(context, wrappername, "cipher", &option) == FAILURE) {
+	zval **ppz_cipher, **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
+	
+	if (php_stream_context_get_option(context, wrappername, "cipher", &ppz_cipher) == FAILURE) {
 		/* no need to do anything */
 		return SUCCESS;
 	}
