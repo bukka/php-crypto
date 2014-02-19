@@ -229,7 +229,8 @@ PHP_CRYPTO_METHOD(Hash, getBlockSize);
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len);
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC);
-PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value);
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode_ex(long mode_value);
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(const EVP_CIPHER *cipher);
 
 #endif	/* PHP_CRYPTO_EVP_H */
 

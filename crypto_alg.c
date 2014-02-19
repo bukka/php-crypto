@@ -523,7 +523,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 
 	/* copy mode */
 	if (Z_TYPE_P(pz_mode) == IS_LONG) {
-		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(Z_LVAL_P(pz_mode));
+		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode_ex(Z_LVAL_P(pz_mode));
 		if (!mode) {
 			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_MODE_NOT_FOUND, "Cipher mode with integer value %d does not exist", Z_LVAL_P(pz_mode));
 			smart_str_free(&alg_buf);
@@ -604,8 +604,8 @@ static int php_crypto_set_cipher_algorithm_from_params(
 }
 /* }}} */
 
-/* {{{ php_crypto_get_cipher_mode */
-PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mode_value)
+/* {{{ php_crypto_get_cipher_mode_ex */
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode_ex(long mode_value)
 {
 	const php_crypto_cipher_mode *mode;
 
@@ -615,6 +615,13 @@ PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(long mod
 		}
 	}
 	return NULL;
+}
+/* }}} */
+
+/* {{{ php_crypto_get_cipher_mode_ex */
+PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(const EVP_CIPHER *cipher)
+{
+	return php_crypto_get_cipher_mode_ex(EVP_CIPHER_mode(cipher));
 }
 /* }}} */
 
@@ -636,7 +643,7 @@ static int php_crypto_cipher_is_mode_authenticated_ex(const php_crypto_cipher_mo
 /* {{{ php_crypto_cipher_is_mode_authenticated */
 static int php_crypto_cipher_is_mode_authenticated(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
-	return php_crypto_cipher_is_mode_authenticated_ex(php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern)) TSRMLS_CC);
+	return php_crypto_cipher_is_mode_authenticated_ex(php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern)) TSRMLS_CC);
 }
 /* }}} */
 
@@ -729,7 +736,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 	}
 
 	/* get mode */
-	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
 	/* check initialization vector length */
 	if (php_crypto_cipher_check_iv_len(zobject, intern, mode, iv_len TSRMLS_CC) == FAILURE) {
@@ -810,7 +817,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 
-	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
 		return;
@@ -886,7 +893,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 		return;
 	}
 
-	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
 		return;
@@ -1134,7 +1141,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		return;
 	}
@@ -1170,7 +1177,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 	}
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
-	mode = php_crypto_get_cipher_mode(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		return;
 	}
