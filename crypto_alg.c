@@ -501,7 +501,13 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	smart_str alg_buf = {0};
 
 	if (!pz_mode || Z_TYPE_P(pz_mode) == IS_NULL) {
-		return php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
+		cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
+		if (!cipher) {
+			PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
+		} else if (object) {
+			php_crypto_set_algorithm_name(object, algorithm, algorithm_len TSRMLS_CC);
+		}
+		return cipher;
 	}
 
 	smart_str_appendl(&alg_buf, algorithm, algorithm_len);
@@ -550,7 +556,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	if (!cipher) {
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", alg_buf.c);
 	} else if (object) {
-		php_crypto_set_algorithm_name(object, algorithm, algorithm_len TSRMLS_CC);
+		php_crypto_set_algorithm_name(object, alg_buf.c, alg_buf.len TSRMLS_CC);
 	}
 	smart_str_free(&alg_buf);
 	return cipher;
@@ -570,7 +576,6 @@ static int php_crypto_set_cipher_algorithm_ex(php_crypto_algorithm_object *inter
 {
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
 	if (!cipher) {
-		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_NOT_FOUND, "Cipher '%s' algorithm not found", algorithm);
 		return FAILURE;
 	}
 	PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
