@@ -19,6 +19,7 @@
 #include "php.h"
 #include "php_crypto.h"
 #include "php_crypto_stream.h"
+#include "php_crypto_alg.h"
 
 #include <openssl/bio.h>
 #include <openssl/evp.h>
@@ -108,10 +109,65 @@ php_stream_ops  php_crypto_stream_ops = {
 static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_context *context TSRMLS_DC)
 {
 	zval **ppz_cipher, **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
+	const EVP_CIPHER *cipher;
+	int enc = 1;
 	
 	if (php_stream_context_get_option(context, wrappername, "cipher", &ppz_cipher) == FAILURE) {
 		/* no need to do anything */
 		return SUCCESS;
+	}
+	
+	if (Z_TYPE_PP(ppz_cipher) != IS_ARRAY) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context has to be an array");
+		return FAILURE;
+	}
+	
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "action", sizeof("action"), (void **) &ppz_action) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'action' is required");
+		return FAILURE;
+	}
+	if (Z_TYPE_PP(ppz_action) != IS_STRING || 
+			strncmp(Z_STRVAL_PP(ppz_action), "encode", 6) != 0 ||
+			(enc = strncmp(Z_STRVAL_PP(ppz_action), "decode", 6)) != 0) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'action' has to be either 'encode' or 'decode'");
+		return FAILURE;
+	}
+	
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "algorithm", sizeof("algorithm"), (void **) &ppz_alg) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'algorithm' is required");
+		return FAILURE;
+	}
+	if (Z_TYPE_PP(ppz_alg) != IS_STRING) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher algorithm has to be string");
+		return FAILURE;
+	}
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "mode", sizeof("mode"), (void **) &ppz_mode) == FAILURE) {
+		ppz_mode = NULL;
+	}
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key_size", sizeof("key_size"), (void **) &ppz_key_size) == FAILURE) {
+		ppz_key_size = NULL;
+	}
+	cipher = php_crypto_get_cipher_algorithm_from_params(
+		Z_STRVAL_PP(ppz_alg), Z_STRLEN_PP(ppz_alg), ppz_mode ? *ppz_mode: NULL, ppz_key_size ? *ppz_key_size: NULL TSRMLS_CC);
+	if (!cipher) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher algorithm not found");
+		return FAILURE;
+	}
+	
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key", sizeof("key"), (void **) &ppz_key) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'key' is required");
+		return FAILURE;
+	}
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "iv", sizeof("iv"), (void **) &ppz_iv) == FAILURE) {
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'iv' is required");
+		return FAILURE;
+	}
+	
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
+		ppz_tag = NULL;
+	}
+	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "aad", sizeof("aad"), (void **) &ppz_aad) == FAILURE) {
+		ppz_aad = NULL;
 	}
 	
 	return SUCCESS;
