@@ -110,6 +110,7 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 {
 	zval **ppz_cipher, **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
 	const EVP_CIPHER *cipher;
+	const php_crypto_cipher_mode *mode;
 	int enc = 1;
 	
 	if (php_stream_context_get_option(context, wrappername, "cipher", &ppz_cipher) == FAILURE) {
@@ -163,11 +164,17 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 		return FAILURE;
 	}
 	
+	mode = php_crypto_get_cipher_mode(cipher);
+	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
 		ppz_tag = NULL;
+	} else if (!mode->auth_enc) {
+		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Tag is useful only for authenticated mode");
 	}
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "aad", sizeof("aad"), (void **) &ppz_aad) == FAILURE) {
 		ppz_aad = NULL;
+	} else if (!mode->auth_enc) {
+		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "AAD is useful only for authenticated mode");
 	}
 	
 	return SUCCESS;
