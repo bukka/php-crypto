@@ -164,7 +164,7 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 /* object handlers */
 static zend_object_handlers php_crypto_algorithm_object_handlers;
 
-/* algorithme name getter macros */
+/* algorithm name getter macros */
 #define PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object) \
 	zend_read_property(php_crypto_algorithm_ce, this_object, "algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC)
 
@@ -337,6 +337,14 @@ copy_end:
 #define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst) \
 	zend_declare_class_constant_long(php_crypto_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_ALG_E(aconst) TSRMLS_CC)
 
+
+PHP_CRYPTO_ERRORS_BEGIN(Cipher)
+PHP_CRYPTO_ERRORS_ENTRY(NOT_FOUND, "Cipher %s not found")
+PHP_CRYPTO_ERRORS_ENTRY_EX(IV_LENGTH, "Initial Vector length is incorrect", E_NOTICE)
+PHP_CRYPTO_ERRORS_END()
+
+PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
+
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_alg)
 {
@@ -351,7 +359,11 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	php_crypto_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
 	zend_declare_property_null(php_crypto_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
-	/* Algorithm Exception class */
+	/* Algorithm Exception class
+	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Algorithm);
+	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Cipher,  Algorithm);
+	*/
+	
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
 	/* Declare AlorithmException class constants for error codes */

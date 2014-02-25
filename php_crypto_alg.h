@@ -141,6 +141,11 @@ typedef enum {
 	PHP_CRYPTO_ALG_E(HASH_DIGEST_FAILED)
 } php_crypto_algorithm_error_code;
 
+
+PHP_CRYPTO_ERRORS_EXPORT(Cipher);
+PHP_CRYPTO_EXCEPTION_EXPORT(Cipher);
+
+
 /* Mode string length */
 #define PHP_CRYPTO_CIPHER_MODE_LEN 3
 
