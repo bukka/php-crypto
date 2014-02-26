@@ -98,6 +98,27 @@ PHP_MINFO_FUNCTION(crypto)
 }
 /* }}} */
 
+/* {{{ php_crypto_verror */
+PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, 
+		php_crypto_error_action action, const char *name, zend_bool ignore_args, va_list args)
+{
+	
+}
+/* }}} */
+
+/* {{{ php_crypto_error_ex */
+PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name, ...)
+{
+	
+}
+/* }}} */
+
+/* {{{ php_crypto_error */
+PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name)
+{
+	
+}
+/* }}} */
 
 /*
  * Local variables:

@@ -142,7 +142,7 @@ typedef enum {
 } php_crypto_algorithm_error_code;
 
 
-PHP_CRYPTO_ERRORS_EXPORT(Cipher);
+PHP_CRYPTO_ERROR_INFO_EXPORT(Cipher);
 PHP_CRYPTO_EXCEPTION_EXPORT(Cipher);
 
 
