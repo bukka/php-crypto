@@ -340,7 +340,7 @@ copy_end:
 
 PHP_CRYPTO_ERROR_INFO_BEGIN(Cipher)
 PHP_CRYPTO_ERROR_INFO_ENTRY(1, NOT_FOUND, "Cipher %s not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(1 << 1, IV_LENGTH, "Initial Vector length is incorrect", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(2, IV_LENGTH, "Initial Vector length is incorrect", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
 
 PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
@@ -360,10 +360,9 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	zend_declare_property_null(php_crypto_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	/* CipherException registration */
-	/*
+	/* PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Cipher,  Algorithm); */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Cipher);
-	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Cipher,  Algorithm);
-	*/
+	PHP_CRYPTO_ERROR_INFO_REGISTER(Cipher);
 	
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
@@ -659,6 +658,7 @@ static int php_crypto_cipher_is_mode_authenticated_ex(const php_crypto_cipher_mo
 		return FAILURE;
 	}
 	if (!mode->auth_enc) {
+		/* php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, AUTHENTICATION_NOT_SUPPORTED), mode->name); */
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION_EX(CIPHER_AUTHENTICATION_NOT_SUPPORTED,
 			"The authentication is not supported for %s cipher mode", mode->name);
 		return FAILURE;
@@ -680,6 +680,7 @@ static int php_crypto_cipher_set_tag(php_crypto_algorithm_object *intern, const 
 		return SUCCESS;
 	}
 	if (!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(intern), mode->auth_set_tag_flag, tag_len, tag)) {
+		/* php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FAILED)); */
 		PHP_CRYPTO_THROW_ALGORITHM_EXCEPTION(CIPHER_TAG_SETTER_FAILED, "Tag setter failed");
 		return FAILURE;
 	}

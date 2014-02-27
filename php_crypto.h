@@ -79,15 +79,25 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 #define PHP_CRYPTO_EXCEPTION_NAME(ename) php_crypto_##ename##Exception_ce
 #define PHP_CRYPTO_EXCEPTION_EXPORT(ename) extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename)
 #define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename)
+#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) \
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(ename ## Exception), NULL); \
+	PHP_CRYPTO_EXCEPTION_NAME(ename) = zend_register_internal_class_ex(&ce, epname, NULL TSRMLS_CC)
+#define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, zend_exception_get_default(TSRMLS_C))
 
 #define PHP_CRYPTO_ERROR_INFO_NAME(ename) php_crypto_error_info_##ename
 #define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
-#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eicode, einame, eimsg, eilevel) { eicode, #einame, eimsg, eilevel },
-#define PHP_CRYPTO_ERROR_INFO_ENTRY(eicode, einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eicode, einame, eimsg, E_WARNING)
+#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eidx, einame, eimsg, eilevel) { 1 << (eidx - 1), #einame, eimsg, eilevel },
+#define PHP_CRYPTO_ERROR_INFO_ENTRY(eidx, einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eidx, einame, eimsg, E_WARNING)
 #define PHP_CRYPTO_ERROR_INFO_END() { 0, NULL, NULL, 0} };
 #define PHP_CRYPTO_ERROR_INFO_EXPORT(ename) extern php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[]
+#define PHP_CRYPTO_ERROR_INFO_REGISTER(ename) do { \
+	php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
+	while (einfo->name != NULL) { \
+		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_NAME(ename), einfo->name, strlen(einfo->name), einfo->code TSRMLS_CC); \
+	} } while(0)
+	
 
-#define PHP_CRYPTO_ERROR_ARGS(ename) PHP_CRYPTO_EXCEPTION_NAME(ename), PHP_CRYPTO_ERROR_INFO_NAME(ename) TSRMLS_CC
+#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_EXCEPTION_NAME(ename), PHP_CRYPTO_ERROR_INFO_NAME(ename) TSRMLS_CC, #einame
 
 /* Deprecated macros for throwing exceptions */
 #define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)
