@@ -78,12 +78,14 @@ typedef enum {
 } php_crypto_error_action;
 
 /* Processes error msg and either throw exception, emits error or do nothing (it depends on action) */
-PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, 
-		php_crypto_error_action action, const char *name, zend_bool ignore_args, va_list args);
+PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		int ignore_args TSRMLS_DC, php_crypto_error_action action, const char *name, va_list args);
 /* Main error function with arguments */
-PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name, ...);
+PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		int ignore_args TSRMLS_DC, const char *name, ...);
 /* Main error function without arguments */
-PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name);
+PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		int ignore_args TSRMLS_DC, const char *name);
 
 /* Macros for crypto exceptions info */
 #define PHP_CRYPTO_EXCEPTION_NAME(ename) php_crypto_##ename##Exception_ce
@@ -110,7 +112,7 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 	} } while(0)
 
 /* Macro for wrapping error arguments passed to php_crypto_error* */
-#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_EXCEPTION_NAME(ename), PHP_CRYPTO_ERROR_INFO_NAME(ename) TSRMLS_CC, #einame
+#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_EXCEPTION_NAME(ename), PHP_CRYPTO_ERROR_INFO_NAME(ename), 0 TSRMLS_CC, #einame
 
 /* Base exception class */
 PHP_CRYPTO_EXCEPTION_EXPORT(Crypto);
