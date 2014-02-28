@@ -22,6 +22,7 @@
 
 #include "php.h"
 #include "php_ini.h"
+#include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "php_crypto.h"
 #include "php_crypto_alg.h"
@@ -58,10 +59,19 @@ zend_module_entry crypto_module_entry = {
 ZEND_GET_MODULE(crypto)
 #endif
 
+/* Base exception */
+PHP_CRYPTO_EXCEPTION_DEFINE(Crypto);
+
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(crypto)
 {
+	zend_class_entry ce;
+	
+	/* Register base exception */
+	PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, Crypto, zend_exception_get_default(TSRMLS_C));
+	
+	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
 	
 	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);

@@ -34,12 +34,16 @@ extern zend_module_entry crypto_module_entry;
 #include "TSRM.h"
 #endif
 
-/* crypto version */
+/* Crypto version */
 #define PHP_CRYPTO_VERSION "0.1.1"
 
+/* Module macros */
 PHP_MINIT_FUNCTION(crypto);
 PHP_MSHUTDOWN_FUNCTION(crypto);
 PHP_MINFO_FUNCTION(crypto);
+
+
+/* NAMESPACE */
 
 /* Macros for Crypto namespace */
 #define PHP_CRYPTO_NS_NAME "Crypto"
@@ -56,7 +60,9 @@ PHP_MINFO_FUNCTION(crypto);
 #define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
 #define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
 
-/* Errors handling macros */
+/* ERRORS */
+
+/* Errors info structure */
 typedef struct {
 	uint code;
 	const char *name;
@@ -71,19 +77,25 @@ typedef enum {
 	PHP_CRYPTO_ERROR_ACTION_ERROR
 } php_crypto_error_action;
 
+/* Processes error msg and either throw exception, emits error or do nothing (it depends on action) */
 PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, 
 		php_crypto_error_action action, const char *name, zend_bool ignore_args, va_list args);
+/* Main error function with arguments */
 PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name, ...);
+/* Main error function without arguments */
 PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce TSRMLS_DC, const char *name);
 
+/* Macros for crypto exceptions info */
 #define PHP_CRYPTO_EXCEPTION_NAME(ename) php_crypto_##ename##Exception_ce
 #define PHP_CRYPTO_EXCEPTION_EXPORT(ename) extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename)
 #define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename)
-#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) \
+#define PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(ename ## Exception), NULL); \
-	PHP_CRYPTO_EXCEPTION_NAME(ename) = zend_register_internal_class_ex(&ce, epname, NULL TSRMLS_CC)
-#define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, zend_exception_get_default(TSRMLS_C))
+	PHP_CRYPTO_EXCEPTION_NAME(ename) = zend_register_internal_class_ex(&ce, epname_ce, NULL TSRMLS_CC)
+#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_NAME(epname))
+#define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, Crypto)
 
+/* Macros for error info */
 #define PHP_CRYPTO_ERROR_INFO_NAME(ename) php_crypto_error_info_##ename
 #define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
 #define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eidx, einame, eimsg, eilevel) { 1 << (eidx - 1), #einame, eimsg, eilevel },
@@ -94,14 +106,20 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 	php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
 	while (einfo->name != NULL) { \
 		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_NAME(ename), einfo->name, strlen(einfo->name), einfo->code TSRMLS_CC); \
+		einfo++; \
 	} } while(0)
-	
 
+/* Macro for wrapping error arguments passed to php_crypto_error* */
 #define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_EXCEPTION_NAME(ename), PHP_CRYPTO_ERROR_INFO_NAME(ename) TSRMLS_CC, #einame
+
+/* Base exception class */
+PHP_CRYPTO_EXCEPTION_EXPORT(Crypto);
 
 /* Deprecated macros for throwing exceptions */
 #define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)
 #define PHP_CRYPTO_THROW_EXCEPTION_EX(exc_ce, code, msg, ...) zend_throw_exception_ex(exc_ce, code TSRMLS_CC, msg, ##__VA_ARGS__)
+
+/* COMPATIBILITY */
 
 /* Macro for initializing properties in obejct (new definition for PHP 5.3) */
 #if PHP_VERSION_ID < 50399
