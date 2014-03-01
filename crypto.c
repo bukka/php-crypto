@@ -108,23 +108,26 @@ PHP_MINFO_FUNCTION(crypto)
 }
 /* }}} */
 
-/* {{{ php_crypto_error_info_get */
-static const php_crypto_error_info *php_crypto_error_info_find(const php_crypto_error_info *info, const char *name)
-{
-	while (info->name != NULL) {
-		if (*info->name == *name && !strncmp(info->name, name, strlen(info->name))) {
-			return info;
-		}
-		info++;
-	}
-	return NULL;
-}
-
 /* {{{ php_crypto_verror */
 PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
 		int ignore_args TSRMLS_DC, php_crypto_error_action action, const char *name, va_list args)
 {
-	const php_crypto_error_info *ei = php_crypto_error_info_find(info, name);
+	const php_crypto_error_info *ei = NULL;
+	long code = 1;
+	
+	if (action == PHP_CRYPTO_ERROR_ACTION_SILENT) {
+		return;
+	}
+	
+	while (info->name != NULL) {
+		if (*info->name == *name && !strncmp(info->name, name, strlen(info->name))) {
+			ei = info;
+			break;
+		}
+		info++;
+		code++;
+	}
+	
 	if (!ei) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid error message");
 		return;
@@ -135,11 +138,11 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 			break;
 		case PHP_CRYPTO_ERROR_ACTION_EXCEPTION:
 			if (ignore_args) {
-				zend_throw_exception(exc_ce, ei->msg, ei->code TSRMLS_CC);
+				zend_throw_exception(exc_ce, ei->msg, code TSRMLS_CC);
 			} else {
 				char *message;
 				vspprintf(&message, 0, ei->msg, args);
-				zend_throw_exception(exc_ce, message, ei->code TSRMLS_CC);
+				zend_throw_exception(exc_ce, message, code TSRMLS_CC);
 				efree(message);
 			}
 			break;

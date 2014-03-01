@@ -64,7 +64,6 @@ PHP_MINFO_FUNCTION(crypto);
 
 /* Errors info structure */
 typedef struct {
-	uint code;
 	const char *name;
 	const char *msg;
 	int level;
@@ -100,8 +99,8 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 /* Macros for error info */
 #define PHP_CRYPTO_ERROR_INFO_NAME(ename) php_crypto_error_info_##ename
 #define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
-#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eidx, einame, eimsg, eilevel) { 1 << (eidx - 1), #einame, eimsg, eilevel },
-#define PHP_CRYPTO_ERROR_INFO_ENTRY(eidx, einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(eidx, einame, eimsg, E_WARNING)
+#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, eilevel) { #einame, eimsg, eilevel },
+#define PHP_CRYPTO_ERROR_INFO_ENTRY(einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, E_WARNING)
 #define PHP_CRYPTO_ERROR_INFO_END() { 0, NULL, NULL, 0} };
 #define PHP_CRYPTO_ERROR_INFO_EXPORT(ename) extern php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[]
 #define PHP_CRYPTO_ERROR_INFO_REGISTER(ename) do { \
