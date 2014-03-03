@@ -101,12 +101,12 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 #define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
 #define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, eilevel) { #einame, eimsg, eilevel },
 #define PHP_CRYPTO_ERROR_INFO_ENTRY(einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, E_WARNING)
-#define PHP_CRYPTO_ERROR_INFO_END() { 0, NULL, NULL, 0} };
+#define PHP_CRYPTO_ERROR_INFO_END() { NULL, NULL, 0} };
 #define PHP_CRYPTO_ERROR_INFO_EXPORT(ename) extern php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[]
 #define PHP_CRYPTO_ERROR_INFO_REGISTER(ename) do { \
-	php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
+	long code = 1; php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
 	while (einfo->name != NULL) { \
-		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_NAME(ename), einfo->name, strlen(einfo->name), einfo->code TSRMLS_CC); \
+		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_NAME(ename), einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
 		einfo++; \
 	} } while(0)
 
