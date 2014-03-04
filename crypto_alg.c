@@ -337,7 +337,7 @@ copy_end:
 #define PHP_CRYPTO_DECLARE_ALG_E_CONST(aconst) \
 	zend_declare_class_constant_long(php_crypto_algorithm_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_ALG_E(aconst) TSRMLS_CC)
 
-
+PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
 PHP_CRYPTO_ERROR_INFO_BEGIN(Cipher)
 PHP_CRYPTO_ERROR_INFO_ENTRY(NOT_FOUND, "Cipher '%s' algorithm not found")
 PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_FOUND, "Cipher mode with integer value %d does not exist")
@@ -364,8 +364,15 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(DECRYPT_FINISH_STATUS, "Cipher object is not initial
 PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of cipher failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_FAILED, "Finalizing of cipher failed")
 PHP_CRYPTO_ERROR_INFO_END()
-
-PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
+	
+PHP_CRYPTO_EXCEPTION_DEFINE(Hash);
+PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
+PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Hash algorithm '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_NOT_FOUND, "Hash static function '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_FAILED, "Initialization of hash failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of hash failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(DIGEST_FAILED, "Finalizing of hash failed")
+PHP_CRYPTO_ERROR_INFO_END()
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_alg)
@@ -385,6 +392,11 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	/* PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Cipher,  Algorithm); */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Cipher);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(Cipher);
+	
+	/* HashException registration */
+	/* PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Hash,  Algorithm); */
+	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Hash);
+	PHP_CRYPTO_ERROR_INFO_REGISTER(Hash);
 	
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
 	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
