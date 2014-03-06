@@ -338,6 +338,8 @@ PHP_CRYPTO_EXCEPTION_DEFINE(Algorithm);
 PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
 PHP_CRYPTO_ERROR_INFO_BEGIN(Cipher)
 PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Cipher '%s' algorithm not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Cipher static method '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Cipher static method %s can accept max two arguments")
 PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_FOUND, "Cipher mode not found")
 PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_AVAILABLE, "Cipher mode %s is not available in installed OpenSSL library")
 PHP_CRYPTO_ERROR_INFO_ENTRY(AUTHENTICATION_NOT_SUPPORTED, "The authentication is not supported for %s cipher mode")
@@ -367,6 +369,7 @@ PHP_CRYPTO_EXCEPTION_DEFINE(Hash);
 PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
 PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Hash algorithm '%s' not found")
 PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Hash static method '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Hash static method %s can accept max one argument")
 PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_FAILED, "Initialization of hash failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of hash context failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(DIGEST_FAILED, "Creating of hash digest failed")
@@ -543,7 +546,7 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm
 
 /* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
 static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
-		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zval *object, zend_bool throw_exc TSRMLS_DC)
+		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zval *object, int throw_exc TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher;
 	smart_str alg_buf = {0};
@@ -608,8 +611,10 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	smart_str_0(&alg_buf);
 	cipher = php_crypto_get_cipher_algorithm(alg_buf.c, alg_buf.len);
 	if (!cipher) {
-		if (throw_exc) {
+		if (throw_exc == 1) {
 			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, ALGORITHM_NOT_FOUND), alg_buf.c);
+		} else if (throw_exc == 2) {
+			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_NOT_FOUND), alg_buf.c);
 		}
 	} else if (object) {
 		php_crypto_set_algorithm_name(object, alg_buf.c, alg_buf.len TSRMLS_CC);
@@ -619,7 +624,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 }
 /* }}} */
 
-/* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
+/* {{{ php_crypto_get_cipher_algorithm_from_params */
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
@@ -648,13 +653,13 @@ static int php_crypto_set_cipher_algorithm(zval *object, char *algorithm, int al
 }
 /* }}} */
 
-/* {{{ php_crypto_set_cipher_algorithm_from_params */
-static int php_crypto_set_cipher_algorithm_from_params(
-		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
+/* {{{ php_crypto_set_cipher_algorithm_from_params_ex */
+static int php_crypto_set_cipher_algorithm_from_params_ex(
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, int throw_exc TSRMLS_DC)
 {
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(object TSRMLS_CC);
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm_from_params_ex(
-			algorithm, algorithm_len, pz_mode, pz_key_size, object, 1 TSRMLS_CC);
+			algorithm, algorithm_len, pz_mode, pz_key_size, object, throw_exc TSRMLS_CC);
 	
 	if (!cipher) {
 		return FAILURE;
@@ -662,6 +667,14 @@ static int php_crypto_set_cipher_algorithm_from_params(
 	
 	PHP_CRYPTO_CIPHER_ALG(intern) = cipher;
 	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ php_crypto_set_cipher_algorithm_from_params */
+static int php_crypto_set_cipher_algorithm_from_params(
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
+{
+	return php_crypto_set_cipher_algorithm_from_params_ex(object, algorithm, algorithm_len, pz_mode, pz_key_size, 1 TSRMLS_CC);
 }
 /* }}} */
 
@@ -1025,7 +1038,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 {
 	char *algorithm;
 	int algorithm_len, argc;
-	zval **ppz_mode, **ppz_key_size, *args;
+	zval **ppz_mode, *pz_key_size, *args;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
@@ -1033,27 +1046,30 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 
 	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
 	if (argc > 2) {
-		/*TODO: exception would be better? */
-		zend_error(E_WARNING, "The static function %s can accept max two arguments", algorithm);
-		RETURN_NULL();
+		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_TOO_MANY_ARGS), algorithm);
+		return;
 	}
 
 	object_init_ex(return_value, php_crypto_cipher_ce);
 
 	if (argc == 0) {
-		php_crypto_set_cipher_algorithm(return_value, algorithm, algorithm_len TSRMLS_CC);
+		if (php_crypto_set_cipher_algorithm(return_value, algorithm, algorithm_len TSRMLS_CC) == FAILURE) {
+			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_NOT_FOUND), algorithm);
+		}
 		return;
 	}
 
 	zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
 	zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_mode);
 	if (argc == 1) {
-		php_crypto_set_cipher_algorithm_from_params(return_value, algorithm, algorithm_len, *ppz_mode, NULL TSRMLS_CC);
-		return;
+		pz_key_size = NULL;
+	} else {
+		zval **ppz_key_size;
+		zend_hash_move_forward(Z_ARRVAL_P(args));
+		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
+		pz_key_size = *ppz_key_size;
 	}
-	zend_hash_move_forward(Z_ARRVAL_P(args));
-	zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
-	php_crypto_set_cipher_algorithm_from_params(return_value, algorithm, algorithm_len, *ppz_mode, *ppz_key_size TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_from_params_ex(return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 2 TSRMLS_CC);
 }
 /* }}} */
 
@@ -1426,8 +1442,8 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 
 	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
 	if (argc > 1) {
-		zend_error(E_WARNING, "The static function %s can accept max one argument", algorithm);
-		RETURN_NULL();
+		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, STATIC_METHOD_TOO_MANY_ARGS), algorithm);
+		return;
 	}
 
 	digest = EVP_get_digestbyname(algorithm);
