@@ -7,12 +7,6 @@
 - why SEEK_CUR is 0 when passed to crypto_stream_seek?
   - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 		
-## Exception
-- more OO - add more classes and better structure (class diagram)
-  - fix test
-- add messages to one place (struct mapping codes and messages)
-- replace variadic macros
-
 ## BIO
 - new streams
   - connect
@@ -31,8 +25,10 @@
 - setting input and output stream based filters (hex, base64...)
 
 #### Features
-- Key generation (PKCS#7, PKCS#5)
+- Key generation (PKCS#5 - PBKDF2)
 - Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
+- Auth tag verification error - it's CipherException::FINISH_FAILED atm.
+  - is it possible to find out the reason of failing (try OpenSSL last error)
 
 #### Not used OpenSSL functions
 - `int EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr)` -- just few options
@@ -62,7 +58,7 @@ class Crypto\HMAC extends Crypto\Hash { /* methods description */ }
 ## 0.2.0 (devel)
 - crypto stream
   - BIO wrapper
-- improved exceptions
+- improved error handling
 
 ## 0.3.0 (devel)
 - ASN.1 classes
