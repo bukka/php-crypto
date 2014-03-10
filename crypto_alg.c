@@ -25,6 +25,48 @@
 
 #include <openssl/evp.h>
 
+PHP_CRYPTO_EXCEPTION_DEFINE(Algorithm);
+
+PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
+PHP_CRYPTO_ERROR_INFO_BEGIN(Cipher)
+PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Cipher '%s' algorithm not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Cipher static method '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Cipher static method %s can accept max two arguments")
+PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_FOUND, "Cipher mode not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_AVAILABLE, "Cipher mode %s is not available in installed OpenSSL library")
+PHP_CRYPTO_ERROR_INFO_ENTRY(AUTHENTICATION_NOT_SUPPORTED, "The authentication is not supported for %s cipher mode")
+PHP_CRYPTO_ERROR_INFO_ENTRY(KEY_LENGTH_INVALID, "Invalid length of key for cipher '%s' algorithm (required length: %d)")
+PHP_CRYPTO_ERROR_INFO_ENTRY(IV_LENGTH_INVALID, "Invalid length of initial vector for cipher '%s' algorithm (required length: %d)")
+PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FORBIDDEN, "AAD setter has to be called before encryption or decryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FAILED, "AAD setter failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FORBIDDEN, "Tag getter has to be called after encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_SETTER_FORBIDDEN, "Tag setter has to be called before decryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FAILED, "Tag getter failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_SETTER_FAILED, "Tag setter failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_LENGTH_LOW, "Tag length can't be lower than 32 bits (4 characters)")
+PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_LENGTH_HIGH, "Tag length can't exceed 128 bits (16 characters)")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_ALG_FAILED, "Initialization of cipher algorithm failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_CTX_FAILED, "Initialization of cipher context failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_ENCRYPT_FORBIDDEN, "Cipher object is already used for decryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_DECRYPT_FORBIDDEN, "Cipher object is already used for encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of cipher failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_ENCRYPT_FORBIDDEN, "Cipher object is not initialized for encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_DECRYPT_FORBIDDEN, "Cipher object is not initialized for decryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_FAILED, "Finalizing of cipher failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_ENCRYPT_FORBIDDEN, "Cipher object is not initialized for encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_DECRYPT_FORBIDDEN, "Cipher object is not initialized for decryption")
+PHP_CRYPTO_ERROR_INFO_END()
+	
+PHP_CRYPTO_EXCEPTION_DEFINE(Hash);
+PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
+PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Hash algorithm '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Hash static method '%s' not found")
+PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Hash static method %s can accept max one argument")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_FAILED, "Initialization of hash failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of hash context failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(DIGEST_FAILED, "Creating of hash digest failed")
+PHP_CRYPTO_ERROR_INFO_END()
+
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_algorithm, 0)
 ZEND_ARG_INFO(0, algorithm)
@@ -333,48 +375,6 @@ copy_end:
 }
 /* }}} */
 
-PHP_CRYPTO_EXCEPTION_DEFINE(Algorithm);
-
-PHP_CRYPTO_EXCEPTION_DEFINE(Cipher);
-PHP_CRYPTO_ERROR_INFO_BEGIN(Cipher)
-PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Cipher '%s' algorithm not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Cipher static method '%s' not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Cipher static method %s can accept max two arguments")
-PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_FOUND, "Cipher mode not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY(MODE_NOT_AVAILABLE, "Cipher mode %s is not available in installed OpenSSL library")
-PHP_CRYPTO_ERROR_INFO_ENTRY(AUTHENTICATION_NOT_SUPPORTED, "The authentication is not supported for %s cipher mode")
-PHP_CRYPTO_ERROR_INFO_ENTRY(KEY_LENGTH_INVALID, "Invalid length of key for cipher '%s' algorithm (required length: %d)")
-PHP_CRYPTO_ERROR_INFO_ENTRY(IV_LENGTH_INVALID, "Invalid length of initial vector for cipher '%s' algorithm (required length: %d)")
-PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FLOW, "AAD setter has to be called before encryption or decryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FAILED, "AAD setter failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FLOW, "Tag getter has to be called after encryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_SETTER_FLOW, "Tag setter has to be called before decryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FAILED, "Tag getter failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_SETTER_FAILED, "Tag setter failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_LENGTH_LOW, "Tag length can't be lower than 32 bits (4 characters)")
-PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_LENGTH_HIGH, "Tag length can't exceed 128 bits (16 characters)")
-PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_ALG_FAILED, "Initialization of cipher algorithm failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_CTX_FAILED, "Initialization of cipher context failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of cipher failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_FAILED, "Finalizing of cipher failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(ENCRYPT_INIT_STATUS, "Cipher object is already used for decryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(ENCRYPT_UPDATE_STATUS, "Cipher object is not initialized for encryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(ENCRYPT_FINISH_STATUS, "Cipher object is not initialized for encryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECRYPT_INIT_STATUS, "Cipher object is already used for encryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECRYPT_UPDATE_STATUS, "Cipher object is not initialized for decryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECRYPT_FINISH_STATUS, "Cipher object is not initialized for decryption")
-PHP_CRYPTO_ERROR_INFO_END()
-	
-PHP_CRYPTO_EXCEPTION_DEFINE(Hash);
-PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
-PHP_CRYPTO_ERROR_INFO_ENTRY(ALGORITHM_NOT_FOUND, "Hash algorithm '%s' not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_NOT_FOUND, "Hash static method '%s' not found")
-PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Hash static method %s can accept max one argument")
-PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_FAILED, "Initialization of hash failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of hash context failed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DIGEST_FAILED, "Creating of hash digest failed")
-PHP_CRYPTO_ERROR_INFO_END()
-
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_alg)
 {
@@ -400,43 +400,6 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Hash,  Algorithm);
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Hash);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(Hash);
-	
-#if 0
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(AlgorithmException), NULL);
-	php_crypto_algorithm_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-	/* Declare AlorithmException class constants for error codes */
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_NOT_FOUND);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_MODE_NOT_FOUND);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_MODE_NOT_AVAILABLE);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AUTHENTICATION_NOT_SUPPORTED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AUTHENTICATION_FAILED); /* TODO */
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_KEY_LENGTH);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_IV_LENGTH);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_SETTER_FLOW);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_AAD_SETTER_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_GETTER_FLOW);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_SETTER_FLOW);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_GETTER_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_SETTER_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_LENGTH_UNDER);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_LENGTH_OVER);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_TAG_VARIFY_FAILED); /* TODO - currently it's final faild */
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_INIT_ALG_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_INIT_CTX_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_UPDATE_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(CIPHER_FINISH_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_INIT_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(ENCRYPT_FINISH_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_INIT_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(DECRYPT_FINISH_STATUS);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_ALGORITHM_NOT_FOUND);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_STATIC_NOT_FOUND);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_INIT_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_UPDATE_FAILED);
-	PHP_CRYPTO_DECLARE_ALG_E_CONST(HASH_DIGEST_FAILED);
-#endif
 	
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
@@ -787,10 +750,10 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 
 	/* check algorithm status */
 	if (enc && PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, ENCRYPT_INIT_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, INIT_ENCRYPT_FORBIDDEN));
 		return NULL;
 	} else if (!enc && PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, DECRYPT_INIT_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, INIT_DECRYPT_FORBIDDEN));
 		return NULL;
 	}
 
@@ -880,10 +843,10 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, ENCRYPT_UPDATE_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_ENCRYPT_FORBIDDEN));
 		return;
 	} else if (!enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, DECRYPT_UPDATE_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_DECRYPT_FORBIDDEN));
 		return;
 	}
 
@@ -923,10 +886,10 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, ENCRYPT_FINISH_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_ENCRYPT_FORBIDDEN));
 		return;
 	} else if (!enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, DECRYPT_FINISH_STATUS));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_DECRYPT_FORBIDDEN));
 		return;
 	}
 
@@ -1221,7 +1184,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 	}
 
 	if (intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_FINAL) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FLOW));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FORBIDDEN));
 		return;
 	}
 
@@ -1267,7 +1230,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 	} else if (intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FLOW));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FORBIDDEN));
 	}
 }
 /* }}} */
@@ -1300,7 +1263,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		memcpy(PHP_CRYPTO_CIPHER_AAD(intern), aad, aad_len + 1);
 		PHP_CRYPTO_CIPHER_AAD_LEN(intern) = aad_len;
 	} else {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, AAD_SETTER_FLOW));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, AAD_SETTER_FORBIDDEN));
 	}
 }
 /* }}} */
