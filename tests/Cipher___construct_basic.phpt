@@ -11,7 +11,7 @@ try {
 	$cipher = new Crypto\Cipher('nnn');	
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::CIPHER_NOT_FOUND) {
+	if ($e->getCode() === Crypto\CipherException::ALGORITHM_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}
 }

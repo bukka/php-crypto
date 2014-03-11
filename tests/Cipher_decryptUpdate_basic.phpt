@@ -14,7 +14,7 @@ try {
 	$cipher->decryptUpdate('ddd');
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::DECRYPT_UPDATE_STATUS) {
+	if ($e->getCode() === Crypto\CipherException::UPDATE_DECRYPT_FORBIDDEN) {
 		echo "UPDATE STATUS\n";
 	}
 }

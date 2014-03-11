@@ -19,7 +19,7 @@ try {
 	Crypto\Hash::non_existant();
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::HASH_STATIC_NOT_FOUND) {
+	if ($e->getCode() === Crypto\HashException::STATIC_METHOD_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}
 }

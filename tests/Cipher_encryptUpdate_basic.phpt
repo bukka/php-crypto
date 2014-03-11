@@ -13,7 +13,7 @@ try {
 	$cipher->encryptUpdate('ddd');
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::ENCRYPT_UPDATE_STATUS) {
+	if ($e->getCode() === Crypto\CipherException::UPDATE_ENCRYPT_FORBIDDEN) {
 		echo "UPDATE STATUS\n";
 	}
 }

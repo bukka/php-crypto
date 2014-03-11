@@ -15,7 +15,7 @@ try {
     $cipher->getTag(16);
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_TAG_GETTER_FLOW) {
+	if ($e->getCode() == Crypto\CipherException::TAG_GETTER_FORBIDDEN) {
 		echo "FLOW\n";
 	}
 }

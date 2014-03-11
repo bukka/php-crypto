@@ -398,7 +398,6 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	
 	/* HashException registration */
 	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, Hash,  Algorithm);
-	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Hash);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(Hash);
 	
 	/* Cipher class */

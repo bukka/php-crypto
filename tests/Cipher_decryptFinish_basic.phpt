@@ -14,7 +14,7 @@ try {
 	$cipher->decryptFinish();
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::DECRYPT_FINISH_STATUS) {
+	if ($e->getCode() === Crypto\CipherException::FINISH_DECRYPT_FORBIDDEN) {
 		echo "FINAL STATUS\n";
 	}
 }

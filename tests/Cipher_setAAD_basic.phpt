@@ -27,7 +27,7 @@ try {
 	$cipher->setAAD($aad);
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_AAD_SETTER_FLOW) {
+	if ($e->getCode() == Crypto\CipherException::AAD_SETTER_FORBIDDEN) {
 		echo "CIPHER_AAD_SETTER_FLOW\n";
 	}
 }
@@ -40,7 +40,7 @@ try {
 	echo $cipher->decrypt($ct, $key, $iv) . "\n";
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_FINISH_FAILED) {
+	if ($e->getCode() == Crypto\CipherException::FINISH_FAILED) {
 		echo "CIPHER_FINISH_FAILED\n";
 	}
 }

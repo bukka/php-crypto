@@ -13,7 +13,7 @@ try {
 	$cipher->encryptFinish();
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() === Crypto\AlgorithmException::ENCRYPT_FINISH_STATUS) {
+	if ($e->getCode() === Crypto\CipherException::FINISH_ENCRYPT_FORBIDDEN) {
 		echo "FINAL STATUS\n";
 	}
 }

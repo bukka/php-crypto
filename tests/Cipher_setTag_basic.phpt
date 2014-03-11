@@ -18,7 +18,7 @@ try {
 	echo $cipher->decrypt($data, $key, $iv) . "\n";
 }
 catch (Crypto\AlgorithmException $e) {
-	if (Crypto\AlgorithmException::CIPHER_AUTHENTICATION_FAILED) {
+	if (Crypto\CipherException::FINISH_FAILED) {
 		echo "FAILED\n";
 	}
 }
@@ -32,7 +32,7 @@ try {
     $cipher->setTag($tag);
 }
 catch (Crypto\AlgorithmException $e) {
-	if ($e->getCode() == Crypto\AlgorithmException::CIPHER_TAG_SETTER_FLOW) {
+	if ($e->getCode() == Crypto\CipherException::TAG_SETTER_FORBIDDEN) {
 		echo "FLOW\n";
 	}
 }
