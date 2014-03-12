@@ -23,6 +23,15 @@
 
 #include <openssl/evp.h>
 
+PHP_CRYPTO_EXCEPTION_DEFINE(Base64)
+PHP_CRYPTO_ERROR_INFO_BEGIN(Base64)
+PHP_CRYPTO_ERROR_INFO_ENTRY(ENCODE_UPDATE_FORBIDDEN, "The object is already used for decoding")
+PHP_CRYPTO_ERROR_INFO_ENTRY(ENCODE_FINISH_FORBIDDEN, "The object has not been intialized for encoding")
+PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FORBIDDEN, "The object is already used for encoding")
+PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_FINISH_FORBIDDEN, "The object has not been intialized for decoding")
+PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FAILED, "Base64 decoded string does not contain valid characters")
+PHP_CRYPTO_ERROR_INFO_END()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_base64_data, 0)
 ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
@@ -40,9 +49,6 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 
 /* class entry */
 PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
-
-/* exception entry */
-PHP_CRYPTO_API zend_class_entry *php_crypto_base64_exception_ce;
 
 /* object handler */
 static zend_object_handlers php_crypto_base64_object_handlers;
@@ -129,15 +135,9 @@ PHP_MINIT_FUNCTION(crypto_base64)
 	php_crypto_base64_object_handlers.clone_obj = php_crypto_base64_object_clone;
 	php_crypto_base64_ce = zend_register_internal_class(&ce TSRMLS_CC);
 
-	/* Base64 Exception class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Base64Exception), NULL);
-	php_crypto_base64_exception_ce = zend_register_internal_class_ex(&ce, zend_exception_get_default(TSRMLS_C), NULL TSRMLS_CC);
-	/* Declare Base64Exception class constants for error codes */
-	PHP_CRYPTO_DECLARE_BASE64_E_CONST(ENCODE_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_BASE64_E_CONST(ENCODE_FINISH_STATUS);
-	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_UPDATE_STATUS);
-	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_FINISH_STATUS);
-	PHP_CRYPTO_DECLARE_BASE64_E_CONST(DECODE_FAILED);
+	/* Base64Exception class */
+	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Base64);
+	PHP_CRYPTO_ERROR_INFO_REGISTER(Base64);
 
 	return SUCCESS;
 }
@@ -176,7 +176,7 @@ static inline int php_crypto_base64_decode_update(EVP_ENCODE_CTX *ctx, char *out
 {
 	int rc = EVP_DecodeUpdate(ctx, (unsigned char *) out, outl, (const unsigned char *) in, inl);
 	if (rc < 0) {
-		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_FAILED, "Base64 decoded string does not contain valid characters");
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_UPDATE_FAILED));
 	}
 	return rc;
 }
@@ -260,7 +260,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_DECODE) {
-		PHP_CRYPTO_THROW_BASE64_EXCEPTION(ENCODE_UPDATE_STATUS, "The object is already used for decoding");
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_UPDATE_FORBIDDEN));
 		return;
 	}
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
@@ -300,7 +300,7 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	if (intern->status != PHP_CRYPTO_BASE64_STATUS_ENCODE) {
-		PHP_CRYPTO_THROW_BASE64_EXCEPTION(ENCODE_FINISH_STATUS, "The object has not been intialized for encoding");
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_FINISH_FORBIDDEN));
 		return;
 	}
 
@@ -327,7 +327,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_ENCODE) {
-		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_UPDATE_STATUS, "The object is already used for encoding");
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_UPDATE_FORBIDDEN));
 		return;
 	}
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
@@ -372,7 +372,7 @@ PHP_CRYPTO_METHOD(Base64, decodeFinish)
 	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 
 	if (intern->status != PHP_CRYPTO_BASE64_STATUS_DECODE) {
-		PHP_CRYPTO_THROW_BASE64_EXCEPTION(DECODE_FINISH_STATUS, "The object has not been intialized for decoding");
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_FINISH_FORBIDDEN));
 		return;
 	}
 

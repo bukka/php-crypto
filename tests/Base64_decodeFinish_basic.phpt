@@ -18,7 +18,7 @@ try {
 	$b64->decodeFinish();
 }
 catch (Crypto\Base64Exception $e) {
-	if ($e->getCode() == Crypto\Base64Exception::DECODE_FINISH_STATUS) {
+	if ($e->getCode() == Crypto\Base64Exception::DECODE_FINISH_FORBIDDEN) {
 		echo "DECODE FINISH STATUS EXCEPTION\n";
 	}
 }

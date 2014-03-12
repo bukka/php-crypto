@@ -11,7 +11,7 @@ try {
 	$b64->encodeUpdate($data);
 }
 catch (Crypto\Base64Exception $e) {
-	if ($e->getCode() == Crypto\Base64Exception::ENCODE_UPDATE_STATUS) {
+	if ($e->getCode() == Crypto\Base64Exception::ENCODE_UPDATE_FORBIDDEN) {
 		echo "ENCODE UPDATE STATUS EXCEPTION\n";
 	}
 }

@@ -19,7 +19,7 @@ try {
 	$b64->decodeUpdate($data_encoded);
 }
 catch (Crypto\Base64Exception $e) {
-	if ($e->getCode() == Crypto\Base64Exception::DECODE_UPDATE_STATUS) {
+	if ($e->getCode() == Crypto\Base64Exception::DECODE_UPDATE_FORBIDDEN) {
 		echo "DECODE UPDATE STATUS EXCEPTION\n";
 	}
 }

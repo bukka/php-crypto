@@ -42,26 +42,12 @@ typedef struct {
 #define PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(data_len, b64ctx) (((data_len) + 2) * 4 / 3 + data_len / (b64ctx)->length + 1)
 #define PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(data_len) (((data_len) + 2) * 3 / 4)
 
-/* Base64 exceptions macros */
-#define PHP_CRYPTO_BASE64_E(code) PHP_CRYPTO_BASE64_ERROR_##code
-#define PHP_CRYPTO_THROW_BASE64_EXCEPTION(code, msg) \
-	PHP_CRYPTO_THROW_EXCEPTION(php_crypto_base64_exception_ce, PHP_CRYPTO_BASE64_E(code), msg)
-#define PHP_CRYPTO_THROW_BASE64_EXCEPTION_EX(code, msg, ...) \
-	PHP_CRYPTO_THROW_EXCEPTION_EX(php_crypto_base64_exception_ce, PHP_CRYPTO_BASE64_E(code), msg, ##__VA_ARGS__)
-
-/* Base64 exception error codes */
-typedef enum {
-	PHP_CRYPTO_BASE64_E(ENCODE_UPDATE_STATUS) = 1,
-	PHP_CRYPTO_BASE64_E(ENCODE_FINISH_STATUS),
-	PHP_CRYPTO_BASE64_E(DECODE_UPDATE_STATUS),
-	PHP_CRYPTO_BASE64_E(DECODE_FINISH_STATUS),
-	PHP_CRYPTO_BASE64_E(DECODE_FAILED)
-} php_crypto_base64_error_code;
-
+/* Exceptions */
+PHP_CRYPTO_EXCEPTION_EXPORT(Base64)
+PHP_CRYPTO_ERROR_INFO_EXPORT(Base64)
 
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_base64_exception_ce;
 
 /* Module init for Crypto Base64 */
 PHP_MINIT_FUNCTION(crypto_base64);
