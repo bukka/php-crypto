@@ -44,6 +44,7 @@ typedef struct {
 
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(Base64)
+/* Error info */
 PHP_CRYPTO_ERROR_INFO_EXPORT(Base64)
 
 /* Class entries */

@@ -102,8 +102,9 @@ typedef struct {
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(Algorithm)
 PHP_CRYPTO_EXCEPTION_EXPORT(Cipher)
-PHP_CRYPTO_ERROR_INFO_EXPORT(Cipher)
 PHP_CRYPTO_EXCEPTION_EXPORT(Hash)
+/* Error infos */
+PHP_CRYPTO_ERROR_INFO_EXPORT(Cipher)
 PHP_CRYPTO_ERROR_INFO_EXPORT(Hash)
 
 /* Mode string length */
@@ -141,7 +142,6 @@ typedef struct {
 
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_exception_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cipher_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
