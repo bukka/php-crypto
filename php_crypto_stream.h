@@ -25,6 +25,12 @@
 #define PHP_CRYPTO_STREAM_FILE_SCHEME PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME PHP_CRYPTO_STREAM_SCHEME_PREFIX
 #define PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE sizeof(PHP_CRYPTO_STREAM_FILE_SCHEME) - 1
 
+#if PHP_VERSION_ID < 50600
+typedef char php_crypto_stream_opener_char_t;
+#else
+typedef const char php_crypto_stream_opener_char_t;
+#endif
+
 PHP_MINIT_FUNCTION(crypto_stream);
 PHP_MSHUTDOWN_FUNCTION(crypto_stream);
 

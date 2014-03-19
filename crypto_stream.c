@@ -182,8 +182,8 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 /* }}} */
 
 /* {{{ php_crypto_stream_opener */
-static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, const char *path, const char *mode,
-		int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_crypto_stream_opener_char_t *path,
+		php_crypto_stream_opener_char_t *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
 	char *realpath;
 	const char *wrappername;
