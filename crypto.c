@@ -113,6 +113,7 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 		int ignore_args TSRMLS_DC, php_crypto_error_action action, const char *name, va_list args)
 {
 	const php_crypto_error_info *ei = NULL;
+	char *message = NULL;
 	long code = 1;
 	
 	if (action == PHP_CRYPTO_ERROR_ACTION_SILENT) {
@@ -134,20 +135,21 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 	}
 	switch (action) {
 		case PHP_CRYPTO_ERROR_ACTION_ERROR:
-			php_verror(NULL, "", ei->level, ei->msg, args TSRMLS_CC);
+			php_verror(NULL, "", ei->level, PHP_CRYPTO_GET_ERROR_MESSAGE(ei->msg, message), args TSRMLS_CC);
 			break;
 		case PHP_CRYPTO_ERROR_ACTION_EXCEPTION:
 			if (ignore_args) {
-				zend_throw_exception(exc_ce, ei->msg, code TSRMLS_CC);
+				zend_throw_exception(exc_ce, PHP_CRYPTO_GET_ERROR_MESSAGE(ei->msg, message), code TSRMLS_CC);
 			} else {
-				char *message;
 				vspprintf(&message, 0, ei->msg, args);
 				zend_throw_exception(exc_ce, message, code TSRMLS_CC);
-				efree(message);
 			}
 			break;
 		default:
-			break;
+			return;
+	}
+	if (message) {
+		efree(message);
 	}
 }
 /* }}} */

@@ -144,6 +144,12 @@ PHP_CRYPTO_EXCEPTION_EXPORT(Crypto);
 #define PHP_CRYPTO_FE_END {NULL,NULL,NULL}
 #endif
 
+#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 5 && PHP_RELEASE_VERSION >= 5) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 6) || (PHP_MAJOR_VERSION > 5)
+#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) (const_msg)
+#else
+#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) (tmp_msg = estrdup(const_msg))
+#endif
+
 /* OpenSSL features test */
 #if OPENSSL_VERSION_NUMBER >= 0x10001000L
 #define PHP_CRYPTO_HAS_CMAC 1
