@@ -24,7 +24,7 @@ $ sudo yum --enablerepo=remi install php-pecl-crypto
 
 #### PECL
 
-This extension is available on PECL. The package is not currently stable. If the config `preferre_state` is stable, thne the version needs to be specified.
+This extension is available on PECL. The package is not currently stable. If the config `preferre_state` is stable, then the version needs to be specified.
 
 ```
 $ sudo pecl install crypto-0.x.y
