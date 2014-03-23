@@ -114,11 +114,8 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 #define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_ERROR_INFO_NAME(ename), PHP_CRYPTO_EXCEPTION_NAME(ename), 0 TSRMLS_CC, #einame
 
 /* Base exception class */
-PHP_CRYPTO_EXCEPTION_EXPORT(Crypto);
+PHP_CRYPTO_EXCEPTION_EXPORT(Crypto)
 
-/* Deprecated macros for throwing exceptions */
-#define PHP_CRYPTO_THROW_EXCEPTION(exc_ce, code, msg) zend_throw_exception(exc_ce, msg, code TSRMLS_CC)
-#define PHP_CRYPTO_THROW_EXCEPTION_EX(exc_ce, code, msg, ...) zend_throw_exception_ex(exc_ce, code TSRMLS_CC, msg, ##__VA_ARGS__)
 
 /* COMPATIBILITY */
 

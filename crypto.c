@@ -60,7 +60,7 @@ ZEND_GET_MODULE(crypto)
 #endif
 
 /* Base exception */
-PHP_CRYPTO_EXCEPTION_DEFINE(Crypto);
+PHP_CRYPTO_EXCEPTION_DEFINE(Crypto)
 
 /* {{{ PHP_MINIT_FUNCTION
  */
