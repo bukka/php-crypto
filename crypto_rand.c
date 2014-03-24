@@ -105,7 +105,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 		if (!RAND_bytes((unsigned char *) buf, num)) {
 			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, GENERATE_PREDICTABLE));
 			efree(buf);
-			return;
+			RETURN_FALSE;
 		}
 		strong_result = 1;
 	} else {
@@ -147,6 +147,7 @@ PHP_CRYPTO_METHOD(Rand, cleanup)
 		return;
 	}
 	RAND_cleanup();
+	RETURN_NULL();
 }
 /* }}} */
 
@@ -183,6 +184,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 	bytes_written = RAND_write_file(path);
 	if (bytes_written < 0) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, FILE_WRITE_PREDICTABLE));
+		RETURN_FALSE;
 	} else {
 		RETURN_LONG(bytes_written);
 	}
@@ -212,7 +214,9 @@ PHP_CRYPTO_METHOD(Rand, egd)
 
 	if (!seed) {
 		buf[bytes] = '\0';
-		RETVAL_STRINGL((char *) buf, bytes, 0);
+		RETURN_STRINGL((char *) buf, bytes, 0);
+	} else {
+		RETURN_NULL();
 	}
 }
 /* }}} */
