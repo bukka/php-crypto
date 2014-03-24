@@ -261,7 +261,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_DECODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_UPDATE_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
 		php_crypto_base64_encode_init(intern->ctx);
@@ -301,7 +301,7 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 
 	if (intern->status != PHP_CRYPTO_BASE64_STATUS_ENCODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_FINISH_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 
 	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
@@ -328,7 +328,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_ENCODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_UPDATE_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
 		php_crypto_base64_decode_init(intern->ctx);
@@ -339,7 +339,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 	if (real_len < PHP_CRYPTO_BASE64_DECODING_SIZE_MIN) {
 		char buff[PHP_CRYPTO_BASE64_DECODING_SIZE_MIN];
 		if (php_crypto_base64_decode_update(intern->ctx, buff, &out_len, in, in_len TSRMLS_CC) < 0) {
-			return;
+			RETURN_FALSE;
 		}
 		if (out_len == 0) {
 			RETURN_EMPTY_STRING();
@@ -350,7 +350,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 		out = (char *) emalloc(real_len);
 		if (php_crypto_base64_decode_update(intern->ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
 			efree(out);
-			return;
+			RETURN_FALSE;
 		}
 		out[out_len] = 0;
 		RETURN_STRINGL(out, out_len, 0);
@@ -373,7 +373,7 @@ PHP_CRYPTO_METHOD(Base64, decodeFinish)
 
 	if (intern->status != PHP_CRYPTO_BASE64_STATUS_DECODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_FINISH_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 
 	php_crypto_base64_decode_finish(intern->ctx, out, &out_len);
