@@ -801,7 +801,11 @@ static inline void php_crypto_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 		return;
 	}
 
-	php_crypto_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC);
+	if (php_crypto_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC)) {
+		RETURN_TRUE;
+	} else {
+		RETURN_FALSE;
+	}
 }
 /* }}} */
 
@@ -843,16 +847,16 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(intern)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_ENCRYPT_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	} else if (!enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_DECRYPT_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
-		return;
+		RETURN_FALSE;
 	}
 
 	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
@@ -862,7 +866,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
 		efree(outbuf);
-		return;
+		RETURN_FALSE;
 	}
 	PHP_CRYPTO_CIPHER_SET_STATUS(intern, enc, UPDATE);
 	outbuf[outbuf_len] = 0;
@@ -886,10 +890,10 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(intern)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_ENCRYPT_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	} else if (!enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(intern)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_DECRYPT_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 
 	outbuf_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
@@ -899,7 +903,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
 		efree(outbuf);
-		return;
+		RETURN_FALSE;
 	}
 	outbuf[outbuf_len] = 0;
 	PHP_CRYPTO_CIPHER_SET_STATUS(intern, enc, FINAL);
@@ -922,13 +926,13 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 
 	intern = php_crypto_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC);
 	if (intern == NULL) {
-		return;
+		RETURN_FALSE;
 	}
 
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
-		return;
+		RETURN_FALSE;
 	}
 
 	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(intern));
@@ -938,13 +942,13 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
 		efree(outbuf);
-		return;
+		RETURN_FALSE;
 	}
 	/* finalize encryption context */
 	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(intern), outbuf + outbuf_update_len, &outbuf_final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
 		efree(outbuf);
-		return;
+		RETURN_FALSE;
 	}
 	outbuf_len = outbuf_update_len + outbuf_final_len;
 	outbuf[outbuf_len] = 0;
@@ -1050,7 +1054,7 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Cipher::encryptInit(string $key, string $iv = null)
+/* {{{ proto bool Crypto\Cipher::encryptInit(string $key, string $iv = null)
    Initializes cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptInit)
 {
@@ -1072,14 +1076,14 @@ PHP_CRYPTO_METHOD(Cipher, encryptFinish)
 }
 
 /* {{{ proto string Crypto\Cipher::encrypt(string $data, string $key, string $iv = null)
-   Enrypts text to ciphertext */
+   Encrypts text to ciphertext */
 PHP_CRYPTO_METHOD(Cipher, encrypt)
 {
 	php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto void Crypto\Cipher::decryptInit(string $key, string $iv = null)
-   Initializes cipher decription */
+   Initializes cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptInit)
 {
 	php_crypto_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
@@ -1179,12 +1183,12 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
-		return;
+		RETURN_FALSE;
 	}
 
 	if (intern->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_FINAL) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FORBIDDEN));
-		return;
+		RETURN_FALSE;
 	}
 
 	tag = emalloc(tag_len + 1);
@@ -1192,14 +1196,14 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 
 	if (!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(intern), mode->auth_get_tag_flag, tag_len, tag)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FAILED));
-		return;
+		RETURN_FALSE;
 	}
 
 	RETURN_STRINGL((char *) tag, tag_len, 0);
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Cipher::setTag(string $tag)
+/* {{{ proto bool Crypto\Cipher::setTag(string $tag)
    Sets authentication tag */
 PHP_CRYPTO_METHOD(Cipher, setTag)
 {
@@ -1215,7 +1219,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
-		return;
+		RETURN_FALSE;
 	}
 
 	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR) {
@@ -1230,11 +1234,13 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FORBIDDEN));
+		RETURN_FALSE;
 	}
+	RETURN_TRUE;
 }
 /* }}} */
 
-/* {{{ proto void Crypto\Cipher::setAAD(string $aad)
+/* {{{ proto bool Crypto\Cipher::setAAD(string $aad)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
@@ -1248,7 +1254,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 
 	intern = (php_crypto_algorithm_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
 	if (php_crypto_cipher_is_mode_authenticated(intern TSRMLS_CC) == FAILURE) {
-		return;
+		RETURN_FALSE;
 	}
 
 	if (intern->status == PHP_CRYPTO_ALG_STATUS_CLEAR ||
@@ -1263,7 +1269,9 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		PHP_CRYPTO_CIPHER_AAD_LEN(intern) = aad_len;
 	} else {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, AAD_SETTER_FORBIDDEN));
+		RETURN_FALSE;
 	}
+	RETURN_TRUE;
 }
 /* }}} */
 
@@ -1356,6 +1364,8 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 	hash = php_crypto_hash_finish(intern, encode_to_hex TSRMLS_CC);
 	if (hash) {
 		RETURN_STRING(hash, 0);
+	} else {
+		RETURN_FALSE;
 	}
 }
 /* }}} */
@@ -1405,13 +1415,13 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
 	if (argc > 1) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, STATIC_METHOD_TOO_MANY_ARGS), algorithm);
-		return;
+		RETURN_FALSE;
 	}
 
 	digest = EVP_get_digestbyname(algorithm);
 	if (!digest) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, STATIC_METHOD_NOT_FOUND), algorithm);
-		return;
+		RETURN_FALSE;
 	}
 
 	object_init_ex(return_value, php_crypto_hash_ce);
