@@ -37,11 +37,6 @@ extern zend_module_entry crypto_module_entry;
 /* Crypto version */
 #define PHP_CRYPTO_VERSION "0.1.1"
 
-/* Module macros */
-PHP_MINIT_FUNCTION(crypto);
-PHP_MSHUTDOWN_FUNCTION(crypto);
-PHP_MINFO_FUNCTION(crypto);
-
 
 /* NAMESPACE */
 
@@ -115,6 +110,27 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 
 /* Base exception class */
 PHP_CRYPTO_EXCEPTION_EXPORT(Crypto)
+
+
+/* GLOBALS */
+
+ZEND_BEGIN_MODULE_GLOBALS(crypto)
+	php_crypto_error_action error_action;  
+ZEND_END_MODULE_GLOBALS(crypto)
+
+#ifdef ZTS
+# define PHP_CRYPTO_G(v) TSRMG(crypto_globals_id, zend_crypto_globals *, v)
+#else
+# define PHP_CRYPTO_G(v) (crypto_globals.v)
+#endif
+
+
+/* MODULE FUNCTIONS */
+
+PHP_MINIT_FUNCTION(crypto);
+PHP_GINIT_FUNCTION(crypto);
+PHP_MSHUTDOWN_FUNCTION(crypto);
+PHP_MINFO_FUNCTION(crypto);
 
 
 /* COMPATIBILITY */

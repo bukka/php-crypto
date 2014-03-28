@@ -32,6 +32,7 @@
 
 #include <openssl/evp.h>
 
+ZEND_DECLARE_MODULE_GLOBALS(crypto)
 
 /* {{{ crypto_functions[] */
 const zend_function_entry crypto_functions[] = {
@@ -51,7 +52,11 @@ zend_module_entry crypto_module_entry = {
 	NULL,
 	PHP_MINFO(crypto),
 	PHP_CRYPTO_VERSION,
-	STANDARD_MODULE_PROPERTIES
+	PHP_MODULE_GLOBALS(crypto),
+	PHP_GINIT(crypto),
+	NULL,
+	NULL,
+	STANDARD_MODULE_PROPERTIES_EX
 };
 /* }}} */
 
@@ -80,6 +85,14 @@ PHP_MINIT_FUNCTION(crypto)
 	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
 
 	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ PHP_GINIT_FUNCTION
+*/
+PHP_GINIT_FUNCTION(crypto)
+{
+	crypto_globals->error_action = PHP_CRYPTO_ERROR_ACTION_EXCEPTION;
 }
 /* }}} */
 
@@ -160,7 +173,7 @@ PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_
 {
 	va_list args;
 	va_start(args, name);
-	php_crypto_verror(info, exc_ce, ignore_args TSRMLS_CC, PHP_CRYPTO_ERROR_ACTION_EXCEPTION, name, args);
+	php_crypto_verror(info, exc_ce, ignore_args TSRMLS_CC, PHP_CRYPTO_G(error_action), name, args);
 	va_end(args);
 }
 /* }}} */
