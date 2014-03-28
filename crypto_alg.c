@@ -508,7 +508,7 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm
 
 /* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
 static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
-		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zval *object, int throw_exc TSRMLS_DC)
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zend_bool is_static  TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher;
 	smart_str alg_buf = {0};
@@ -516,7 +516,9 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	if (!pz_mode || Z_TYPE_P(pz_mode) == IS_NULL) {
 		cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
 		if (!cipher) {
-			if (throw_exc) {
+			if (is_static) {
+				php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_NOT_FOUND), algorithm);
+			} else {
 				php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, ALGORITHM_NOT_FOUND), algorithm);
 			}
 		} else if (object) {
@@ -546,16 +548,12 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	if (Z_TYPE_P(pz_mode) == IS_LONG) {
 		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode_ex(Z_LVAL_P(pz_mode));
 		if (!mode) {
-			if (throw_exc) {
-				php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_FOUND));
-			}
+			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_FOUND));
 			smart_str_free(&alg_buf);
 			return NULL;
 		}
 		if (mode->value == PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED) {
-			if (throw_exc) {
-				php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_AVAILABLE), mode->name);
-			}
+			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_AVAILABLE), mode->name);
 			smart_str_free(&alg_buf);
 			return NULL;
 		}
@@ -573,10 +571,10 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	smart_str_0(&alg_buf);
 	cipher = php_crypto_get_cipher_algorithm(alg_buf.c, alg_buf.len);
 	if (!cipher) {
-		if (throw_exc == 1) {
-			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, ALGORITHM_NOT_FOUND), alg_buf.c);
-		} else if (throw_exc == 2) {
+		if (is_static) {
 			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_NOT_FOUND), alg_buf.c);
+		} else {
+			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, ALGORITHM_NOT_FOUND), alg_buf.c);
 		}
 	} else if (object) {
 		php_crypto_set_algorithm_name(object, alg_buf.c, alg_buf.len TSRMLS_CC);
@@ -590,7 +588,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
-	return php_crypto_get_cipher_algorithm_from_params_ex(algorithm, algorithm_len, pz_mode, pz_key_size, NULL, 0 TSRMLS_CC);
+	return php_crypto_get_cipher_algorithm_from_params_ex(NULL, algorithm, algorithm_len, pz_mode, pz_key_size, 0 TSRMLS_CC);
 }
 /* }}} */
 
@@ -617,11 +615,11 @@ static int php_crypto_set_cipher_algorithm(zval *object, char *algorithm, int al
 
 /* {{{ php_crypto_set_cipher_algorithm_from_params_ex */
 static int php_crypto_set_cipher_algorithm_from_params_ex(
-		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, int throw_exc TSRMLS_DC)
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zend_bool is_static TSRMLS_DC)
 {
 	php_crypto_algorithm_object *intern = (php_crypto_algorithm_object *) zend_object_store_get_object(object TSRMLS_CC);
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm_from_params_ex(
-			algorithm, algorithm_len, pz_mode, pz_key_size, object, throw_exc TSRMLS_CC);
+			object, algorithm, algorithm_len, pz_mode, pz_key_size, is_static TSRMLS_CC);
 	
 	if (!cipher) {
 		return FAILURE;
@@ -636,7 +634,7 @@ static int php_crypto_set_cipher_algorithm_from_params_ex(
 static int php_crypto_set_cipher_algorithm_from_params(
 		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
-	return php_crypto_set_cipher_algorithm_from_params_ex(object, algorithm, algorithm_len, pz_mode, pz_key_size, 1 TSRMLS_CC);
+	return php_crypto_set_cipher_algorithm_from_params_ex(object, algorithm, algorithm_len, pz_mode, pz_key_size, 0 TSRMLS_CC);
 }
 /* }}} */
 
@@ -1035,7 +1033,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
 		pz_key_size = *ppz_key_size;
 	}
-	php_crypto_set_cipher_algorithm_from_params_ex(return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 2 TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_from_params_ex(return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 1 TSRMLS_CC);
 }
 /* }}} */
 
