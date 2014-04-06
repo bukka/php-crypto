@@ -55,7 +55,7 @@ extern zend_module_entry crypto_module_entry;
 #define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
 #define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
 
-/* ERRORS */
+/* ERROR TYPES */
 
 /* Errors info structure */
 typedef struct {
@@ -66,29 +66,30 @@ typedef struct {
 
 /* Error processing action */
 typedef enum {
-	PHP_CRYPTO_ERROR_ACTION_SILENT = 0,
+	PHP_CRYPTO_ERROR_ACTION_GLOBAL = 0,
+	PHP_CRYPTO_ERROR_ACTION_SILENT,
 	PHP_CRYPTO_ERROR_ACTION_EXCEPTION,
 	PHP_CRYPTO_ERROR_ACTION_ERROR
 } php_crypto_error_action;
 
 /* Processes error msg and either throw exception, emits error or do nothing (it depends on action) */
 PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		int ignore_args TSRMLS_DC, php_crypto_error_action action, const char *name, va_list args);
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args);
 /* Main error function with arguments */
 PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		int ignore_args TSRMLS_DC, const char *name, ...);
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, ...);
 /* Main error function without arguments */
 PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		int ignore_args TSRMLS_DC, const char *name);
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name);
 
 /* Macros for crypto exceptions info */
-#define PHP_CRYPTO_EXCEPTION_NAME(ename) php_crypto_##ename##Exception_ce
-#define PHP_CRYPTO_EXCEPTION_EXPORT(ename) extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename);
-#define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_NAME(ename);
+#define PHP_CRYPTO_EXCEPTION_CE(ename) php_crypto_##ename##Exception_ce
+#define PHP_CRYPTO_EXCEPTION_EXPORT(ename) extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
+#define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
 #define PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(ename ## Exception), NULL); \
-	PHP_CRYPTO_EXCEPTION_NAME(ename) = zend_register_internal_class_ex(&ce, epname_ce, NULL TSRMLS_CC)
-#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_NAME(epname))
+	PHP_CRYPTO_EXCEPTION_CE(ename) = zend_register_internal_class_ex(&ce, epname_ce, NULL TSRMLS_CC)
+#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_CE(epname))
 #define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, Crypto)
 
 /* Macros for error info */
@@ -101,12 +102,13 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 #define PHP_CRYPTO_ERROR_INFO_REGISTER(ename) do { \
 	long code = 1; php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
 	while (einfo->name != NULL) { \
-		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_NAME(ename), einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
+		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_CE(ename), einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
 		einfo++; \
 	} } while(0)
 
-/* Macro for wrapping error arguments passed to php_crypto_error* */
-#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_ERROR_INFO_NAME(ename), PHP_CRYPTO_EXCEPTION_NAME(ename), 0 TSRMLS_CC, #einame
+/* Macros for wrapping error arguments passed to php_crypto_error* */
+#define PHP_CRYPTO_ERROR_ARGS_EX(ename, eexc, eact, einame) PHP_CRYPTO_ERROR_INFO_NAME(ename), eexc, eact, 0 TSRMLS_CC, #einame
+#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_ERROR_ARGS_EX(ename, PHP_CRYPTO_EXCEPTION_CE(ename), PHP_CRYPTO_ERROR_ACTION_GLOBAL, einame)
 
 /* Base exception class */
 PHP_CRYPTO_EXCEPTION_EXPORT(Crypto)

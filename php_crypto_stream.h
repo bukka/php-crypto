@@ -31,6 +31,10 @@ typedef char php_crypto_stream_opener_char_t;
 typedef const char php_crypto_stream_opener_char_t;
 #endif
 
+/* Stream error args macro */
+#define PHP_CRYPTO_STREAM_ERROR_ARGS(einame) PHP_CRYPTO_ERROR_ARGS_EX(Stream, NULL, PHP_CRYPTO_ERROR_ACTION_ERROR, einame)
+
+/* Module init and shut down callbacks */
 PHP_MINIT_FUNCTION(crypto_stream);
 PHP_MSHUTDOWN_FUNCTION(crypto_stream);
 

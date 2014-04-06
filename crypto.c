@@ -123,13 +123,15 @@ PHP_MINFO_FUNCTION(crypto)
 
 /* {{{ php_crypto_verror */
 PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
-		int ignore_args TSRMLS_DC, php_crypto_error_action action, const char *name, va_list args)
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args)
 {
 	const php_crypto_error_info *ei = NULL;
 	char *message = NULL;
 	long code = 1;
 	
-	if (action == PHP_CRYPTO_ERROR_ACTION_SILENT) {
+	if (action == PHP_CRYPTO_ERROR_ACTION_GLOBAL) {
+		action = PHP_CRYPTO_G(error_action);
+	} else if (action == PHP_CRYPTO_ERROR_ACTION_SILENT) {
 		return;
 	}
 	
@@ -169,20 +171,20 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 
 /* {{{ php_crypto_error_ex */
 PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
-		int ignore_args TSRMLS_DC, const char *name, ...)
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, ...)
 {
 	va_list args;
 	va_start(args, name);
-	php_crypto_verror(info, exc_ce, ignore_args TSRMLS_CC, PHP_CRYPTO_G(error_action), name, args);
+	php_crypto_verror(info, exc_ce, ignore_args TSRMLS_CC, action, name, args);
 	va_end(args);
 }
 /* }}} */
 
 /* {{{ php_crypto_error */
 PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
-		int ignore_args TSRMLS_DC, const char *name)
+		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name)
 {
-	php_crypto_error_ex(info, exc_ce, 1 TSRMLS_CC, name);
+	php_crypto_error_ex(info, exc_ce, 1, action TSRMLS_CC, name);
 }
 /* }}} */
 
