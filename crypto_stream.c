@@ -24,6 +24,20 @@
 #include <openssl/bio.h>
 #include <openssl/evp.h>
 
+PHP_CRYPTO_ERROR_INFO_BEGIN(Stream)
+PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OPERATION_FORBIDDEN, "Requested seek operation is forbidden (only SEEK_SET is allowed)")
+PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OFFSET_HIGH, "The offset greater than %d is not allowed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_CONTEXT_TYPE_INVALID, "The cipher context has to be an array")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_NOT_SUPPLIED, "The cipher context parameter 'action' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_INVALID, "The cipher context parameter 'action' has to be either 'encode' or 'decode'")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_NOT_SUPPLIED, "The cipher context parameter 'algorithm' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_TYPE_INVALID, "The cipher algorithm has to be string")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_NOT_SUPPLIED, "The cipher context parameter 'key' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_NOT_SUPPLIED, "The cipher context parameter 'iv' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "Tag is useful only for authenticated mode", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "AAD is useful only for authenticated mode", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_END()
+
 /* crypto stream data */
 typedef struct {
 	BIO *bio;
@@ -78,12 +92,12 @@ static int php_crypto_stream_seek(php_stream *stream, off_t offset, int whence, 
 		
 	/* The only supported value in OpenSSL */
 	if (whence != SEEK_SET) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Only SEEK_SET is allowed");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(SEEK_OPERATION_FORBIDDEN));
 		return -1;
 	}
 	/* Don't allow offset greater than INT_MAX due to BIO_ctrl return value casting */
 	if (offset > INT_MAX) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The offset greater than %d is not allowed", INT_MAX);
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(SEEK_OFFSET_HIGH), INT_MAX);
 		return -1;
 	}
 	
@@ -119,27 +133,27 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 	}
 	
 	if (Z_TYPE_PP(ppz_cipher) != IS_ARRAY) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context has to be an array");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_CONTEXT_TYPE_INVALID));
 		return FAILURE;
 	}
 	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "action", sizeof("action"), (void **) &ppz_action) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'action' is required");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_NOT_SUPPLIED));
 		return FAILURE;
 	}
 	if (Z_TYPE_PP(ppz_action) != IS_STRING || 
 			strncmp(Z_STRVAL_PP(ppz_action), "encode", 6) != 0 ||
 			(enc = strncmp(Z_STRVAL_PP(ppz_action), "decode", 6)) != 0) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'action' has to be either 'encode' or 'decode'");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_INVALID));
 		return FAILURE;
 	}
 	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "algorithm", sizeof("algorithm"), (void **) &ppz_alg) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'algorithm' is required");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_NOT_SUPPLIED));
 		return FAILURE;
 	}
 	if (Z_TYPE_PP(ppz_alg) != IS_STRING) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher algorithm has to be string");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_TYPE_INVALID));
 		return FAILURE;
 	}
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "mode", sizeof("mode"), (void **) &ppz_mode) == FAILURE) {
@@ -151,16 +165,15 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 	cipher = php_crypto_get_cipher_algorithm_from_params(
 		Z_STRVAL_PP(ppz_alg), Z_STRLEN_PP(ppz_alg), ppz_mode ? *ppz_mode: NULL, ppz_key_size ? *ppz_key_size: NULL TSRMLS_CC);
 	if (!cipher) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher algorithm not found");
 		return FAILURE;
 	}
 	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key", sizeof("key"), (void **) &ppz_key) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'key' is required");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_NOT_SUPPLIED));
 		return FAILURE;
 	}
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "iv", sizeof("iv"), (void **) &ppz_iv) == FAILURE) {
-		php_error_docref(NULL TSRMLS_CC, E_WARNING, "The cipher context parameter 'iv' is required");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_NOT_SUPPLIED));
 		return FAILURE;
 	}
 	
@@ -169,12 +182,12 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
 		ppz_tag = NULL;
 	} else if (!mode->auth_enc) {
-		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "Tag is useful only for authenticated mode");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_USELESS));
 	}
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "aad", sizeof("aad"), (void **) &ppz_aad) == FAILURE) {
 		ppz_aad = NULL;
 	} else if (!mode->auth_enc) {
-		php_error_docref(NULL TSRMLS_CC, E_NOTICE, "AAD is useful only for authenticated mode");
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_AAD_USELESS));
 	}
 	
 	return SUCCESS;

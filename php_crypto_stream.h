@@ -31,6 +31,9 @@ typedef char php_crypto_stream_opener_char_t;
 typedef const char php_crypto_stream_opener_char_t;
 #endif
 
+/* Error info */
+PHP_CRYPTO_ERROR_INFO_EXPORT(Stream)
+
 /* Stream error args macro */
 #define PHP_CRYPTO_STREAM_ERROR_ARGS(einame) PHP_CRYPTO_ERROR_ARGS_EX(Stream, NULL, PHP_CRYPTO_ERROR_ACTION_ERROR, einame)
 

@@ -34,5 +34,5 @@ data3
 int(10)
 int(0)
 
-Warning: fseek(): Only SEEK_SET is allowed in %s
+Warning: fseek(): Requested seek operation is forbidden (only SEEK_SET is allowed) in %s
 int(-1)
