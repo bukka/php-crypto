@@ -31,9 +31,13 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_CONTEXT_TYPE_INVALID, "The cipher context has
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_NOT_SUPPLIED, "The cipher context parameter 'action' is required")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_INVALID, "The cipher context parameter 'action' has to be either 'encode' or 'decode'")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_NOT_SUPPLIED, "The cipher context parameter 'algorithm' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_TYPE_INVALID, "The cipher algorithm has to be string")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_TYPE_INVALID, "The cipher algorithm has to be a string")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_NOT_SUPPLIED, "The cipher context parameter 'key' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_TYPE_INVALID, "The cipher key has to be a string")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_LENGTH_INVALID, "The cipher key length must be %d characters")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_NOT_SUPPLIED, "The cipher context parameter 'iv' is required")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_TYPE_INVALID, "The cipher IV has to be a string")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_LENGTH_INVALID, "The cipher IV length must be %d characters")
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "Tag is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "AAD is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
@@ -120,9 +124,10 @@ php_stream_ops  php_crypto_stream_ops = {
 };
 
 /* {{{ php_crypto_stream_set_cipher */
-static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_context *context TSRMLS_DC)
+static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, const char *wrappername, php_stream_context *context TSRMLS_DC)
 {
 	zval **ppz_cipher, **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
+	BIO *cipher_bio;
 	const EVP_CIPHER *cipher;
 	const php_crypto_cipher_mode *mode;
 	int enc = 1;
@@ -172,8 +177,25 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_NOT_SUPPLIED));
 		return FAILURE;
 	}
+	if (Z_TYPE_PP(ppz_key) != IS_STRING) {
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_TYPE_INVALID));
+		return FAILURE;
+	}
+	if (Z_STRLEN_PP(ppz_key) != EVP_CIPHER_key_length(cipher)) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_LENGTH_INVALID), EVP_CIPHER_key_length(cipher));
+		return FAILURE;
+	}
+	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "iv", sizeof("iv"), (void **) &ppz_iv) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_NOT_SUPPLIED));
+		return FAILURE;
+	}
+	if (Z_TYPE_PP(ppz_iv) != IS_STRING) {
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_TYPE_INVALID));
+		return FAILURE;
+	}
+	if (Z_STRLEN_PP(ppz_iv) != EVP_CIPHER_iv_length(cipher)) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID), EVP_CIPHER_iv_length(cipher));
 		return FAILURE;
 	}
 	
@@ -189,6 +211,10 @@ static int php_crypto_stream_set_cipher(const char *wrappername, php_stream_cont
 	} else if (!mode->auth_enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_AAD_USELESS));
 	}
+	
+	cipher_bio = BIO_new(BIO_f_cipher());
+	BIO_set_cipher(data->bio, cipher, (const unsigned char *) Z_STRVAL_PP(ppz_key), (const unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
+	BIO_push(cipher_bio, data->bio);
 	
 	return SUCCESS;
 }
@@ -226,7 +252,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 		return NULL;
 	}
 	
-	if (php_crypto_stream_set_cipher(wrappername, context TSRMLS_CC)) {
+	if (php_crypto_stream_set_cipher(self, wrappername, context TSRMLS_CC)) {
 		BIO_free_all(self->bio);
 		efree(self);
 		efree(realpath);
