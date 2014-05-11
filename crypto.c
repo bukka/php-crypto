@@ -175,7 +175,7 @@ PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_
 {
 	va_list args;
 	va_start(args, name);
-	php_crypto_verror(info, exc_ce, ignore_args TSRMLS_CC, action, name, args);
+	php_crypto_verror(info, exc_ce, action, ignore_args TSRMLS_CC, name, args);
 	va_end(args);
 }
 /* }}} */
