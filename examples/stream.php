@@ -14,7 +14,7 @@ $cipher_enc1_options = array(
 	'iv'  => $iv,
 );
 $context_write = stream_context_create(array(
-	'cipher' => $cipher_enc1_options,
+	'crypto.file' => array('cipher' => $cipher_enc1_options),
 ));
 $stream_write = fopen("crypto.file://" . $filename, "w", false, $context_write);
 fwrite($stream_write, $data);
@@ -31,7 +31,7 @@ $cipher_dec1_options = array(
 	'iv'  => $iv,
 );
 $context_read = stream_context_create(array(
-	'cipher' => $cipher_enc1_options,
+	'crypto.file' => array('cipher' => $cipher_dec1_options),
 ));
 $stream_read = fopen("crypto.file://" . $filename, "w", false, $context_read);
 fwrite($stream_read, $data);
