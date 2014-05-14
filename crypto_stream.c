@@ -212,7 +212,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, const char
 	}
 	
 	cipher_bio = BIO_new(BIO_f_cipher());
-	BIO_set_cipher(data->bio, cipher, (const unsigned char *) Z_STRVAL_PP(ppz_key), (const unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
+	BIO_set_cipher(cipher_bio, cipher, (const unsigned char *) Z_STRVAL_PP(ppz_key), (const unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
 	BIO_push(cipher_bio, data->bio);
 	
 	return SUCCESS;
