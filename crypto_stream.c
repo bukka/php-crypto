@@ -83,7 +83,7 @@ static int php_crypto_stream_close(php_stream *stream, int close_handle TSRMLS_D
 static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 {
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
-	BIO_flush(data->bio);
+	(void) BIO_flush(data->bio);
 	return 0;
 }
 /* }}} */
