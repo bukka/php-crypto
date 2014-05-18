@@ -2,6 +2,7 @@
 
 $filename = (dirname( __FILE__) . "/stream_file_plain_write.tmp");
 
+$algorithm = 'aes-256-cbc';
 $key = str_repeat('x', 32);
 $iv = str_repeat('i', 16);
 $data = str_repeat('a', 16);
@@ -9,7 +10,7 @@ $data = str_repeat('a', 16);
 // WRITE
 $cipher_enc1_options = array(
 	'action' => 'encode',
-	'algorithm' => 'aes-256-cbc',
+	'algorithm' => $algorithm,
 	'key' => $key,
 	'iv'  => $iv,
 );
@@ -26,18 +27,19 @@ echo PHP_EOL;
 // READ
 $cipher_dec1_options = array(
 	'action' => 'decode',
-	'algorithm' => 'aes-256-cbc',
+	'algorithm' => $algorithm,
 	'key' => $key,
 	'iv'  => $iv,
 );
 $context_read = stream_context_create(array(
 	'crypto.file' => array('cipher' => $cipher_dec1_options),
 ));
-$stream_read = fopen("crypto.file://" . $filename, "w", false, $context_read);
-fwrite($stream_read, $data);
-fflush($stream_read);
 echo "FILE decrypted (plain):" . PHP_EOL;
-echo file_get_contents($filename);
+$stream_read = fopen("crypto.file://" . $filename, "r", false, $context_read);
+while ($data = fread($stream_read, 5)) {
+	echo $data;
+}
 echo PHP_EOL;
+//echo file_get_contents("crypto.file://" . $filename, false, $context_read);
 
 unlink($filename);
