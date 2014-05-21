@@ -150,7 +150,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, const char
 		return FAILURE;
 	}
 	if (Z_TYPE_PP(ppz_action) != IS_STRING || 
-			!(strncmp(Z_STRVAL_PP(ppz_action), "encode", 6) != 0 ||	(enc = strncmp(Z_STRVAL_PP(ppz_action), "decode", 6)) != 0)) {
+			!(strncmp(Z_STRVAL_PP(ppz_action), "encrypt", 6) == 0 || (enc = strncmp(Z_STRVAL_PP(ppz_action), "decrypt", 6)) == 0)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_INVALID));
 		return FAILURE;
 	}

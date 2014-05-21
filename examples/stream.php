@@ -9,7 +9,7 @@ $data = str_repeat('a', 16);
 
 // WRITE
 $cipher_enc1_options = array(
-	'action' => 'encode',
+	'action' => 'encrypt',
 	'algorithm' => $algorithm,
 	'key' => $key,
 	'iv'  => $iv,
@@ -26,7 +26,7 @@ echo PHP_EOL;
 
 // READ
 $cipher_dec1_options = array(
-	'action' => 'decode',
+	'action' => 'decrypt',
 	'algorithm' => $algorithm,
 	'key' => $key,
 	'iv'  => $iv,
