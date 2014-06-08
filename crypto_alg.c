@@ -676,17 +676,19 @@ static int php_crypto_cipher_is_mode_authenticated_ex(const php_crypto_cipher_mo
 /* {{{ php_crypto_cipher_is_mode_authenticated */
 static int php_crypto_cipher_is_mode_authenticated(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
-	return php_crypto_cipher_is_mode_authenticated_ex(php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern)) TSRMLS_CC);
+	return php_crypto_cipher_is_mode_authenticated_ex(
+			php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern)) TSRMLS_CC);
 }
 /* }}} */
 
 /* {{{ php_crypto_cipher_set_tag */
-static int php_crypto_cipher_set_tag(php_crypto_algorithm_object *intern, const php_crypto_cipher_mode *mode, unsigned char *tag, int tag_len TSRMLS_DC)
+PHP_CRYPTO_API int php_crypto_cipher_set_tag(EVP_CIPHER_CTX *cipher_ctx, const php_crypto_cipher_mode *mode, 
+		unsigned char *tag, int tag_len TSRMLS_DC)
 {
 	if (!tag) {
 		return SUCCESS;
 	}
-	if (!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(intern), mode->auth_set_tag_flag, tag_len, tag)) {
+	if (!EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_set_tag_flag, tag_len, tag)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FAILED));
 		return FAILURE;
 	}
@@ -781,7 +783,8 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 	PHP_CRYPTO_CIPHER_SET_STATUS(intern, enc, INIT);
 
 	if (mode->auth_enc && !enc &&
-			php_crypto_cipher_set_tag(intern, mode, PHP_CRYPTO_CIPHER_TAG(intern), PHP_CRYPTO_CIPHER_TAG_LEN(intern) TSRMLS_CC) == FAILURE) {
+			php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(intern), mode, 
+				PHP_CRYPTO_CIPHER_TAG(intern), PHP_CRYPTO_CIPHER_TAG_LEN(intern) TSRMLS_CC) == FAILURE) {
 		return NULL;
 	}
 
@@ -808,15 +811,15 @@ static inline void php_crypto_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 /* }}} */
 
 /* {{{ php_crypto_cipher_write_aad */
-static inline int php_crypto_cipher_write_aad(php_crypto_algorithm_object *intern TSRMLS_DC)
+PHP_CRYPTO_API int php_crypto_cipher_write_aad(EVP_CIPHER_CTX *cipher_ctx, unsigned char *aad, int aad_len TSRMLS_DC)
 {
 	int outlen, ret;
 
-	if (PHP_CRYPTO_CIPHER_AAD(intern)) {
-		ret = EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern));
+	if (aad) {
+		ret = EVP_CipherUpdate(cipher_ctx, NULL, &outlen, aad, aad_len);
 	} else {
 		unsigned char buf[4];
-		ret = EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(intern), NULL, &outlen, buf, 0);
+		ret = EVP_CipherUpdate(cipher_ctx, NULL, &outlen, buf, 0);
 	}
 
 	if (!ret) {
@@ -853,7 +856,8 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
-	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
+	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(intern), 
+			PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern) TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -929,7 +933,8 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(intern));
 
-	if (mode->auth_enc && !php_crypto_cipher_write_aad(intern TSRMLS_CC) == FAILURE) {
+	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(intern), 
+			PHP_CRYPTO_CIPHER_AAD(intern), PHP_CRYPTO_CIPHER_AAD_LEN(intern) TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1229,7 +1234,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		memcpy(PHP_CRYPTO_CIPHER_TAG(intern), tag, tag_len + 1);
 		PHP_CRYPTO_CIPHER_TAG_LEN(intern) = tag_len;
 	} else if (intern->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
-		php_crypto_cipher_set_tag(intern, mode, (unsigned char *) tag, tag_len TSRMLS_CC);
+		php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(intern), mode, (unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FORBIDDEN));
 		RETURN_FALSE;

@@ -38,8 +38,9 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_LENGTH_INVALID, "The cipher key length mu
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_NOT_SUPPLIED, "The cipher context parameter 'iv' is required")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_TYPE_INVALID, "The cipher IV has to be a string")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_LENGTH_INVALID, "The cipher IV length must be %d characters")
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "Tag is useful only for authenticated mode", E_NOTICE)
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "AAD is useful only for authenticated mode", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_TAG_FORBIDDEN, "The cipher tag can be set only for encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "The cipher tag is useful only for authenticated mode", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "The cipher AAD is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
 
 /* crypto stream data */
@@ -207,6 +208,9 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, const char
 		ppz_tag = NULL;
 	} else if (!mode->auth_enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_USELESS));
+	} else if (enc) {
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_FORBIDDEN));
+		return FAILURE;
 	}
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "aad", sizeof("aad"), (void **) &ppz_aad) == FAILURE) {
 		ppz_aad = NULL;
@@ -215,9 +219,31 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, const char
 	}
 	
 	cipher_bio = BIO_new(BIO_f_cipher());
-	BIO_set_cipher(cipher_bio, cipher, (const unsigned char *) Z_STRVAL_PP(ppz_key), (const unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
+	BIO_set_cipher(cipher_bio, cipher, (unsigned char *) Z_STRVAL_PP(ppz_key), (unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
 	BIO_push(cipher_bio, data->bio);
 	data->bio = cipher_bio;
+	
+	if (ppz_tag || ppz_aad) {
+		EVP_CIPHER_CTX *cipher_ctx;
+		BIO_get_cipher_ctx(cipher_bio, &cipher_ctx);
+		unsigned char *aad;
+		int aad_len;
+		
+		if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode, (unsigned char *) Z_STRVAL_PP(ppz_tag), Z_STRLEN_PP(ppz_tag) TSRMLS_CC) == FAILURE) {
+			return FAILURE;
+		}
+		
+		if (ppz_aad) {
+			aad =  (unsigned char *) Z_STRVAL_PP(ppz_aad);
+			aad_len = Z_STRLEN_PP(ppz_tag);
+		} else {
+			aad = NULL;
+			aad_len = 0;
+		}
+		if (php_crypto_cipher_write_aad(cipher_ctx, aad, aad_len TSRMLS_CC) == FAILURE) {
+			return FAILURE;
+		}
+	}
 	
 	return SUCCESS;
 }
