@@ -184,7 +184,7 @@ PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_
 PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
 		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name)
 {
-	php_crypto_error_ex(info, exc_ce, 1, action TSRMLS_CC, name);
+	php_crypto_error_ex(info, exc_ce, action, 1 TSRMLS_CC, name);
 }
 /* }}} */
 
