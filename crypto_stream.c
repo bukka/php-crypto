@@ -43,6 +43,8 @@ PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "The cipher tag is useful onl
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "The cipher AAD is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
 
+ZEND_DECLARE_MODULE_GLOBALS(crypto)
+
 /* crypto stream data */
 typedef struct {
 	BIO *bio;
@@ -257,6 +259,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 	const char *wrappername;
 	php_stream *stream;
 	php_crypto_stream_data *self;
+	php_crypto_error_action initial_error_action = PHP_CRYPTO_G(error_action);
 	
 	if (strncasecmp(PHP_CRYPTO_STREAM_FILE_SCHEME, path, PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE) == 0) {
 		path += PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE;
@@ -273,19 +276,17 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 		return NULL;
 	}
 	
+	PHP_CRYPTO_G(error_action) = PHP_CRYPTO_STREAM_ERROR_ACTION;
+	
 	self = emalloc(sizeof(*self));
 	self->bio = BIO_new_file(realpath, mode);
 	if (self->bio == NULL) {
-		efree(self);
-		efree(realpath);
-		return NULL;
+		goto opener_error;
 	}
 	
 	if (php_crypto_stream_set_cipher(self, wrappername, context TSRMLS_CC)) {
 		BIO_free_all(self->bio);
-		efree(self);
-		efree(realpath);
-		return NULL;
+		goto opener_error;
 	}
 	
 	stream = php_stream_alloc_rel(&php_crypto_stream_ops, self, 0, mode);
@@ -299,6 +300,12 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 		}
 	}
 	return stream;
+
+opener_error:
+	PHP_CRYPTO_G(error_action) = initial_error_action;
+	efree(self);
+	efree(realpath);
+	return NULL;
 }
 /* }}} */
 

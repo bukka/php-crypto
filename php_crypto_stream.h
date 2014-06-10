@@ -19,6 +19,8 @@
 #ifndef PHP_CRYPTO_STREAM_H
 #define	PHP_CRYPTO_STREAM_H
 
+#include "php_crypto.h"
+
 #define PHP_CRYPTO_STREAM_SCHEME_PREFIX "://"
 
 #define PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME "crypto.file"
@@ -33,9 +35,12 @@ typedef const char php_crypto_stream_opener_char_t;
 
 /* Error info */
 PHP_CRYPTO_ERROR_INFO_EXPORT(Stream)
+		
+/* Stream error action */
+#define PHP_CRYPTO_STREAM_ERROR_ACTION PHP_CRYPTO_ERROR_ACTION_ERROR
 
 /* Stream error args macro */
-#define PHP_CRYPTO_STREAM_ERROR_ARGS(einame) PHP_CRYPTO_ERROR_ARGS_EX(Stream, NULL, PHP_CRYPTO_ERROR_ACTION_ERROR, einame)
+#define PHP_CRYPTO_STREAM_ERROR_ARGS(einame) PHP_CRYPTO_ERROR_ARGS_EX(Stream, NULL, PHP_CRYPTO_STREAM_ERROR_ACTION, einame)
 
 /* Module init and shut down callbacks */
 PHP_MINIT_FUNCTION(crypto_stream);
