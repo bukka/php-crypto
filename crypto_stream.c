@@ -27,7 +27,9 @@
 PHP_CRYPTO_ERROR_INFO_BEGIN(Stream)
 PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OPERATION_FORBIDDEN, "Requested seek operation is forbidden (only SEEK_SET is allowed)")
 PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OFFSET_HIGH, "The offset greater than %d is not allowed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_CONTEXT_TYPE_INVALID, "The cipher context has to be an array")
+PHP_CRYPTO_ERROR_INFO_ENTRY(FILTERS_CONTEXT_TYPE_INVALID, "The filters context field has to be an array")
+PHP_CRYPTO_ERROR_INFO_ENTRY(FILTERS_ITEM_CONTEXT_TYPE_INVALID, "The filters item context field has to be an array")
+PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_CONTEXT_TYPE_INVALID, "The filters field cipher has to be an array")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_NOT_SUPPLIED, "The cipher context parameter 'action' is required")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_INVALID, "The cipher context parameter 'action' has to be either 'encode' or 'decode'")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_NOT_SUPPLIED, "The cipher context parameter 'algorithm' is required")
@@ -257,6 +259,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 {
 	char *realpath;
 	const char *wrappername;
+	zval **ppz_filter;
 	php_stream *stream;
 	php_crypto_stream_data *self;
 	php_crypto_error_action initial_error_action = PHP_CRYPTO_G(error_action);
@@ -282,6 +285,25 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 	self->bio = BIO_new_file(realpath, mode);
 	if (self->bio == NULL) {
 		goto opener_error;
+	}
+	
+	if (php_stream_context_get_option(context, PHP_CRYPTO_STREAM_WRAPPER_NAME, "filters", &ppz_filter) != FAILURE) {
+		HashPosition pos;
+		zval **filter_item;
+		
+		if (!Z_TYPE_PP(ppz_filter) != IS_ARRAY) {
+			php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTERS_CONTEXT_TYPE_INVALID));
+			goto opener_error;
+		}
+		for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(ppz_filter), &pos);
+			zend_hash_get_current_data_ex(Z_ARRVAL_PP(ppz_filter), (void **) &filter_item, &pos) == SUCCESS;
+			zend_hash_move_forward_ex(Z_ARRVAL_PP(ppz_filter), &pos)
+		) {
+			if (!Z_TYPE_PP(filter_item) != IS_ARRAY) {
+				php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTERS_ITEM_CONTEXT_TYPE_INVALID));
+				goto opener_error;
+			}
+		}
 	}
 	
 	if (php_crypto_stream_set_cipher(self, wrappername, context TSRMLS_CC)) {
