@@ -21,14 +21,14 @@ $context = stream_context_create(array(
 	),
 ));
 
-$filename = (dirname( __FILE__) . "/stream_filters_cipher_cbc_write.tmp");
+$filename = (dirname( __FILE__) . "/stream_filters_cipher_cbc_dec_write.tmp");
 file_put_contents("crypto.file://" . $filename, $ciphertext, 0, $context);
 
 echo file_get_contents($filename);
 ?>
 --CLEAN--
 <?php
-$filename = (dirname( __FILE__) . "/stream_filters_cipher_cbc_write.tmp");
+$filename = (dirname( __FILE__) . "/stream_filters_cipher_cbc_dec_write.tmp");
 if (file_exists($filename))
 	unlink($filename);
 ?>
