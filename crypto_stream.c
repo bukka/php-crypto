@@ -53,6 +53,7 @@ ZEND_DECLARE_MODULE_GLOBALS(crypto)
 /* crypto stream data */
 typedef struct {
 	BIO *bio;
+	zend_bool auth_enc;
 } php_crypto_stream_data;
 
 /* {{{ php_crypto_stream_write */
@@ -73,6 +74,9 @@ static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count
 		return (size_t) bytes_read;
 	}
 	stream->eof = !BIO_should_retry(data->bio);
+	if (data->auth_enc && stream->eof) {
+		/* reading finished - save tag (encrypt) or auth result (decrypt) */
+	}
 	return 0;
 }
 /* }}} */
@@ -93,7 +97,10 @@ static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	/* eof is set when the last read is done (this prevents infinite loop in cipher bio) */
 	if (!stream->eof) {
-		(void) BIO_flush(data->bio);
+		int rc = BIO_flush(data->bio);
+		if (data->auth_enc) {
+			/* writing finished - save tag (encrypt) or auth result (decrypt) */
+		}
 	}
 	return 0;
 }
@@ -206,6 +213,9 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	}
 	
 	mode = php_crypto_get_cipher_mode(cipher);
+	if (mode->auth_enc) {
+		data->auth_enc = 1;
+	}
 	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
 		ppz_tag = NULL;
