@@ -65,8 +65,8 @@ static size_t php_crypto_stream_write(php_stream *stream, const char *buf, size_
 }
 /* }}} */
 
-/* {{{ php_crypto_stream_get_first_auth_bio */
-static BIO *php_crypto_stream_get_first_auth_bio(BIO *bio)
+/* {{{ php_crypto_stream_auth_get_first_bio */
+static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_CIPHER_CTX **p_cipher_ctx)
 {
 	while (bio && (bio = BIO_find_type(bio, BIO_TYPE_CIPHER))) {
 		EVP_CIPHER_CTX *cipher_ctx;
@@ -75,11 +75,34 @@ static BIO *php_crypto_stream_get_first_auth_bio(BIO *bio)
 		BIO_get_cipher_ctx(bio, &cipher_ctx);
 		mode = php_crypto_get_cipher_mode(EVP_CIPHER_CTX_cipher(cipher_ctx));
 		if (mode->auth_enc) {
-			return bio;
+			*p_cipher_ctx = cipher_ctx;
+			*p_auth_bio = bio;
+			return SUCCESS;
 		}
 		bio = bio->next_bio;
 	}
-	return NULL;
+	return FAILURE;
+}
+/* }}} */
+
+/* {{{ php_crypto_stream_auth_save_tag */
+static void php_crypto_stream_add_meta(php_stream *stream, const char *key, const char *value)
+{
+	
+}
+/* }}} */
+
+/* {{{ php_crypto_stream_auth_save_tag */
+static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *cipher_ctx)
+{
+	
+}
+/* }}} */
+
+/* {{{ php_crypto_stream_auth_save_result */
+static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
+{
+	
 }
 /* }}} */
 
@@ -93,8 +116,18 @@ static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count
 	}
 	stream->eof = !BIO_should_retry(data->bio);
 	if (data->auth_enc && stream->eof) {
-		BIO *auth_bio = php_crypto_stream_get_first_auth_bio(data->bio);
-		/* reading finished - save tag (encrypt) or auth result (decrypt) */
+		EVP_CIPHER_CTX *cipher_ctx;
+		BIO *auth_bio;
+		if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
+			if (cipher_ctx->encrypt) {
+				/* encryption - save auth tag */
+				php_crypto_stream_auth_save_tag(stream, cipher_ctx);
+			} else {
+				/* decryption - save auth result */
+				int ok = (int) BIO_ctrl(auth_bio, BIO_C_GET_CIPHER_STATUS, 0, NULL);
+				php_crypto_stream_auth_save_result(stream, ok);
+			}
+		}
 	}
 	return 0;
 }
@@ -116,10 +149,19 @@ static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	/* eof is set when the last read is done (this prevents infinite loop in cipher bio) */
 	if (!stream->eof) {
-		int rc = BIO_flush(data->bio);
+		int ok = BIO_flush(data->bio);
 		if (data->auth_enc) {
-			BIO *auth_bio = php_crypto_stream_get_first_auth_bio(data->bio);
-			/* writing finished - save tag (encrypt) or auth result (decrypt) */
+			EVP_CIPHER_CTX *cipher_ctx;
+			BIO *auth_bio;
+			if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
+				if (cipher_ctx->encrypt) {
+					/* encryption - save auth tag */
+					php_crypto_stream_auth_save_tag(stream, cipher_ctx);
+				} else {
+					/* decryption - save auth result */
+					php_crypto_stream_auth_save_result(stream, ok);
+				}
+			}
 		}
 	}
 	return 0;
