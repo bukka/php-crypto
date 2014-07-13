@@ -190,7 +190,9 @@ PHP_CRYPTO_METHOD(Hash, hexdigest);
 PHP_CRYPTO_METHOD(Hash, getSize);
 PHP_CRYPTO_METHOD(Hash, getBlockSize);
 
+
 /* CRYPTO API FUNCTIONS */
+/* Cipher functions  */
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len);
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 		char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size TSRMLS_DC);
@@ -199,6 +201,9 @@ PHP_CRYPTO_API const php_crypto_cipher_mode *php_crypto_get_cipher_mode(const EV
 PHP_CRYPTO_API int php_crypto_cipher_set_tag(EVP_CIPHER_CTX *cipher_ctx, const php_crypto_cipher_mode *mode, 
 		unsigned char *tag, int tag_len TSRMLS_DC);
 PHP_CRYPTO_API int php_crypto_cipher_write_aad(EVP_CIPHER_CTX *cipher_ctx, unsigned char *aad, int aad_len TSRMLS_DC);
+/* Hash functions */
+PHP_CRYPTO_API void php_crypto_hash_bin2hex(char *out, const unsigned char *in, unsigned in_len);
+
 
 #endif	/* PHP_CRYPTO_EVP_H */
 

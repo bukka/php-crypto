@@ -1280,6 +1280,18 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 
 /* HASH METHODS */
 
+/* {{{ php_crypto_hash_bin2hex */
+PHP_CRYPTO_API void php_crypto_hash_bin2hex(char *out, const unsigned char *in, unsigned in_len)
+{
+	static const char hexits[17] = "0123456789abcdef";
+	unsigned i;
+	for(i = 0; i < in_len; i++) {
+		out[i * 2]       = hexits[in[i] >> 4];
+		out[(i * 2) + 1] = hexits[in[i] &  0x0F];
+	}
+}
+/* }}} */
+
 /* {{{ php_crypto_hash_init */
 static inline int php_crypto_hash_init(php_crypto_algorithm_object *intern TSRMLS_DC)
 {
@@ -1308,18 +1320,6 @@ static inline int php_crypto_hash_update(php_crypto_algorithm_object *intern, ch
 	}
 
 	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ php_crypto_hash_bin2hex */
-static inline void php_crypto_hash_bin2hex(char *out, const unsigned char *in, unsigned in_len)
-{
-	static const char hexits[17] = "0123456789abcdef";
-	unsigned i;
-	for(i = 0; i < in_len; i++) {
-		out[i * 2]       = hexits[in[i] >> 4];
-		out[(i * 2) + 1] = hexits[in[i] &  0x0F];
-	}
 }
 /* }}} */
 
