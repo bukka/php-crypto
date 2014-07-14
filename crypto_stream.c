@@ -50,6 +50,10 @@ PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_DECLARE_MODULE_GLOBALS(crypto)
 
+/* max buffer size for stream meta field */
+#define PHP_CRYPTO_STREAM_META_MAX_SIZE \
+	(PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX * 2 + sizeof(PHP_CRYPTO_STREAM_META_AUTH_TAG) + 2)
+
 /* crypto stream data */
 typedef struct {
 	BIO *bio;
@@ -88,7 +92,7 @@ static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_
 /* {{{ php_crypto_stream_auth_save_tag */
 static void php_crypto_stream_add_meta(php_stream *stream, const char *key, const char *value)
 {
-	
+	char buff[PHP_CRYPTO_STREAM_META_MAX_SIZE];
 }
 /* }}} */
 
