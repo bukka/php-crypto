@@ -106,7 +106,7 @@ static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *
 /* {{{ php_crypto_stream_auth_save_result */
 static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
 {
-	
+	php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failed");
 }
 /* }}} */
 
