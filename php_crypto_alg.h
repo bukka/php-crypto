@@ -127,7 +127,6 @@ typedef struct {
 /* Cipher mode value (EVP code) */
 #define PHP_CRYPTO_CIPHER_MODE_VALUE(pobj) EVP_CIPHER_mode(PHP_CRYPTO_CIPHER_ALG(pobj))
 
-
 /* Macros for cipher mode lookup table */
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, mode_auth_enc, mode_auth_ivlen_flag, mode_auth_stag_flag, mode_auth_gtag_flag) \
 	{ #mode_name, "MODE_" #mode_name, EVP_CIPH_ ## mode_name ## _MODE, \
@@ -140,6 +139,7 @@ typedef struct {
 /* Cipher authentication tag length max and min */
 #define PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MIN 4
 #define PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX 16
+
 
 /* CLASSES */
 
