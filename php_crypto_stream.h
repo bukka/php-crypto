@@ -31,6 +31,10 @@
 #define PHP_CRYPTO_STREAM_FILE_SCHEME PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME PHP_CRYPTO_STREAM_SCHEME_PREFIX
 #define PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE sizeof(PHP_CRYPTO_STREAM_FILE_SCHEME) - 1
 
+/* stream meta headers for cipher authentication */
+#define PHP_CRYPTO_STREAM_META_AUTH_TAG    "X-PHP-Crypto-Auth-Tag"
+#define PHP_CRYPTO_STREAM_META_AUTH_RESULT "X-PHP-Crypto-Auth-Result"
+
 #if PHP_VERSION_ID < 50600
 typedef char php_crypto_stream_opener_char_t;
 #else
