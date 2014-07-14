@@ -699,11 +699,11 @@ PHP_CRYPTO_API int php_crypto_cipher_set_tag(EVP_CIPHER_CTX *cipher_ctx, const p
 /* {{{ php_crypto_cipher_check_tag_len */
 static int php_crypto_cipher_check_tag_len(long tag_len TSRMLS_DC)
 {
-	if (tag_len < 4) {
+	if (tag_len < PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MIN) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_LENGTH_LOW));
 		return FAILURE;
 	}
-	if (tag_len > 16) {
+	if (tag_len > PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_LENGTH_HIGH));
 		return FAILURE;
 	}

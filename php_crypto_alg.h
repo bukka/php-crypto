@@ -137,6 +137,9 @@ typedef struct {
 	{ #mode_name, "MODE_" #mode_name, PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED, 0, 0, 0, 0 },
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_END { "", "", 0, 0, 0, 0, 0 }
 
+/* Cipher authentication tag length max and min */
+#define PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MIN 4
+#define PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX 16
 
 /* CLASSES */
 
