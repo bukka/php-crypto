@@ -44,6 +44,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_NOT_SUPPLIED, "The cipher context paramete
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_TYPE_INVALID, "The cipher IV has to be a string")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_LENGTH_INVALID, "The cipher IV length must be %d characters")
 PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_TAG_FORBIDDEN, "The cipher tag can be set only for encryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_FAILED, "The cipher tag retrieving failed", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "The cipher tag is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "The cipher AAD is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
@@ -99,14 +100,22 @@ static void php_crypto_stream_add_meta(php_stream *stream, const char *key, cons
 /* {{{ php_crypto_stream_auth_save_tag */
 static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *cipher_ctx)
 {
-	
+	char hex_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX * 2 + 1];
+	unsigned char bin_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX + 1];
+	const php_crypto_cipher_mode *mode = EVP_CIPHER_CTX_cipher(cipher_ctx);
+	if (EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_get_tag_flag, PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX, &bin_tag[0])) {
+		php_crypto_hash_bin2hex(&hex_tag[0], &bin_tag[0], PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX);
+		php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_TAG, &hex_tag[0]);
+	} else {
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_FAILED));
+	}
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_save_result */
 static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
 {
-	php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failed");
+	php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failure");
 }
 /* }}} */
 

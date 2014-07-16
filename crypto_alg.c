@@ -1289,6 +1289,7 @@ PHP_CRYPTO_API void php_crypto_hash_bin2hex(char *out, const unsigned char *in, 
 		out[i * 2]       = hexits[in[i] >> 4];
 		out[(i * 2) + 1] = hexits[in[i] &  0x0F];
 	}
+	out[i * 2] = 0;
 }
 /* }}} */
 
@@ -1346,7 +1347,6 @@ static inline char *php_crypto_hash_finish(php_crypto_algorithm_object *intern, 
 		int retval_len = hash_len * 2 + 1;
 		char *retval = (char *) emalloc(retval_len);
 		php_crypto_hash_bin2hex(retval, hash_value, hash_len);
-		retval[retval_len-1] = 0;
 		return retval;
 	}
 	return estrdup((char *) hash_value);
