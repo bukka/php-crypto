@@ -51,10 +51,6 @@ PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_DECLARE_MODULE_GLOBALS(crypto)
 
-/* max buffer size for stream meta field */
-#define PHP_CRYPTO_STREAM_META_MAX_SIZE \
-	(PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX * 2 + sizeof(PHP_CRYPTO_STREAM_META_AUTH_TAG) + 2)
-
 /* crypto stream data */
 typedef struct {
 	BIO *bio;
@@ -90,19 +86,64 @@ static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_
 }
 /* }}} */
 
-/* {{{ php_crypto_stream_auth_save_tag */
-static void php_crypto_stream_add_meta(php_stream *stream, const char *key, const char *value)
+/* {{{ php_crypto_stream_create_meta_field */
+static void inline php_crypto_stream_create_meta_field(char *out, const char *key, const char *value)
 {
-	char buff[PHP_CRYPTO_STREAM_META_MAX_SIZE];
+	char *ptr;
+	strcpy(out, key);
+	ptr = out + strlen(key);
+	memcpy(ptr,  ": ", 2);
+	strcpy(ptr + 2, value);
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_save_tag */
-static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *cipher_ctx)
+static void php_crypto_stream_add_meta(php_stream *stream, const char *key, const char *value)
+{
+	char *header;
+	size_t len = strlen(key) + strlen(value) + 3;
+	
+	if (stream->wrapperdata && Z_TYPE_P(stream->wrapperdata) != IS_ARRAY) {
+		zval_ptr_dtor(&stream->wrapperdata);
+		stream->wrapperdata = NULL;
+	}
+	if (stream->wrapperdata) {
+		HashPosition pos;
+		zval **ppz_wrapperdata_item;
+		
+		for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(stream->wrapperdata), &pos);
+			zend_hash_get_current_data_ex(Z_ARRVAL_P(stream->wrapperdata), (void **) &ppz_wrapperdata_item, &pos) == SUCCESS;
+			zend_hash_move_forward_ex(Z_ARRVAL_P(stream->wrapperdata), &pos)
+		) {
+			if (Z_TYPE_PP(ppz_wrapperdata_item) == IS_STRING && 
+				Z_STRLEN_PP(ppz_wrapperdata_item) > strlen(key) &&
+				!strncpy(Z_STRVAL_PP(ppz_wrapperdata_item), key, strlen(key))
+			) {
+				if (len > Z_STRLEN_PP(ppz_wrapperdata_item)) {
+					Z_STRVAL_PP(ppz_wrapperdata_item) = erealloc(Z_STRVAL_PP(ppz_wrapperdata_item), len);
+				}
+				php_crypto_stream_create_meta_field(Z_STRVAL_PP(ppz_wrapperdata_item), key, value);
+				return;
+			}
+			
+		}
+	} else {
+		array_init(stream->wrapperdata);
+	}
+	
+	header = emalloc(len);
+	php_crypto_stream_create_meta_field(header, key, value);
+	add_next_index_string(stream->wrapperdata, header, 0);
+	
+}
+/* }}} */
+
+/* {{{ php_crypto_stream_auth_save_tag */
+static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *cipher_ctx TSRMLS_DC)
 {
 	char hex_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX * 2 + 1];
 	unsigned char bin_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX + 1];
-	const php_crypto_cipher_mode *mode = EVP_CIPHER_CTX_cipher(cipher_ctx);
+	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(EVP_CIPHER_CTX_cipher(cipher_ctx));
 	if (EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_get_tag_flag, PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX, &bin_tag[0])) {
 		php_crypto_hash_bin2hex(&hex_tag[0], &bin_tag[0], PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX);
 		php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_TAG, &hex_tag[0]);
@@ -134,7 +175,7 @@ static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count
 		if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
 			if (cipher_ctx->encrypt) {
 				/* encryption - save auth tag */
-				php_crypto_stream_auth_save_tag(stream, cipher_ctx);
+				php_crypto_stream_auth_save_tag(stream, cipher_ctx TSRMLS_CC);
 			} else {
 				/* decryption - save auth result */
 				int ok = (int) BIO_ctrl(auth_bio, BIO_C_GET_CIPHER_STATUS, 0, NULL);
@@ -169,7 +210,7 @@ static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 			if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
 				if (cipher_ctx->encrypt) {
 					/* encryption - save auth tag */
-					php_crypto_stream_auth_save_tag(stream, cipher_ctx);
+					php_crypto_stream_auth_save_tag(stream, cipher_ctx TSRMLS_CC);
 				} else {
 					/* decryption - save auth result */
 					php_crypto_stream_auth_save_result(stream, ok);
