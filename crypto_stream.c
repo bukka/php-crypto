@@ -98,7 +98,7 @@ static void inline php_crypto_stream_create_meta_field(char *out, const char *ke
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_save_tag */
-static void php_crypto_stream_add_meta(php_stream *stream, const char *key, const char *value)
+static void php_crypto_stream_set_meta(php_stream *stream, const char *key, const char *value)
 {
 	char *header;
 	size_t len = strlen(key) + strlen(value) + 3;
@@ -115,9 +115,9 @@ static void php_crypto_stream_add_meta(php_stream *stream, const char *key, cons
 			zend_hash_get_current_data_ex(Z_ARRVAL_P(stream->wrapperdata), (void **) &ppz_wrapperdata_item, &pos) == SUCCESS;
 			zend_hash_move_forward_ex(Z_ARRVAL_P(stream->wrapperdata), &pos)
 		) {
-			if (Z_TYPE_PP(ppz_wrapperdata_item) == IS_STRING && 
+			if (Z_TYPE_PP(ppz_wrapperdata_item) == IS_STRING &&
 				Z_STRLEN_PP(ppz_wrapperdata_item) > strlen(key) &&
-				!strncpy(Z_STRVAL_PP(ppz_wrapperdata_item), key, strlen(key))
+				!strncmp(Z_STRVAL_PP(ppz_wrapperdata_item), key, strlen(key))
 			) {
 				if (len > Z_STRLEN_PP(ppz_wrapperdata_item)) {
 					Z_STRVAL_PP(ppz_wrapperdata_item) = erealloc(Z_STRVAL_PP(ppz_wrapperdata_item), len);
@@ -128,6 +128,7 @@ static void php_crypto_stream_add_meta(php_stream *stream, const char *key, cons
 			
 		}
 	} else {
+		MAKE_STD_ZVAL(stream->wrapperdata);
 		array_init(stream->wrapperdata);
 	}
 	
@@ -146,7 +147,7 @@ static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *
 	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(EVP_CIPHER_CTX_cipher(cipher_ctx));
 	if (EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_get_tag_flag, PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX, &bin_tag[0])) {
 		php_crypto_hash_bin2hex(&hex_tag[0], &bin_tag[0], PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX);
-		php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_TAG, &hex_tag[0]);
+		php_crypto_stream_set_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_TAG, &hex_tag[0]);
 	} else {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_FAILED));
 	}
@@ -156,7 +157,7 @@ static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *
 /* {{{ php_crypto_stream_auth_save_result */
 static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
 {
-	php_crypto_stream_add_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failure");
+	php_crypto_stream_set_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failure");
 }
 /* }}} */
 
