@@ -36,6 +36,7 @@ fwrite($stream_write, $data);
 fflush($stream_write);
 echo "FILE '$filename' encrypted (base64):" . PHP_EOL;
 echo base64_encode(file_get_contents($filename));
+echo PHP_EOL;
 echo "META FIELDS:" . PHP_EOL;
 print_r(stream_get_meta_data($stream_write));
 echo PHP_EOL;
@@ -68,6 +69,7 @@ while ($data = fread($stream_read, 5)) {
 	echo $data;
 }
 echo file_get_contents("crypto.file://" . $filename, false, $context_read);
+echo PHP_EOL;
 echo "META FIELDS:" . PHP_EOL;
 print_r(stream_get_meta_data($stream_read));
 echo PHP_EOL;
