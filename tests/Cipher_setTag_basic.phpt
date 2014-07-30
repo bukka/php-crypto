@@ -10,8 +10,6 @@ $iv = str_repeat('i', 16);
 $data = pack("H*", '622070d3bea6f720943d1198a7e6afa5');
 $tag = pack("H*", 'ed39e13f9a9fdf19036ad2f1ed5d2d1f');
 
-str_repeat('a', 16);
-
 $cipher = new Crypto\Cipher('aes-256-gcm');
 $cipher->setTag('wrong tag');
 try {
