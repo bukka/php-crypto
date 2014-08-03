@@ -264,8 +264,10 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	zval **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
 	BIO *cipher_bio;
 	const EVP_CIPHER *cipher;
+	EVP_CIPHER_CTX *cipher_ctx;
 	const php_crypto_cipher_mode *mode;
-	int enc = 1;
+	unsigned char *aad;
+	int enc = 1, aad_len;
 	
 	if (Z_TYPE_PP(ppz_cipher) != IS_ARRAY) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_CONTEXT_TYPE_INVALID));
@@ -303,16 +305,17 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 		return FAILURE;
 	}
 	
+	mode = php_crypto_get_cipher_mode(cipher);
+	if (mode->auth_enc) {
+		data->auth_enc = 1;
+	}
+	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key", sizeof("key"), (void **) &ppz_key) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_NOT_SUPPLIED));
 		return FAILURE;
 	}
 	if (Z_TYPE_PP(ppz_key) != IS_STRING) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_TYPE_INVALID));
-		return FAILURE;
-	}
-	if (Z_STRLEN_PP(ppz_key) != EVP_CIPHER_key_length(cipher)) {
-		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_LENGTH_INVALID), EVP_CIPHER_key_length(cipher));
 		return FAILURE;
 	}
 	
@@ -323,15 +326,6 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	if (Z_TYPE_PP(ppz_iv) != IS_STRING) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_TYPE_INVALID));
 		return FAILURE;
-	}
-	if (Z_STRLEN_PP(ppz_iv) != EVP_CIPHER_iv_length(cipher)) {
-		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID), EVP_CIPHER_iv_length(cipher));
-		return FAILURE;
-	}
-	
-	mode = php_crypto_get_cipher_mode(cipher);
-	if (mode->auth_enc) {
-		data->auth_enc = 1;
 	}
 	
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
@@ -349,30 +343,55 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	}
 	
 	cipher_bio = BIO_new(BIO_f_cipher());
-	BIO_set_cipher(cipher_bio, cipher, (unsigned char *) Z_STRVAL_PP(ppz_key), (unsigned char *) Z_STRVAL_PP(ppz_iv), enc);
+	if (!BIO_set_cipher(cipher_bio, cipher, NULL, NULL, enc)) {
+		BIO_free(cipher_bio);
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_INIT_FAILED));
+		return FAILURE;
+	}
 	BIO_push(cipher_bio, data->bio);
 	data->bio = cipher_bio;
+		
+	BIO_get_cipher_ctx(cipher_bio, &cipher_ctx);
 	
-	if (ppz_tag || ppz_aad) {
-		EVP_CIPHER_CTX *cipher_ctx;
-		BIO_get_cipher_ctx(cipher_bio, &cipher_ctx);
-		unsigned char *aad;
-		int aad_len;
-		
-		if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode, (unsigned char *) Z_STRVAL_PP(ppz_tag), Z_STRLEN_PP(ppz_tag) TSRMLS_CC) == FAILURE) {
-			return FAILURE;
-		}
-		
-		if (ppz_aad) {
-			aad =  (unsigned char *) Z_STRVAL_PP(ppz_aad);
-			aad_len = Z_STRLEN_PP(ppz_tag);
-		} else {
-			aad = NULL;
-			aad_len = 0;
-		}
-		if (php_crypto_cipher_write_aad(cipher_ctx, aad, aad_len TSRMLS_CC) == FAILURE) {
-			return FAILURE;
-		}
+	/* check key length */
+	if (Z_STRLEN_PP(ppz_key) != EVP_CIPHER_key_length(cipher) &&
+			!EVP_CIPHER_CTX_set_key_length(cipher_ctx, Z_STRLEN_PP(ppz_key))) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_LENGTH_INVALID), EVP_CIPHER_key_length(cipher));
+		return FAILURE;
+	}
+	/* check iv length */
+	if (Z_STRLEN_PP(ppz_iv) != EVP_CIPHER_iv_length(cipher) &&
+			(!mode->auth_enc || !EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_ivlen_flag, Z_STRLEN_PP(ppz_iv), NULL))) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID), EVP_CIPHER_iv_length(cipher));
+		return FAILURE;
+	}
+	
+	/* initialize cipher with key and iv */
+	if (!EVP_CipherInit_ex(cipher_ctx, NULL, NULL,
+			(unsigned char *) Z_STRVAL_PP(ppz_key), (unsigned char *) Z_STRVAL_PP(ppz_iv), enc)) {
+		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_INIT_FAILED));
+		return FAILURE;
+	}
+	
+	if (!mode->auth_enc) {
+		return SUCCESS;
+	}
+	
+	/* authentication tag */
+	if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode, 
+			(unsigned char *) Z_STRVAL_PP(ppz_tag), Z_STRLEN_PP(ppz_tag) TSRMLS_CC) == FAILURE) {
+		return FAILURE;
+	}
+	/* additional authentication data */
+	if (ppz_aad) {
+		aad =  (unsigned char *) Z_STRVAL_PP(ppz_aad);
+		aad_len = Z_STRLEN_PP(ppz_tag);
+	} else {
+		aad = NULL;
+		aad_len = 0;
+	}
+	if (php_crypto_cipher_write_aad(cipher_ctx, aad, aad_len TSRMLS_CC) == FAILURE) {
+		return FAILURE;
 	}
 	
 	return SUCCESS;

@@ -7,7 +7,7 @@ $filename = tempnam(sys_get_temp_dir(), 'php_crypto_');
 // use AES with CBC mode
 $algorithm = 'aes-256-gcm';
 $key = str_repeat('x', 32);
-$iv = str_repeat('i', 12);
+$iv = str_repeat('i', 16);
 $data = str_repeat('a', 16);
 
 

@@ -756,7 +756,7 @@ static php_crypto_algorithm_object *php_crypto_cipher_init_ex(zval *zobject, cha
 		return NULL;
 	}
 
-	/* initialize encryption */
+	/* initialize encryption/decryption */
 	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(intern), PHP_CRYPTO_CIPHER_ALG(intern), NULL, NULL, NULL, enc)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, INIT_ALG_FAILED));
 		return NULL;
