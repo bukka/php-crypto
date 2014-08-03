@@ -9,9 +9,31 @@ $ciphertext = pack("H*", '8f8853a1685607133cb9ee0fc7a5b8a57103935cbc39ea680def0d
 
 $cipher = new Crypto\Cipher('aes-256-cbc');
 
+// key length
+try {
+	$cipher->decrypt($ciphertext, 'short_key', $iv);
+}
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\CipherException::KEY_LENGTH_INVALID) {
+		echo "SHORT KEY\n";
+	}
+}
+
+// iv length
+try {
+	$cipher->decrypt($ciphertext, $key, 'short_iv');
+}
+catch (Crypto\AlgorithmException $e) {
+	if ($e->getCode() === Crypto\CipherException::IV_LENGTH_INVALID) {
+		echo "SHORT IV\n";
+	}
+}
+
 // init first
 echo $cipher->decrypt($ciphertext, $key, $iv) . "\n";
 
 ?>
 --EXPECT--
+SHORT KEY
+SHORT IV
 aaaaaaaaaaaaaaaa
