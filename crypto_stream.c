@@ -385,7 +385,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	/* additional authentication data */
 	if (ppz_aad) {
 		aad =  (unsigned char *) Z_STRVAL_PP(ppz_aad);
-		aad_len = Z_STRLEN_PP(ppz_tag);
+		aad_len = Z_STRLEN_PP(ppz_aad);
 	} else {
 		aad = NULL;
 		aad_len = 0;
