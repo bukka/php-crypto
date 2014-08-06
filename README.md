@@ -58,6 +58,8 @@ Finally the following line needs to be added to `php.ini`
 extension=crypto.so
 ```
 
+Be aware that master branch contains a slightly different error handling. You can see examples for more details. All changes will be soon documented on wiki.
+
 ### Windows
 
 Precompiled binary `dll` libraries for php-crypto are available on [the PECL crypto page](http://pecl.php.net/package/crypto).
