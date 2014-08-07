@@ -343,11 +343,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	}
 	
 	cipher_bio = BIO_new(BIO_f_cipher());
-	if (!BIO_set_cipher(cipher_bio, cipher, NULL, NULL, enc)) {
-		BIO_free(cipher_bio);
-		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_INIT_FAILED));
-		return FAILURE;
-	}
+	BIO_set_cipher(cipher_bio, cipher, NULL, NULL, enc);
 	BIO_push(cipher_bio, data->bio);
 	data->bio = cipher_bio;
 		
