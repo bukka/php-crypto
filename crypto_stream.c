@@ -116,10 +116,10 @@ static void php_crypto_stream_set_meta(php_stream *stream, const char *key, cons
 			zend_hash_move_forward_ex(Z_ARRVAL_P(stream->wrapperdata), &pos)
 		) {
 			if (Z_TYPE_PP(ppz_wrapperdata_item) == IS_STRING &&
-				Z_STRLEN_PP(ppz_wrapperdata_item) > strlen(key) &&
+				(size_t) Z_STRLEN_PP(ppz_wrapperdata_item) > strlen(key) &&
 				!strncmp(Z_STRVAL_PP(ppz_wrapperdata_item), key, strlen(key))
 			) {
-				if (len > Z_STRLEN_PP(ppz_wrapperdata_item)) {
+				if (len > (size_t) Z_STRLEN_PP(ppz_wrapperdata_item)) {
 					Z_STRVAL_PP(ppz_wrapperdata_item) = erealloc(Z_STRVAL_PP(ppz_wrapperdata_item), len);
 				}
 				php_crypto_stream_create_meta_field(Z_STRVAL_PP(ppz_wrapperdata_item), key, value);
