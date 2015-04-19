@@ -49,7 +49,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "The cipher tag is useful onl
 PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "The cipher AAD is useful only for authenticated mode", E_NOTICE)
 PHP_CRYPTO_ERROR_INFO_END()
 
-ZEND_DECLARE_MODULE_GLOBALS(crypto)
+ZEND_EXTERN_MODULE_GLOBALS(crypto)
 
 /* crypto stream data */
 typedef struct {
