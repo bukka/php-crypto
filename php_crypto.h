@@ -34,6 +34,9 @@ extern zend_module_entry crypto_module_entry;
 #include "TSRM.h"
 #endif
 
+/* PHP Compatibility layer */
+#include "phpc/phpc.h"
+
 /* Crypto version */
 #define PHP_CRYPTO_VERSION "0.1.1"
 
@@ -88,7 +91,7 @@ PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_cla
 #define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
 #define PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(ename ## Exception), NULL); \
-	PHP_CRYPTO_EXCEPTION_CE(ename) = zend_register_internal_class_ex(&ce, epname_ce, NULL TSRMLS_CC)
+	PHP_CRYPTO_EXCEPTION_CE(ename) = PHPC_CLASS_REGISTER_EX(ce, epname_ce, NULL)
 #define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_CE(epname))
 #define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, Crypto)
 
