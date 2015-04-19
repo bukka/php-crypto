@@ -41,6 +41,10 @@
 - Add compatibility layer for PHP 7
 - Add open_basedir check
 
+## Build
+- Add EGD check (LibreSSL compat)
+- Version check for minimum version
+  - At least 0.9.8 should be used
 
 # Upcoming releases
 
