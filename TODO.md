@@ -1,9 +1,5 @@
 # TODO list
 
-## General
-- Add support for PHP 7
-  - use `bukka/phpc`
-
 ## BIO
 - Add new streams
   - connect
@@ -12,6 +8,7 @@
 - Add support for persistent connection
 - Why SEEK_CUR is 0 when passed to crypto_stream_seek?
   - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
+- Add crypto PHP stream filters
 
 ## Base64
 - Memory testing
@@ -19,16 +16,16 @@
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
 
 ## Cipher
-- Separate code from alg
 - Rename `auth_enc` to `aead`
-- Setting input and output stream based filters (hex, base64...)
-- Add KDF parameter to encryptInit and encrypt
-- Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
-- Add support for `EVP_CIPHER_CTX_rand_key`
 - CCM plaintext/ciphertext length must be passed
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
+- Add KDF parameter to encryptInit and encrypt
+- Add support for `EVP_CIPHER_CTX_rand_key`
+- Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
+- Setting input and output stream based filters (hex, base64...)
 - Fix memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
+- Separate code from alg
 
 ## KDF
 - Add new class KDF for Key derivation function
@@ -36,13 +33,11 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
-- Separate code from alg
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
-
+- Separate code from alg
 
 ## Internal issues
-- Use short prefix `pc` for all functions
 - Add compatibility layer for PHP 7
 - Add open_basedir check
 
@@ -53,10 +48,8 @@
 - Crypto stream
   - BIO wrapper
 - Improved error handling
-- Removed Algorithm class
-  - Cipher and Hash are base classes
+- Support for PHP 7
 
 ## 0.3.0 (devel)
-- Support for PHP 7
 - New API for KDF
 
