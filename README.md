@@ -41,7 +41,7 @@ wget -O - https://github.com/bukka/php-crypto/archive/master.tar.gz | tar xzp
 ```
 or if you prefer to clone the repository
 ```
-git clone https://github.com/bukka/php-crypto.git
+git clone --recursive https://github.com/bukka/php-crypto.git
 ```
 
 Then go to the created directory and compile the extension. The PHP development package has to be installed (command `phpize` must be available).
