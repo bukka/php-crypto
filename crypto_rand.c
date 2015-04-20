@@ -63,7 +63,7 @@ static const zend_function_entry php_crypto_rand_object_methods[] = {
 	PHP_CRYPTO_ME(Rand,   loadFile,     arginfo_crypto_rand_load_file,    ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Rand,   writeFile,    arginfo_crypto_rand_write_file,   ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Rand,   egd,          arginfo_crypto_rand_egd,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 
 /* class entry */
@@ -76,7 +76,7 @@ PHP_MINIT_FUNCTION(crypto_rand)
 
 	/* Rand class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Rand), php_crypto_rand_object_methods);
-	php_crypto_rand_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	php_crypto_rand_ce = PHPC_CLASS_REGISTER(ce);
 
 	/* RandException class */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Rand);
@@ -90,8 +90,8 @@ PHP_MINIT_FUNCTION(crypto_rand)
    Generates pseudo random bytes */
 PHP_CRYPTO_METHOD(Rand, generate)
 {
-	long num;
-	char *buf;
+	phpc_long_t num;
+	PHPC_STR_DECLARE(buf);
 	zval *zstrong_result = NULL;
 	zend_bool strong_result, must_be_strong = 1;
 
@@ -99,23 +99,23 @@ PHP_CRYPTO_METHOD(Rand, generate)
 		return;
 	}
 
-	buf = emalloc(sizeof(buf) * num + 1);
+	PHPC_STR_ALLOC(buf, (phpc_str_size_t) num);
 
 	if (must_be_strong) {
-		if (!RAND_bytes((unsigned char *) buf, num)) {
+		if (!RAND_bytes((unsigned char *) PHPC_STR_VAL(buf), num)) {
 			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, GENERATE_PREDICTABLE));
-			efree(buf);
+			PHPC_STR_RELEASE(buf);
 			RETURN_FALSE;
 		}
 		strong_result = 1;
 	} else {
-		strong_result = RAND_pseudo_bytes((unsigned char *) buf, num);
+		strong_result = RAND_pseudo_bytes((unsigned char *) PHPC_STR_VAL(buf), num);
 	}
 	if (zstrong_result) {
 		ZVAL_BOOL(zstrong_result, strong_result);
 	}
-	buf[num] = '\0';
-	RETURN_STRINGL(buf, num, 0);
+	PHPC_STR_VAL(buf)[num] = '\0';
+	PHPC_STR_RETURN(buf);
 }
 /* }}} */
 
@@ -124,7 +124,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 PHP_CRYPTO_METHOD(Rand, seed)
 {
 	char *buf;
-	long buf_len;
+	phpc_str_size_t buf_len;
 	double entropy;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|d", &buf, &buf_len, &entropy) == FAILURE) {
@@ -157,10 +157,10 @@ PHP_CRYPTO_METHOD(Rand, cleanup)
 PHP_CRYPTO_METHOD(Rand, loadFile)
 {
 	char *path;
-	int path_len;
-	long max_bytes = -1;
+	phpc_str_size_t path_len;
+	phpc_long_t max_bytes = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHP_CRYPTO_PATH_FMT"|l", &path, &path_len, &max_bytes) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG"|l", &path, &path_len, &max_bytes) == FAILURE) {
 		return;
 	}
 
@@ -175,9 +175,10 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 PHP_CRYPTO_METHOD(Rand, writeFile)
 {
 	char *path;
-	int path_len, bytes_written;
+	phpc_str_size_t path_len;
+	int bytes_written;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHP_CRYPTO_PATH_FMT, &path, &path_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG, &path, &path_len) == FAILURE) {
 		return;
 	}
 
@@ -186,7 +187,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, FILE_WRITE_PREDICTABLE));
 		RETURN_FALSE;
 	} else {
-		RETURN_LONG(bytes_written);
+		RETURN_LONG((phpc_long_t) bytes_written);
 	}
 }
 /* }}} */
@@ -197,26 +198,23 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 PHP_CRYPTO_METHOD(Rand, egd)
 {
 	char *path;
-	int path_len;
-	long bytes = 255;
+	phpc_str_size_t path_len;
+	phpc_long_t bytes = 255;
 	zend_bool seed;
-	unsigned char *buf = NULL;
+	PHPC_STR_DECLARE(buf);
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|lb", &path, &path_len, &bytes, &seed) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG"|lb", &path, &path_len, &bytes, &seed) == FAILURE) {
 		return;
 	}
 
-	if (!seed) {
-		buf = emalloc(sizeof(unsigned char) * bytes + 1);
-	}
-
-	RAND_query_egd_bytes(path, buf, bytes);
-
-	if (!seed) {
-		buf[bytes] = '\0';
-		RETURN_STRINGL((char *) buf, bytes, 0);
-	} else {
+	if (seed) {
+		RAND_query_egd_bytes(path, NULL, bytes);
 		RETURN_NULL();
 	}
+
+	PHPC_STR_ALLOC(buf, (phpc_str_size_t) bytes);
+	RAND_query_egd_bytes(path, PHPC_STR_VAL(buf), bytes);
+	PHPC_STR_VAL(buf)[bytes] = '\0';
+	PHPC_STR_RETURN(buf);
 }
 /* }}} */

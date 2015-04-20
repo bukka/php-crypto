@@ -37,9 +37,16 @@
 - Hash::update returns copy of object (check if data are not copied)
 - Separate code from alg
 
+## Rand
+- Check for overflow in `Rand::generate::buf_len` (positive int is required)
+- Check for overflow in `Rand::loadFile::max_bytes` (positive long or -1 is required?)
+- Add open_basedir check
+  - `Rand::loadFile`
+  - `Rand::writeFile`
+  - `Rand::egd`
+
 ## Internal issues
 - Add compatibility layer for PHP 7
-- Add open_basedir check
 
 ## Build
 - Add EGD check (LibreSSL compat)
