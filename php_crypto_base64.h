@@ -30,11 +30,11 @@ typedef enum {
 	PHP_CRYPTO_BASE64_STATUS_DECODE
 } php_crypto_base64_status;
 
-typedef struct {
+PHPC_OBJ_STRUCT_BEGIN(crypto_base64)
 	zend_object zo;
 	php_crypto_base64_status status;
 	EVP_ENCODE_CTX *ctx;
-} php_crypto_base64_object;
+PHPC_OBJ_STRUCT_END()
 
 /* Base64 macros for endoding and decoding context size */
 #define PHP_CRYPTO_BASE64_DECODING_SIZE_MIN 49

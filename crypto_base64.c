@@ -51,22 +51,14 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
 
 /* object handler */
-static zend_object_handlers php_crypto_base64_object_handlers;
-
-/* {{{ php_crypto_base64_object_dtor */
-static void php_crypto_base64_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
-{
-	zend_objects_destroy_object(object, handle TSRMLS_CC);
-}
-/* }}} */
+PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_base64);
 
 /* {{{ php_crypto_base64_object_free */
-static void php_crypto_base64_object_free(zend_object *object TSRMLS_DC)
+PHPC_OBJ_HANDLER_FREE(crypto_base64)
 {
-	php_crypto_base64_object *intern = (php_crypto_base64_object *) object;
-	zend_object_std_dtor(&intern->zo TSRMLS_CC);
+	PHPC_OBJ_STRUCT_DECLARE_AND_FETCH_FROM_ZOBJ(extest_compat, intern);
 	efree(intern->ctx);
-	efree(intern);
+	PHPC_OBJ_HANDLER_FREE_DTOR(intern);
 }
 /* }}} */
 
