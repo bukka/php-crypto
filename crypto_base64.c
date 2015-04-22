@@ -53,7 +53,7 @@ PHP_CRYPTO_API zend_class_entry *php_crypto_base64_ce;
 /* object handler */
 PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_base64);
 
-/* {{{ php_crypto_base64_object_free */
+/* {{{ crypto_base64 free object handler */
 PHPC_OBJ_HANDLER_FREE(crypto_base64)
 {
 	PHPC_OBJ_STRUCT_DECLARE_AND_FETCH_FROM_ZOBJ(extest_compat, intern);
@@ -62,58 +62,49 @@ PHPC_OBJ_HANDLER_FREE(crypto_base64)
 }
 /* }}} */
 
-/* {{{ php_crypto_base64_object_create_ex */
-static zend_object_value php_crypto_base64_object_create_ex(zend_class_entry *class_type, php_crypto_base64_object **ptr TSRMLS_DC)
+/* {{{ crypto_base64 create_ex object helper */
+PHPC_OBJ_HANDLER_CREATE_EX(crypto_base64)
 {
-	zend_object_value retval;
-	php_crypto_base64_object *intern;
+	PHPC_OBJ_HANDLER_CREATE_EX_INIT();
+	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, intern);
 
-	/* Allocate memory for it */
-	intern = (php_crypto_base64_object *) emalloc(sizeof(php_crypto_base64_object));
-	memset(intern, 0, sizeof(php_crypto_base64_object));
-	if (ptr) {
-		*ptr = intern;
-	}
-	zend_object_std_init(&intern->zo, class_type TSRMLS_CC);
-	PHP_CRYPTO_OBJECT_PROPERTIES_INIT(&intern->zo, class_type);
+	intern = PHPC_OBJ_HANDLER_CREATE_EX_ALLOC(crypto_base64);
+	PHPC_OBJ_HANDLER_INIT_CREATE_EX_PROPS(intern);
 
+	/* allocate encode context */
 	intern->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
 
-	retval.handlers = &php_crypto_base64_object_handlers;
-	retval.handle = zend_objects_store_put(
-		intern,
-		(zend_objects_store_dtor_t) php_crypto_base64_object_dtor,
-		(zend_objects_free_object_storage_t) php_crypto_base64_object_free,
-		NULL TSRMLS_CC);
-
-	return retval;
+	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_base64, intern);
 }
 /* }}} */
 
-/* {{{ php_crypto_base64_object_create */
-static zend_object_value php_crypto_base64_object_create(zend_class_entry *class_type TSRMLS_DC)
+/* {{{ crypto_base64 create object handler */
+PHPC_OBJ_HANDLER_CREATE(crypto_base64)
 {
-	return php_crypto_base64_object_create_ex(class_type, NULL TSRMLS_CC);
+	PHPC_OBJ_HANDLER_CREATE_RETURN(crypto_base64);
 }
 /* }}} */
 
-/* {{{ php_crypto_base64_object_clone */
-zend_object_value php_crypto_base64_object_clone(zval *this_ptr TSRMLS_DC)
+/* {{{ crypto_base64 clone object handler */
+PHPC_OBJ_HANDLER_CLONE(crypto_base64)
 {
-	php_crypto_base64_object *new_obj = NULL;
-	php_crypto_base64_object *old_obj = (php_crypto_base64_object *) zend_object_store_get_object(this_ptr TSRMLS_CC);
-	zend_object_value new_ov = php_crypto_base64_object_create_ex(old_obj->zo.ce, &new_obj TSRMLS_CC);
+	PHPC_OBJ_HANDLER_CLONE_INIT();
+	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, old_obj);
+	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, new_obj);
 
-	zend_objects_clone_members(&new_obj->zo, new_ov, &old_obj->zo, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
+	old_obj = PHPC_OBJ_FROM_SELF(crypto_base64);
+	PHPC_OBJ_HANDLER_CLONE_MEMBERS(crypto_base64, new_obj, old_obj);
+
 	new_obj->status = old_obj->status;
 	memcpy(new_obj->ctx, old_obj->ctx, sizeof (EVP_ENCODE_CTX));
 
-	return new_ov;
+	PHPC_OBJ_HANDLER_CLONE_RETURN(new_obj);
 }
 /* }}} */
 
 #define PHP_CRYPTO_DECLARE_BASE64_E_CONST(aconst) \
-	zend_declare_class_constant_long(php_crypto_base64_exception_ce, #aconst, sizeof(#aconst)-1, PHP_CRYPTO_BASE64_E(aconst) TSRMLS_CC)
+	zend_declare_class_constant_long(php_crypto_base64_exception_ce, \
+		#aconst, sizeof(#aconst)-1, PHP_CRYPTO_BASE64_E(aconst) TSRMLS_CC)
 
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_base64)
@@ -122,10 +113,12 @@ PHP_MINIT_FUNCTION(crypto_base64)
 
 	/* Base64 class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Base64), php_crypto_base64_object_methods);
-	ce.create_object = php_crypto_base64_object_create;
-	memcpy(&php_crypto_base64_object_handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-	php_crypto_base64_object_handlers.clone_obj = php_crypto_base64_object_clone;
-	php_crypto_base64_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	PHPC_CLASS_SET_HANDLER_CREATE(ce, crypto_base64);
+	php_crypto_base64_ce = PHPC_CLASS_REGISTER(ce);
+	PHPC_OBJ_INIT_HANDLERS(crypto_base64);
+	PHPC_OBJ_SET_HANDLER_OFFSET(extest_compat);
+	PHPC_OBJ_SET_HANDLER_FREE(extest_compat);
+	PHPC_OBJ_SET_HANDLER_CLONE(extest_compat);
 
 	/* Base64Exception class */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Base64);
