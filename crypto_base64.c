@@ -234,37 +234,39 @@ PHP_CRYPTO_METHOD(Base64, __construct)
    Encodes block of characters from $data and saves the reminder of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 {
-	char *in, *out;
-	int in_len, out_len, real_len;
-	php_crypto_base64_object *intern;
+	char *in;
+	phpc_str_size_t in_len;
+	size_t real_len;
+	PHPC_STR_DECLARE(out);
+	PHPC_THIS_DECLARE(crypto_base64);
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
 		return;
 	}
 
-	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_base64);
 
-	if (intern->status == PHP_CRYPTO_BASE64_STATUS_DECODE) {
+	if (PHPC_THIS->status == PHP_CRYPTO_BASE64_STATUS_DECODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_UPDATE_FORBIDDEN));
 		RETURN_FALSE;
 	}
-	if (intern->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
-		php_crypto_base64_encode_init(intern->ctx);
-		intern->status = PHP_CRYPTO_BASE64_STATUS_ENCODE;
+	if (PHPC_THIS->status == PHP_CRYPTO_BASE64_STATUS_CLEAR) {
+		php_crypto_base64_encode_init(PHPC_THIS->ctx);
+		PHPC_THIS->status = PHP_CRYPTO_BASE64_STATUS_ENCODE;
 	}
 
 	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, intern->ctx);
 	if (real_len < PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN) {
 		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
-		php_crypto_base64_encode_update(intern->ctx, buff, &out_len, in, in_len);
+		php_crypto_base64_encode_update(PHPC_THIS->ctx, buff, &out_len, in, in_len);
 		if (out_len == 0) {
 			RETURN_EMPTY_STRING();
 		}
 		buff[out_len] = 0;
 		RETURN_STRINGL(buff, out_len, 1);
 	} else {
-		out = (char *) emalloc(real_len+1);
-		php_crypto_base64_encode_update(intern->ctx, out, &out_len, in, in_len);
+		out = (char *) emalloc(real_len + 1);
+		php_crypto_base64_encode_update(PHPC_THIS->ctx, out, &out_len, in, in_len);
 		out[out_len] = 0;
 		RETURN_STRINGL(out, out_len, 0);
 	}
