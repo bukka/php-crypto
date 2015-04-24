@@ -56,7 +56,7 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_base64);
 /* {{{ crypto_base64 free object handler */
 PHPC_OBJ_HANDLER_FREE(crypto_base64)
 {
-	PHPC_OBJ_STRUCT_DECLARE_AND_FETCH_FROM_ZOBJ(extest_compat, intern);
+	PHPC_OBJ_STRUCT_DECLARE_AND_FETCH_FROM_ZOBJ(rsa, intern);
 	efree(intern->ctx);
 	PHPC_OBJ_HANDLER_FREE_DTOR(intern);
 }
@@ -116,9 +116,9 @@ PHP_MINIT_FUNCTION(crypto_base64)
 	PHPC_CLASS_SET_HANDLER_CREATE(ce, crypto_base64);
 	php_crypto_base64_ce = PHPC_CLASS_REGISTER(ce);
 	PHPC_OBJ_INIT_HANDLERS(crypto_base64);
-	PHPC_OBJ_SET_HANDLER_OFFSET(extest_compat);
-	PHPC_OBJ_SET_HANDLER_FREE(extest_compat);
-	PHPC_OBJ_SET_HANDLER_CLONE(extest_compat);
+	PHPC_OBJ_SET_HANDLER_OFFSET(crypto_base64);
+	PHPC_OBJ_SET_HANDLER_FREE(crypto_base64);
+	PHPC_OBJ_SET_HANDLER_CLONE(crypto_base64);
 
 	/* Base64Exception class */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Base64);
@@ -136,16 +136,21 @@ static inline void php_crypto_base64_encode_init(EVP_ENCODE_CTX *ctx)
 /* }}} */
 
 /* {{{ php_crypto_base64_encode_update */
-static inline void php_crypto_base64_encode_update(EVP_ENCODE_CTX *ctx, char *out, int *outl, const char *in, int inl)
+static inline void php_crypto_base64_encode_update(
+		EVP_ENCODE_CTX *ctx, char *out, phpc_str_size_t *outl,
+		const char *in, phpc_str_size_t inl)
 {
-	EVP_EncodeUpdate(ctx, (unsigned char *) out, outl, (const unsigned char *) in, inl);
+	EVP_EncodeUpdate(ctx,
+			(unsigned char *) out, (int *) outl,
+			(const unsigned char *) in, inl);
 }
 /* }}} */
 
 /* {{{ php_crypto_base64_encode_finish */
-static inline void php_crypto_base64_encode_finish(EVP_ENCODE_CTX *ctx, char *out, int *outl)
+static inline void php_crypto_base64_encode_finish(
+		EVP_ENCODE_CTX *ctx, char *out, phpc_str_size_t *outl)
 {
-	EVP_EncodeFinal(ctx, (unsigned char *) out, outl);
+	EVP_EncodeFinal(ctx, (unsigned char *) out, (int *) outl);
 }
 /* }}} */
 
@@ -157,9 +162,13 @@ static inline void php_crypto_base64_decode_init(EVP_ENCODE_CTX *ctx)
 /* }}} */
 
 /* {{{ php_crypto_base64_decode_update */
-static inline int php_crypto_base64_decode_update(EVP_ENCODE_CTX *ctx, char *out, int *outl, const char *in, int inl TSRMLS_DC)
+static inline int php_crypto_base64_decode_update(
+		EVP_ENCODE_CTX *ctx, char *out, phpc_str_size_t *outl,
+		const char *in, phpc_str_size_t inl TSRMLS_DC)
 {
-	int rc = EVP_DecodeUpdate(ctx, (unsigned char *) out, outl, (const unsigned char *) in, inl);
+	int rc = EVP_DecodeUpdate(ctx,
+			(unsigned char *) out, (int *) outl,
+			(const unsigned char *) in, inl);
 	if (rc < 0) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_UPDATE_FAILED));
 	}
@@ -178,8 +187,9 @@ static inline void php_crypto_base64_decode_finish(EVP_ENCODE_CTX *ctx, char *ou
    Encodes string $data to base64 encoding */
 PHP_CRYPTO_METHOD(Base64, encode)
 {
-	char *in, *out;
-	int in_len, out_len, final_len;
+	char *in;
+	phpc_str_size_t real_len, final_len, in_len, update_len;
+	PHPC_STR_DECLARE(out);
 	EVP_ENCODE_CTX ctx;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
@@ -187,13 +197,16 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	}
 
 	php_crypto_base64_encode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, &ctx);
-	out = (char *) emalloc(out_len);
-	php_crypto_base64_encode_update(&ctx, out, &out_len, in, in_len);
-	php_crypto_base64_encode_finish(&ctx, out + out_len, &final_len);
-	out_len += final_len;
-	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 0);
+	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, &ctx);
+	PHPC_STR_ALLOC(out, real_len);
+	php_crypto_base64_encode_update(&ctx, PHPC_STR_VAL(out), &update_len, in, in_len);
+	php_crypto_base64_encode_finish(&ctx, PHPC_STR_VAL(out) + update_len, &final_len);
+	final_len += update_len;
+	if (real_len < final_len) {
+		PHPC_STR_REALLOC(out, final_len);
+	}
+	PHPC_STR_VAL(buf)[final_len] = '\0';
+	PHPC_STR_RETURN(buf);
 }
 
 /* {{{ proto string Crypto\Base64::decode(string $data)

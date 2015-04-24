@@ -31,7 +31,6 @@ typedef enum {
 } php_crypto_base64_status;
 
 PHPC_OBJ_STRUCT_BEGIN(crypto_base64)
-	zend_object zo;
 	php_crypto_base64_status status;
 	EVP_ENCODE_CTX *ctx;
 PHPC_OBJ_STRUCT_END()
