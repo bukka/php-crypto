@@ -202,7 +202,7 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	php_crypto_base64_encode_update(&ctx, PHPC_STR_VAL(out), &update_len, in, in_len);
 	php_crypto_base64_encode_finish(&ctx, PHPC_STR_VAL(out) + update_len, &final_len);
 	final_len += update_len;
-	if (real_len < final_len) {
+	if (real_len > final_len) {
 		PHPC_STR_REALLOC(out, final_len);
 	}
 	PHPC_STR_VAL(out)[final_len] = '\0';
@@ -249,7 +249,7 @@ PHP_CRYPTO_METHOD(Base64, __construct)
 PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 {
 	char *in;
-	phpc_str_size_t in_len;
+	phpc_str_size_t in_len, update_len;
 	size_t real_len;
 	PHPC_STR_DECLARE(out);
 	PHPC_THIS_DECLARE(crypto_base64);
@@ -272,17 +272,20 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, intern->ctx);
 	if (real_len < PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN) {
 		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
-		php_crypto_base64_encode_update(PHPC_THIS->ctx, buff, &out_len, in, in_len);
-		if (out_len == 0) {
+		php_crypto_base64_encode_update(PHPC_THIS->ctx, buff, &update_len, in, in_len);
+		if (update_len == 0) {
 			RETURN_EMPTY_STRING();
 		}
-		buff[out_len] = 0;
-		RETURN_STRINGL(buff, out_len, 1);
+		buff[update_len] = '\0';
+		PHPC_CSTR_WITH_LEN_RETURN(buff, update_len);
 	} else {
-		out = (char *) emalloc(real_len + 1);
-		php_crypto_base64_encode_update(PHPC_THIS->ctx, out, &out_len, in, in_len);
-		out[out_len] = 0;
-		RETURN_STRINGL(out, out_len, 0);
+		PHPC_STR_ALLOC(out, real_len);
+		php_crypto_base64_encode_update(PHPC_THIS->ctx, PHPC_STR_VAL(out), &update_len, in, in_len);
+		if (real_len > update_len) {
+			PHPC_STR_REALLOC(out, update_len);
+		}
+		PHPC_STR_VAL(out)[update_len] = '\0';
+		PHPC_STR_RETURN(out);
 	}
 }
 
