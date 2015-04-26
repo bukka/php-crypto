@@ -205,16 +205,17 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	if (real_len < final_len) {
 		PHPC_STR_REALLOC(out, final_len);
 	}
-	PHPC_STR_VAL(buf)[final_len] = '\0';
-	PHPC_STR_RETURN(buf);
+	PHPC_STR_VAL(out)[final_len] = '\0';
+	PHPC_STR_RETURN(out);
 }
 
 /* {{{ proto string Crypto\Base64::decode(string $data)
    Decodes base64 string $data to raw encoding */
 PHP_CRYPTO_METHOD(Base64, decode)
 {
-	char *in, *out;
-	int in_len, out_len, final_len;
+	char *in;
+	phpc_str_size_t in_len, real_len, update_len, final_len;
+	PHPC_STR_DECLARE(out);
 	EVP_ENCODE_CTX ctx;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
@@ -222,16 +223,16 @@ PHP_CRYPTO_METHOD(Base64, decode)
 	}
 
 	php_crypto_base64_decode_init(&ctx);
-	out_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
-	out = (char *) emalloc(out_len);
+	real_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
+	PHPC_STR_ALLOC(out, real_len);
 
-	if (php_crypto_base64_decode_update(&ctx, out, &out_len, in, in_len TSRMLS_CC) < 0) {
+	if (php_crypto_base64_decode_update(&ctx, PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) < 0) {
 		RETURN_FALSE;
 	}
-	php_crypto_base64_decode_finish(&ctx, out, &final_len);
-	out_len += final_len;
-	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 0);
+	php_crypto_base64_decode_finish(&ctx, PHPC_STR_VAL(out), &final_len);
+	final_len += update_len;
+	PHPC_STR_VAL(out)[final_len] = '\0';
+	PHPC_STR_RETURN(out);
 }
 
 /* {{{ proto Crypto\Base64::__construct()
