@@ -295,25 +295,25 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
 	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
 	int out_len;
-	php_crypto_base64_object *intern;
+	PHPC_THIS_DECLARE(crypto_base64);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	intern = (php_crypto_base64_object *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_base64);
 
-	if (intern->status != PHP_CRYPTO_BASE64_STATUS_ENCODE) {
+	if (PHPC_THIS->status != PHP_CRYPTO_BASE64_STATUS_ENCODE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, ENCODE_FINISH_FORBIDDEN));
 		RETURN_FALSE;
 	}
 
-	php_crypto_base64_encode_finish(intern->ctx, out, &out_len);
+	php_crypto_base64_encode_finish(PHPC_THIS->ctx, out, &out_len);
 	if (out_len == 0) {
 		RETURN_EMPTY_STRING();
 	}
 	out[out_len] = 0;
-	RETURN_STRINGL(out, out_len, 1);
+	PHPC_CSTR_WITH_LEN_RETURN(out, out_len);
 }
 
 /* {{{ proto Crypto\Base64::decode(string $data)
