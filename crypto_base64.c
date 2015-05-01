@@ -56,25 +56,23 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_base64);
 /* {{{ crypto_base64 free object handler */
 PHPC_OBJ_HANDLER_FREE(crypto_base64)
 {
-	PHPC_OBJ_STRUCT_DECLARE_AND_FETCH_FROM_ZOBJ(crypto_base64, intern);
-	efree(intern->ctx);
-	PHPC_OBJ_HANDLER_FREE_DTOR(intern);
+	PHPC_OBJ_HANDLER_FREE_INIT(crypto_base64);
+
+	efree(PHPC_THIS->ctx);
+
+	PHPC_OBJ_HANDLER_FREE_DESTROY();
 }
 /* }}} */
 
 /* {{{ crypto_base64 create_ex object helper */
 PHPC_OBJ_HANDLER_CREATE_EX(crypto_base64)
 {
-	PHPC_OBJ_HANDLER_CREATE_EX_INIT();
-	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, intern);
-
-	intern = PHPC_OBJ_HANDLER_CREATE_EX_ALLOC(crypto_base64);
-	PHPC_OBJ_HANDLER_INIT_CREATE_EX_PROPS(intern);
+	PHPC_OBJ_HANDLER_CREATE_EX_INIT(crypto_base64);
 
 	/* allocate encode context */
-	intern->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
+	PHPC_THIS->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
 
-	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_base64, intern);
+	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_base64);
 }
 /* }}} */
 
@@ -88,17 +86,12 @@ PHPC_OBJ_HANDLER_CREATE(crypto_base64)
 /* {{{ crypto_base64 clone object handler */
 PHPC_OBJ_HANDLER_CLONE(crypto_base64)
 {
-	PHPC_OBJ_HANDLER_CLONE_INIT();
-	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, old_obj);
-	PHPC_OBJ_STRUCT_DECLARE(crypto_base64, new_obj);
+	PHPC_OBJ_HANDLER_CLONE_INIT(crypto_base64);
 
-	old_obj = PHPC_OBJ_FROM_SELF(crypto_base64);
-	PHPC_OBJ_HANDLER_CLONE_MEMBERS(crypto_base64, new_obj, old_obj);
+	PHPC_THAT->status = PHPC_THIS->status;
+	memcpy(PHPC_THAT->ctx, PHPC_THIS->ctx, sizeof (EVP_ENCODE_CTX));
 
-	new_obj->status = old_obj->status;
-	memcpy(new_obj->ctx, old_obj->ctx, sizeof (EVP_ENCODE_CTX));
-
-	PHPC_OBJ_HANDLER_CLONE_RETURN(new_obj);
+	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
 /* }}} */
 
