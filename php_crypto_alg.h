@@ -47,8 +47,7 @@ typedef enum {
 	PHP_CRYPTO_ALG_STATUS_DECRYPT_FINAL
 } php_crypto_algorithm_status;
 
-typedef struct {
-	zend_object zo;
+PHPC_OBJ_STRUCT_BEGIN(crypto_alg)
 	php_crypto_algorithm_type type;
 	php_crypto_algorithm_status status;
 	union {
@@ -73,7 +72,8 @@ typedef struct {
 			} ctx;
 		} hash;
 	} evp;
-} php_crypto_algorithm_object;
+PHPC_OBJ_STRUCT_END()
+/* php_crypto_algorithm_object -> struct _phpc_crypto_alg__obj */
 
 /* Cipher status accessors */
 #define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(pobj) \
