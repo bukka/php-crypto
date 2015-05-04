@@ -122,7 +122,7 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry php_crypto_algorithm_object_methods[] = {
 	PHP_CRYPTO_ME(Algorithm, __construct,       arginfo_crypto_algorithm,      ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Algorithm, getAlgorithmName,  NULL,                          ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 
 static const zend_function_entry php_crypto_cipher_object_methods[] = {
@@ -146,7 +146,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(Cipher, getTag,           arginfo_crypto_cipher_get_tag,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, setTag,           arginfo_crypto_cipher_set_tag,     ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Cipher, setAAD,           arginfo_crypto_cipher_set_aad,     ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 
 static const zend_function_entry php_crypto_hash_object_methods[] = {
@@ -159,7 +159,7 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHP_CRYPTO_ME(Hash, hexdigest,        NULL,                                ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, getSize,          NULL,                                ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Hash, getBlockSize,     NULL,                                ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 
 /* cipher modes lookup table */

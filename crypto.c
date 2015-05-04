@@ -36,7 +36,7 @@ ZEND_DECLARE_MODULE_GLOBALS(crypto)
 
 /* {{{ crypto_functions[] */
 const zend_function_entry crypto_functions[] = {
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 /* }}} */
 
@@ -72,13 +72,13 @@ PHP_CRYPTO_EXCEPTION_DEFINE(Crypto)
 PHP_MINIT_FUNCTION(crypto)
 {
 	zend_class_entry ce;
-	
+
 	/* Register base exception */
 	PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, Crypto, zend_exception_get_default(TSRMLS_C));
-	
+
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
-	
+
 	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_stream)(INIT_FUNC_ARGS_PASSTHRU);
@@ -101,9 +101,9 @@ PHP_GINIT_FUNCTION(crypto)
 PHP_MSHUTDOWN_FUNCTION(crypto)
 {
 	PHP_MSHUTDOWN(crypto_stream)(SHUTDOWN_FUNC_ARGS_PASSTHRU);
-	
+
 	EVP_cleanup();
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -122,19 +122,19 @@ PHP_MINFO_FUNCTION(crypto)
 /* }}} */
 
 /* {{{ php_crypto_verror */
-PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
+PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce,
 		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args)
 {
 	const php_crypto_error_info *ei = NULL;
 	char *message = NULL;
 	long code = 1;
-	
+
 	if (action == PHP_CRYPTO_ERROR_ACTION_GLOBAL) {
 		action = PHP_CRYPTO_G(error_action);
 	} else if (action == PHP_CRYPTO_ERROR_ACTION_SILENT) {
 		return;
 	}
-	
+
 	while (info->name != NULL) {
 		if (*info->name == *name && !strncmp(info->name, name, strlen(info->name))) {
 			ei = info;
@@ -143,7 +143,7 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 		info++;
 		code++;
 	}
-	
+
 	if (!ei) {
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid error message");
 		return;
@@ -170,7 +170,7 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 /* }}} */
 
 /* {{{ php_crypto_error_ex */
-PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
+PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce,
 		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, ...)
 {
 	va_list args;
@@ -181,7 +181,7 @@ PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_
 /* }}} */
 
 /* {{{ php_crypto_error */
-PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce, 
+PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce,
 		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name)
 {
 	php_crypto_error_ex(info, exc_ce, action, 1 TSRMLS_CC, name);
