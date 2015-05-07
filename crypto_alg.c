@@ -213,17 +213,10 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_alg);
 #define PHP_CRYPTO_GET_ALGORITHM_NAME(this_object) \
 	Z_STRVAL_P(PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object))
 
-/* {{{ php_crypto_algorithm_object_dtor */
-static void php_crypto_algorithm_object_dtor(void *object, zend_object_handle handle TSRMLS_DC)
+/* {{{ crypto_alg free object handler */
+PHPC_OBJ_HANDLER_FREE(crypto_alg)
 {
-	zend_objects_destroy_object(object, handle TSRMLS_CC);
-}
-/* }}} */
-
-/* {{{ php_crypto_algorithm_object_free */
-static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
-{
-	struct _phpc_crypto_alg__obj *PHPC_THIS = (struct _phpc_crypto_alg__obj *) object;
+	PHPC_OBJ_HANDLER_FREE_INIT(crypto_alg);
 
 	if (PHPC_THIS->type == PHP_CRYPTO_ALG_CIPHER) {
 		EVP_CIPHER_CTX_cleanup(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS));
@@ -249,35 +242,24 @@ static void php_crypto_algorithm_object_free(zend_object *object TSRMLS_DC)
 		efree(PHP_CRYPTO_CIPHER_TAG(PHPC_THIS));
 	}
 
-	zend_object_std_dtor(&PHPC_THIS->std TSRMLS_CC);
-	efree(PHPC_THIS);
+	PHPC_OBJ_HANDLER_FREE_DESTROY();
 }
 /* }}} */
 
-/* {{{ php_crypto_algorithm_object_create_ex */
-static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry *class_type, struct _phpc_crypto_alg__obj **ptr TSRMLS_DC)
+/* {{{ crypto_alg create_ex object helper */
+PHPC_OBJ_HANDLER_CREATE_EX(crypto_alg)
 {
-	zend_object_value retval;
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_OBJ_HANDLER_CREATE_EX_INIT(crypto_alg);
 
-	/* Allocate memory for it */
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) emalloc(sizeof(struct _phpc_crypto_alg__obj));
-	memset(PHPC_THIS, 0, sizeof(struct _phpc_crypto_alg__obj));
-	if (ptr) {
-		*ptr = PHPC_THIS;
-	}
-	zend_object_std_init(&PHPC_THIS->std, class_type TSRMLS_CC);
-	PHP_CRYPTO_OBJECT_PROPERTIES_INIT(&PHPC_THIS->std, class_type);
-
-	if (class_type == php_crypto_cipher_ce) {
+	if (PHPC_CLASS_TYPE == php_crypto_cipher_ce) {
 		PHPC_THIS->type = PHP_CRYPTO_ALG_CIPHER;
 		PHP_CRYPTO_CIPHER_CTX(PHPC_THIS) = (EVP_CIPHER_CTX *) emalloc(sizeof(EVP_CIPHER_CTX));
 		EVP_CIPHER_CTX_init(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS));
-	} else if (class_type == php_crypto_hash_ce) {
+	} else if (PHPC_CLASS_TYPE == php_crypto_hash_ce) {
 		PHPC_THIS->type = PHP_CRYPTO_ALG_HASH;
 		PHP_CRYPTO_HASH_CTX(PHPC_THIS) = (EVP_MD_CTX *) emalloc(sizeof(EVP_MD_CTX));
 		EVP_MD_CTX_init(PHP_CRYPTO_HASH_CTX(PHPC_THIS));
-	} else if (class_type == php_crypto_hmac_ce) {
+	} else if (PHPC_CLASS_TYPE == php_crypto_hmac_ce) {
 		PHPC_THIS->type = PHP_CRYPTO_ALG_HMAC;
 		PHP_CRYPTO_HMAC_CTX(PHPC_THIS) = (HMAC_CTX *) emalloc(sizeof(HMAC_CTX));
 		HMAC_CTX_init(PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
@@ -293,74 +275,64 @@ static zend_object_value php_crypto_algorithm_object_create_ex(zend_class_entry 
 		PHPC_THIS->type = PHP_CRYPTO_ALG_NONE;
 	}
 
-	retval.handlers = &_phpc_crypto_alg__handlers;
-	retval.handle = zend_objects_store_put(
-		PHPC_THIS,
-		(zend_objects_store_dtor_t) php_crypto_algorithm_object_dtor,
-		(zend_objects_free_object_storage_t) php_crypto_algorithm_object_free,
-		NULL TSRMLS_CC);
-
-	return retval;
+	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_alg);
 }
 /* }}} */
 
-/* {{{ php_crypto_algorithm_object_create */
-static zend_object_value php_crypto_algorithm_object_create(zend_class_entry *class_type TSRMLS_DC)
+/* {{{ crypto_alg create object handler */
+PHPC_OBJ_HANDLER_CREATE(crypto_alg)
 {
-	return php_crypto_algorithm_object_create_ex(class_type, NULL TSRMLS_CC);
+	PHPC_OBJ_HANDLER_CREATE_RETURN(crypto_alg);
 }
 /* }}} */
 
-/* {{{ php_crypto_algorith_object_clone */
-zend_object_value php_crypto_algorithm_object_clone(zval *this_ptr TSRMLS_DC)
+/* {{{ crypto_alg clone object handler */
+PHPC_OBJ_HANDLER_CLONE(crypto_alg)
 {
-	int copy_success;
-	struct _phpc_crypto_alg__obj *new_obj = NULL;
-	struct _phpc_crypto_alg__obj *old_obj = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(this_ptr TSRMLS_CC);
-	zend_object_value new_ov = php_crypto_algorithm_object_create_ex(old_obj->std.ce, &new_obj TSRMLS_CC);
+	zend_bool copy_success;
+	PHPC_OBJ_HANDLER_CLONE_INIT(crypto_alg);
 
-	zend_objects_clone_members(&new_obj->std, new_ov, &old_obj->std, Z_OBJ_HANDLE_P(this_ptr) TSRMLS_CC);
-	new_obj->status = old_obj->status;
-	new_obj->type = old_obj->type;
+	PHPC_THAT->status = PHPC_THIS->status;
+	PHPC_THAT->type = PHPC_THIS->type;
 
-	if (new_obj->type == PHP_CRYPTO_ALG_CIPHER) {
+	if (PHPC_THAT->type == PHP_CRYPTO_ALG_CIPHER) {
 #ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
-		copy_success = EVP_CIPHER_CTX_copy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj));
+		copy_success = EVP_CIPHER_CTX_copy(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT), PHP_CRYPTO_CIPHER_CTX(PHPC_THIS));
 #else
-		memcpy(PHP_CRYPTO_CIPHER_CTX(new_obj), PHP_CRYPTO_CIPHER_CTX(old_obj), sizeof *(PHP_CRYPTO_CIPHER_CTX(new_obj)));
+		memcpy(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT), PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), sizeof *(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)));
 		copy_success = 1;
-		if (PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher_data && PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size) {
-			PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data = OPENSSL_malloc(PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size);
-			if (!PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data) {
+		if (PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher_data && PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size) {
+			PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data = OPENSSL_malloc(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size);
+			if (!PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data) {
 				copy_success = 0;
 			}
-			memcpy(PHP_CRYPTO_CIPHER_CTX(new_obj)->cipher_data, PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher_data, PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher->ctx_size);
+			memcpy(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data, PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher_data, PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size);
 		}
 #endif
-		PHP_CRYPTO_CIPHER_ALG(new_obj) = PHP_CRYPTO_CIPHER_CTX(old_obj)->cipher;
-	} else if (new_obj->type == PHP_CRYPTO_ALG_HASH) {
-		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_HASH_CTX(new_obj), PHP_CRYPTO_HASH_CTX(old_obj));
-		PHP_CRYPTO_HASH_ALG(new_obj) = PHP_CRYPTO_HASH_CTX(old_obj)->digest;
-	} else if (new_obj->type == PHP_CRYPTO_ALG_HMAC) {
+		PHP_CRYPTO_CIPHER_ALG(PHPC_THAT) = PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher;
+	} else if (PHPC_THAT->type == PHP_CRYPTO_ALG_HASH) {
+		copy_success = EVP_MD_CTX_copy(PHP_CRYPTO_HASH_CTX(PHPC_THAT), PHP_CRYPTO_HASH_CTX(PHPC_THIS));
+		PHP_CRYPTO_HASH_ALG(PHPC_THAT) = PHP_CRYPTO_HASH_CTX(PHPC_THIS)->digest;
+	} else if (PHPC_THAT->type == PHP_CRYPTO_ALG_HMAC) {
 #ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
-		copy_success = HMAC_CTX_copy(PHP_CRYPTO_HMAC_CTX(new_obj), PHP_CRYPTO_HMAC_CTX(old_obj));
+		copy_success = HMAC_CTX_copy(PHP_CRYPTO_HMAC_CTX(PHPC_THAT), PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
 #else
 		copy_success = 0;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->i_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->i_ctx))
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->i_ctx, &PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->i_ctx))
 			goto copy_end;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->o_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->o_ctx))
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->o_ctx, &PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->o_ctx))
 			goto copy_end;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(new_obj)->md_ctx, &PHP_CRYPTO_HMAC_CTX(old_obj)->md_ctx))
+		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md_ctx, &PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md_ctx))
 			goto copy_end;
-		memcpy(PHP_CRYPTO_HMAC_CTX(new_obj)->key, PHP_CRYPTO_HMAC_CTX(old_obj)->key, HMAC_MAX_MD_CBLOCK);
-		PHP_CRYPTO_HMAC_CTX(new_obj)->key_length = PHP_CRYPTO_HMAC_CTX(old_obj)->key_length;
-		PHP_CRYPTO_HMAC_CTX(new_obj)->md = PHP_CRYPTO_HMAC_CTX(old_obj)->md;
+		memcpy(PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key, PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key, HMAC_MAX_MD_CBLOCK);
+		PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key_length = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key_length;
+		PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md;
 		copy_success = 1;
 #endif
 	}
 #ifdef PHP_CRYPTO_HAS_CMAC
-	else if (new_obj->type == PHP_CRYPTO_ALG_CMAC) {
-		copy_success = CMAC_CTX_copy(PHP_CRYPTO_CMAC_CTX(new_obj), PHP_CRYPTO_CMAC_CTX(old_obj));
+	else if (PHPC_THAT->type == PHP_CRYPTO_ALG_CMAC) {
+		copy_success = CMAC_CTX_copy(PHP_CRYPTO_CMAC_CTX(PHPC_THAT), PHP_CRYPTO_CMAC_CTX(PHPC_THIS));
 	}
 #endif
 	else {
@@ -371,7 +343,8 @@ copy_end:
 	if (!copy_success) {
 		php_error(E_ERROR, "Cloning of Algorithm object failed");
 	}
-	return new_ov;
+
+	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
 /* }}} */
 
@@ -383,10 +356,12 @@ PHP_MINIT_FUNCTION(crypto_alg)
 
 	/* Algorithm class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Algorithm), php_crypto_algorithm_object_methods);
-	ce.create_object = php_crypto_algorithm_object_create;
-	memcpy(&_phpc_crypto_alg__handlers, zend_get_std_object_handlers(), sizeof(zend_object_handlers));
-	_phpc_crypto_alg__handlers.clone_obj = php_crypto_algorithm_object_clone;
-	php_crypto_algorithm_ce = zend_register_internal_class(&ce TSRMLS_CC);
+	PHPC_CLASS_SET_HANDLER_CREATE(ce, crypto_alg);
+	php_crypto_algorithm_ce = PHPC_CLASS_REGISTER(ce);
+	PHPC_OBJ_INIT_HANDLERS(crypto_alg);
+	PHPC_OBJ_SET_HANDLER_OFFSET(crypto_alg);
+	PHPC_OBJ_SET_HANDLER_FREE(crypto_alg);
+	PHPC_OBJ_SET_HANDLER_CLONE(crypto_alg);
 	zend_declare_property_null(php_crypto_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	/* AlgorithmException registration */
