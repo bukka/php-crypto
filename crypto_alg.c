@@ -362,7 +362,8 @@ PHP_MINIT_FUNCTION(crypto_alg)
 	PHPC_OBJ_SET_HANDLER_OFFSET(crypto_alg);
 	PHPC_OBJ_SET_HANDLER_FREE(crypto_alg);
 	PHPC_OBJ_SET_HANDLER_CLONE(crypto_alg);
-	zend_declare_property_null(php_crypto_algorithm_ce, "algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
+	zend_declare_property_null(php_crypto_algorithm_ce,
+			"algorithm", sizeof("algorithm")-1, ZEND_ACC_PROTECTED TSRMLS_CC);
 
 	/* AlgorithmException registration */
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Algorithm);
@@ -377,10 +378,11 @@ PHP_MINIT_FUNCTION(crypto_alg)
 
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
-	php_crypto_cipher_ce = zend_register_internal_class_ex(&ce, php_crypto_algorithm_ce, NULL TSRMLS_CC);
+	php_crypto_cipher_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_algorithm_ce, NULL);
 	/* Cipher constants for modes */
 	for (mode = php_crypto_cipher_modes; mode->name[0]; mode++) {
-		zend_declare_class_constant_long(php_crypto_cipher_ce, mode->constant, strlen(mode->constant), mode->value TSRMLS_CC);
+		zend_declare_class_constant_long(php_crypto_cipher_ce,
+				mode->constant, strlen(mode->constant), mode->value TSRMLS_CC);
 	}
 
 	/* Hash class */
@@ -415,7 +417,8 @@ typedef struct {
 static void php_crypto_do_all_algorithms(const OBJ_NAME *name, void *arg)
 {
 	php_crypto_do_all_algorithms_param *pp = (php_crypto_do_all_algorithms_param *) arg;
-	if ((pp->aliases || name->alias == 0) && (!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
+	if ((pp->aliases || name->alias == 0) &&
+			(!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
 		add_next_index_string(pp->return_value, (char *) name->name, 1);
 	}
 }
@@ -426,7 +429,8 @@ static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
 {
 	php_crypto_do_all_algorithms_param param = { 0, NULL, 0, return_value };
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bs", &param.aliases, &param.prefix, &param.prefix_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bs",
+			&param.aliases, &param.prefix, &param.prefix_len) == FAILURE) {
 		return;
 	}
 	array_init(return_value);
@@ -438,7 +442,8 @@ static void php_crypto_get_algorithms(INTERNAL_FUNCTION_PARAMETERS, int type)
 static inline void php_crypto_set_algorithm_name(zval *object, char *algorithm, int algorithm_len TSRMLS_DC)
 {
 	php_strtoupper(algorithm, algorithm_len);
-	zend_update_property_stringl(php_crypto_algorithm_ce, object, "algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
+	zend_update_property_stringl(php_crypto_algorithm_ce, object,
+			"algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
 }
 /* }}} */
 
@@ -483,7 +488,8 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm
 
 /* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
 static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
-		zval *object, char *algorithm, int algorithm_len, zval *pz_mode, zval *pz_key_size, zend_bool is_static  TSRMLS_DC)
+		zval *object, char *algorithm, int algorithm_len, zval *pz_mode,
+		zval *pz_key_size, zend_bool is_static  TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher;
 	smart_str alg_buf = {0};
