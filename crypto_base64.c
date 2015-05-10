@@ -44,7 +44,7 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 	PHP_CRYPTO_ME(Base64,    encodeFinish,      NULL,                        ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Base64,    decodeUpdate,      arginfo_crypto_base64_data,  ZEND_ACC_PUBLIC)
 	PHP_CRYPTO_ME(Base64,    decodeFinish,      NULL,                        ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_FE_END
+	PHPC_FE_END
 };
 
 /* class entry */
