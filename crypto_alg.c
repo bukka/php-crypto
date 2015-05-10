@@ -16,12 +16,13 @@
   +----------------------------------------------------------------------+
 */
 
+#define PHPC_SMART_CSTR_INCLUDE 1
+
 #include "php.h"
 #include "php_crypto.h"
 #include "php_crypto_alg.h"
 #include "zend_exceptions.h"
 #include "ext/standard/php_string.h"
-#include "ext/standard/php_smart_str.h"
 
 #include <openssl/evp.h>
 
@@ -489,11 +490,12 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm
 /* {{{ php_crypto_get_cipher_algorithm_from_params_ex */
 static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 		zval *object, char *algorithm, int algorithm_len, zval *pz_mode,
-		zval *pz_key_size, zend_bool is_static  TSRMLS_DC)
+		zval *pz_key_size, zend_bool is_static TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher;
-	smart_str alg_buf = {0};
+	phpc_smart_cstr alg_buf = {0};
 
+	/* if mode is not set, then it is already contained in the algorithm string */
 	if (!pz_mode || Z_TYPE_P(pz_mode) == IS_NULL) {
 		cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
 		if (!cipher) {
@@ -508,19 +510,19 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 		return cipher;
 	}
 
-	smart_str_appendl(&alg_buf, algorithm, algorithm_len);
-	smart_str_appendc(&alg_buf, '-');
+	phpc_smart_cstr_appendl(&alg_buf, algorithm, algorithm_len);
+	phpc_smart_cstr_appendc(&alg_buf, '-');
 
 	/* copy key size if available */
 	if (pz_key_size && Z_TYPE_P(pz_key_size) != IS_NULL) {
 		if (Z_TYPE_P(pz_key_size) == IS_STRING) {
-			smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_key_size), Z_STRLEN_P(pz_key_size));
+			phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL_P(pz_key_size), Z_STRLEN_P(pz_key_size));
 		} else {
 			zval z_key_size = *pz_key_size;
 			zval_copy_ctor(&z_key_size);
 			convert_to_string(&z_key_size);
-			smart_str_appendl(&alg_buf, Z_STRVAL(z_key_size), Z_STRLEN(z_key_size));
-			smart_str_appendc(&alg_buf, '-');
+			phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL(z_key_size), Z_STRLEN(z_key_size));
+			phpc_smart_cstr_appendc(&alg_buf, '-');
 			zval_dtor(&z_key_size);
 		}
 	}
@@ -530,26 +532,26 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode_ex(Z_LVAL_P(pz_mode));
 		if (!mode) {
 			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_FOUND));
-			smart_str_free(&alg_buf);
+			phpc_smart_cstr_free(&alg_buf);
 			return NULL;
 		}
 		if (mode->value == PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED) {
 			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, MODE_NOT_AVAILABLE), mode->name);
-			smart_str_free(&alg_buf);
+			phpc_smart_cstr_free(&alg_buf);
 			return NULL;
 		}
-		smart_str_appendl(&alg_buf, mode->name, PHP_CRYPTO_CIPHER_MODE_LEN);
+		phpc_smart_cstr_appendl(&alg_buf, mode->name, PHP_CRYPTO_CIPHER_MODE_LEN);
 	} else if (Z_TYPE_P(pz_mode) == IS_STRING) {
-		smart_str_appendl(&alg_buf, Z_STRVAL_P(pz_mode), Z_STRLEN_P(pz_mode));
+		phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL_P(pz_mode), Z_STRLEN_P(pz_mode));
 	} else {
 		zval z_mode = *pz_mode;
 		zval_copy_ctor(&z_mode);
 		convert_to_string(&z_mode);
-		smart_str_appendl(&alg_buf, Z_STRVAL(z_mode), Z_STRLEN(z_mode));
+		phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL(z_mode), Z_STRLEN(z_mode));
 		zval_dtor(&z_mode);
 	}
 
-	smart_str_0(&alg_buf);
+	phpc_smart_cstr_0(&alg_buf);
 	cipher = php_crypto_get_cipher_algorithm(alg_buf.c, alg_buf.len);
 	if (!cipher) {
 		if (is_static) {
@@ -560,7 +562,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 	} else if (object) {
 		php_crypto_set_algorithm_name(object, alg_buf.c, alg_buf.len TSRMLS_CC);
 	}
-	smart_str_free(&alg_buf);
+	phpc_smart_cstr_free(&alg_buf);
 	return cipher;
 }
 /* }}} */
