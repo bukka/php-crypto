@@ -661,7 +661,7 @@ static int php_crypto_cipher_is_mode_authenticated_ex(const php_crypto_cipher_mo
 }
 
 /* {{{ php_crypto_cipher_is_mode_authenticated */
-static int php_crypto_cipher_is_mode_authenticated(PHPC_THIS_DECLARE(crypto_alg))
+static int php_crypto_cipher_is_mode_authenticated(PHPC_THIS_DECLARE(crypto_alg) TSRMLS_DC)
 {
 	return php_crypto_cipher_is_mode_authenticated_ex(
 			php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS)) TSRMLS_CC);
@@ -739,7 +739,7 @@ static struct _phpc_crypto_alg__obj *php_crypto_cipher_init_ex(
 		zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc TSRMLS_DC)
 {
 	const php_crypto_cipher_mode *mode;
-	PHPC_THIS_FETCH_FROM_ZVAL(crypto_alg, zobject);
+	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_alg, zobject);
 
 	/* check algorithm status */
 	if (enc && PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(PHPC_THIS)) {
