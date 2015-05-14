@@ -25,6 +25,7 @@
 - int overflow check for 7
   - php_crypto_cipher_update::data_len
   - php_crypto_cipher_crypt::data_len
+- limit algorithm name len
 - Rename `auth_enc` to `aead`
 - CCM plaintext/ciphertext length must be passed
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
@@ -42,8 +43,14 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
+- phpc compat
+  - Hash::__callStatic
+  - Hash::update (check ZVAL_ZVAL)
+- int overflow check for 7
+  - php_crypto_hash_update::data_len
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
+  - it would be better to return the same object and just add ref
 - Separate code from alg
 
 ## Rand
