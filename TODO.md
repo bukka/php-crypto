@@ -19,6 +19,12 @@
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
 
 ## Cipher
+- phpc compat
+  - Algorithm read algorithm property
+  - Cipher::__callStatic
+- int overflow check for 7
+  - php_crypto_cipher_update::data_len
+  - php_crypto_cipher_crypt::data_len
 - Rename `auth_enc` to `aead`
 - CCM plaintext/ciphertext length must be passed
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.

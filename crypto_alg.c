@@ -735,7 +735,7 @@ static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypt
 /* }}} */
 
 /* {{{ php_crypto_cipher_init_ex */
-static struct _phpc_crypto_alg__obj *php_crypto_cipher_init_ex(
+static PHPC_OBJ_STRUCT_NAME(crypto_alg) *php_crypto_cipher_init_ex(
 		zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc TSRMLS_DC)
 {
 	const php_crypto_cipher_mode *mode;
@@ -832,17 +832,17 @@ PHP_CRYPTO_API int php_crypto_cipher_write_aad(
 /* {{{ php_crypto_cipher_update */
 static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
-	unsigned char *outbuf;
 	char *data;
-	int data_len, outbuf_len;
+	phpc_str_size_t data_len, out_len, update_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(PHPC_THIS)) {
@@ -856,37 +856,44 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS), PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS),
+			PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
-	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
-	outbuf = emalloc(outbuf_len + 1);
+	out_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	update_len = out_len;
+	PHPC_STR_ALLOC(out, out_len);
 
 	/* update encryption context */
-	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), outbuf, &outbuf_len, (unsigned char *) data, data_len)) {
+	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+			(unsigned char *) PHPC_STR_VAL(out), &update_len,
+			(unsigned char *) data, data_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
-		efree(outbuf);
+		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
 	PHP_CRYPTO_CIPHER_SET_STATUS(PHPC_THIS, enc, UPDATE);
-	outbuf[outbuf_len] = 0;
-	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
+	if (out_len > update_len) {
+		PHPC_STR_REALLOC(out, update_len);
+	}
+	PHPC_STR_VAL(out)[update_len] = 0;
+	PHPC_STR_RETURN(out);
 }
 /* }}} */
 
 /* {{{ php_crypto_cipher_finish */
 static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
-	unsigned char *outbuf;
-	int outbuf_len;
+	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_STR_DECLARE(out);
+	int out_len, final_len;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(PHPC_THIS)) {
@@ -897,31 +904,36 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 		RETURN_FALSE;
 	}
 
-	outbuf_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
-	outbuf = emalloc(outbuf_len + 1);
+	out_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	PHPC_STR_ALLOC(out, out_len);
 
 	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), outbuf, &outbuf_len)) {
+	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+			(unsigned char *) PHPC_STR_VAL(out), &final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
-		efree(outbuf);
+		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
-	outbuf[outbuf_len] = 0;
 	PHP_CRYPTO_CIPHER_SET_STATUS(PHPC_THIS, enc, FINAL);
-	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
+	if (out_len > final_len) {
+		PHPC_STR_REALLOC(out, final_len);
+	}
+	PHPC_STR_VAL(out)[final_len] = 0;
+	PHPC_STR_RETURN(out);
 }
 /* }}} */
 
 /* {{{ php_crypto_cipher_crypt */
 static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
-	unsigned char *outbuf;
 	char *data, *key, *iv = NULL;
-	int outbuf_len, outbuf_update_len, outbuf_final_len, data_len, key_len, iv_len = 0;
+	phpc_str_size_t out_len, update_len, final_len, data_len, key_len, iv_len = 0;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s", &data, &data_len, &key, &key_len, &iv, &iv_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s",
+			&data, &data_len, &key, &key_len, &iv, &iv_len) == FAILURE) {
 		return;
 	}
 
@@ -933,29 +945,37 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 
 	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS), PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS),
+			PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
-	outbuf_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
-	outbuf = emalloc(outbuf_len + 1);
+	out_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	PHPC_STR_ALLOC(out, out_len);
 
 	/* update encryption context */
-	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), outbuf, &outbuf_update_len, (unsigned char *) data, data_len)) {
+	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+			(unsigned char *) PHPC_STR_VAL(out), &update_len,
+			(unsigned char *) data, data_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
-		efree(outbuf);
+		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
 	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), outbuf + outbuf_update_len, &outbuf_final_len)) {
+	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+			(unsigned char *) (PHPC_STR_VAL(out) + update_len), &final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
-		efree(outbuf);
+		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
-	outbuf_len = outbuf_update_len + outbuf_final_len;
-	outbuf[outbuf_len] = 0;
 	PHP_CRYPTO_CIPHER_SET_STATUS(PHPC_THIS, enc, FINAL);
-	RETURN_STRINGL((char *) outbuf, outbuf_len, 0);
+
+	final_len += update_len;
+	if (out_len > final_len) {
+		PHPC_STR_REALLOC(out, final_len);
+	}
+	PHPC_STR_VAL(out)[final_len] = 0;
+	PHPC_STR_RETURN(out);
 }
 /* }}} */
 
@@ -1008,7 +1028,8 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 	int algorithm_len, argc;
 	zval **ppz_mode, *pz_key_size, *args;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa",
+			&algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
 	}
 
@@ -1021,7 +1042,8 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 	object_init_ex(return_value, php_crypto_cipher_ce);
 
 	if (argc == 0) {
-		if (php_crypto_set_cipher_algorithm(return_value, algorithm, algorithm_len TSRMLS_CC) == FAILURE) {
+		if (php_crypto_set_cipher_algorithm(
+				return_value, algorithm, algorithm_len TSRMLS_CC) == FAILURE) {
 			php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_NOT_FOUND), algorithm);
 		}
 		return;
@@ -1037,7 +1059,8 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
 		pz_key_size = *ppz_key_size;
 	}
-	php_crypto_set_cipher_algorithm_from_params_ex(return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 1 TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_from_params_ex(
+			return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 1 TSRMLS_CC);
 }
 /* }}} */
 
@@ -1049,10 +1072,12 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 	int algorithm_len;
 	zval *mode = NULL, *key_size = NULL;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz", &algorithm, &algorithm_len, &mode, &key_size) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz",
+			&algorithm, &algorithm_len, &mode, &key_size) == FAILURE) {
 		return;
 	}
-	php_crypto_set_cipher_algorithm_from_params(getThis(), algorithm, algorithm_len, mode, key_size TSRMLS_CC);
+	php_crypto_set_cipher_algorithm_from_params(
+			getThis(), algorithm, algorithm_len, mode, key_size TSRMLS_CC);
 }
 /* }}} */
 
@@ -1116,13 +1141,13 @@ PHP_CRYPTO_METHOD(Cipher, decrypt)
    Returns cipher block size */
 PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1130,13 +1155,13 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize)
    Returns cipher key length */
 PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1144,13 +1169,13 @@ PHP_CRYPTO_METHOD(Cipher, getKeyLength)
    Returns cipher IV length */
 PHP_CRYPTO_METHOD(Cipher, getIVLength)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1158,13 +1183,13 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
    Returns cipher mode */
 PHP_CRYPTO_METHOD(Cipher, getMode)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 }
 /* }}} */
@@ -1173,18 +1198,19 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
    Returns authentication tag */
 PHP_CRYPTO_METHOD(Cipher, getTag)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	const php_crypto_cipher_mode *mode;
-	long tag_len;
-	unsigned char *tag;
+	PHPC_STR_DECLARE(tag);
+	phpc_long_t tag_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len) == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
+	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
+			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1193,15 +1219,16 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 		RETURN_FALSE;
 	}
 
-	tag = emalloc(tag_len + 1);
-	tag[tag_len] = 0;
+	PHPC_STR_ALLOC(tag, tag_len);
+	PHPC_STR_VAL(tag)[tag_len] = 0;
 
-	if (!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode->auth_get_tag_flag, tag_len, tag)) {
+	if (!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+			mode->auth_get_tag_flag, tag_len, PHPC_STR_VAL(tag))) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FAILED));
 		RETURN_FALSE;
 	}
 
-	RETURN_STRINGL((char *) tag, tag_len, 0);
+	PHPC_STR_RETURN(tag);
 }
 /* }}} */
 
@@ -1209,18 +1236,19 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
    Sets authentication tag */
 PHP_CRYPTO_METHOD(Cipher, setTag)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	const php_crypto_cipher_mode *mode;
 	char *tag;
-	int tag_len;
+	phpc_str_size_t tag_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &tag, &tag_len) == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE || php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
+	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
+			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1228,12 +1256,14 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		if (!PHP_CRYPTO_CIPHER_TAG(PHPC_THIS)) {
 			PHP_CRYPTO_CIPHER_TAG(PHPC_THIS) = emalloc(tag_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) < tag_len) {
-			PHP_CRYPTO_CIPHER_TAG(PHPC_THIS) = erealloc(PHP_CRYPTO_CIPHER_TAG(PHPC_THIS), tag_len + 1);
+			PHP_CRYPTO_CIPHER_TAG(PHPC_THIS) = erealloc(
+					PHP_CRYPTO_CIPHER_TAG(PHPC_THIS), tag_len + 1);
 		}
 		memcpy(PHP_CRYPTO_CIPHER_TAG(PHPC_THIS), tag, tag_len + 1);
 		PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) = tag_len;
 	} else if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
-		php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode, (unsigned char *) tag, tag_len TSRMLS_CC);
+		php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode,
+				(unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_SETTER_FORBIDDEN));
 		RETURN_FALSE;
@@ -1246,7 +1276,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	char *aad;
 	int aad_len;
 
@@ -1254,7 +1284,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	if (php_crypto_cipher_is_mode_authenticated(PHPC_THIS TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1265,7 +1295,8 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		if (!PHP_CRYPTO_CIPHER_AAD(PHPC_THIS)) {
 			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS) = emalloc(aad_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) < aad_len) {
-			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS) = erealloc(PHP_CRYPTO_CIPHER_AAD(PHPC_THIS), aad_len + 1);
+			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS) = erealloc(
+					PHP_CRYPTO_CIPHER_AAD(PHPC_THIS), aad_len + 1);
 		}
 		memcpy(PHP_CRYPTO_CIPHER_AAD(PHPC_THIS), aad, aad_len + 1);
 		PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) = aad_len;
@@ -1293,7 +1324,7 @@ PHP_CRYPTO_API void php_crypto_hash_bin2hex(char *out, const unsigned char *in, 
 /* }}} */
 
 /* {{{ php_crypto_hash_init */
-static inline int php_crypto_hash_init(struct _phpc_crypto_alg__obj *PHPC_THIS TSRMLS_DC)
+static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_alg) TSRMLS_DC)
 {
 	/* initialize hash */
 	if (!EVP_DigestInit_ex(PHP_CRYPTO_HASH_CTX(PHPC_THIS), PHP_CRYPTO_HASH_ALG(PHPC_THIS), NULL)) {
@@ -1306,7 +1337,7 @@ static inline int php_crypto_hash_init(struct _phpc_crypto_alg__obj *PHPC_THIS T
 /* }}} */
 
 /* {{{ php_crypto_hash_update */
-static inline int php_crypto_hash_update(struct _phpc_crypto_alg__obj *PHPC_THIS, char *data, int data_len TSRMLS_DC)
+static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_alg), char *data, int data_len TSRMLS_DC)
 {
 	/* check if hash is initialized and if it's not, then try to initialize */
 	if (PHPC_THIS->status != PHP_CRYPTO_ALG_STATUS_HASH && php_crypto_hash_init(PHPC_THIS TSRMLS_CC) == FAILURE) {
@@ -1324,7 +1355,7 @@ static inline int php_crypto_hash_update(struct _phpc_crypto_alg__obj *PHPC_THIS
 /* }}} */
 
 /* {{{ php_crypto_hash_finish */
-static inline char *php_crypto_hash_finish(struct _phpc_crypto_alg__obj *PHPC_THIS, int encode_to_hex TSRMLS_DC)
+static inline char *php_crypto_hash_finish(PHPC_THIS_DECLARE(crypto_alg), int encode_to_hex TSRMLS_DC)
 {
 	unsigned char hash_value[EVP_MAX_MD_SIZE+1];
 	unsigned hash_len;
@@ -1355,14 +1386,14 @@ static inline char *php_crypto_hash_finish(struct _phpc_crypto_alg__obj *PHPC_TH
 /* {{{ php_crypto_hash_digest */
 static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int encode_to_hex)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	char *hash;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	hash = php_crypto_hash_finish(PHPC_THIS, encode_to_hex TSRMLS_CC);
 	if (hash) {
 		RETURN_STRING(hash, 0);
@@ -1408,7 +1439,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 	zval *args;
 	zval **arg;
 	const EVP_MD *digest;
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa", &algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
@@ -1446,7 +1477,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
    Hash constructor */
 PHP_CRYPTO_METHOD(Hash, __construct)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	char *algorithm;
 	int algorithm_len;
 	const EVP_MD *digest;
@@ -1456,7 +1487,7 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 	}
 
 	php_crypto_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC algorithm uses a cipher algorithm */
@@ -1479,7 +1510,7 @@ PHP_CRYPTO_METHOD(Hash, __construct)
    Updates hash */
 PHP_CRYPTO_METHOD(Hash, update)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 	char *data;
 	int data_len;
 
@@ -1487,7 +1518,7 @@ PHP_CRYPTO_METHOD(Hash, update)
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	php_crypto_hash_update(PHPC_THIS, data, data_len TSRMLS_CC);
 	ZVAL_ZVAL(return_value, getThis(), 1, 0);
 }
@@ -1513,13 +1544,13 @@ PHP_CRYPTO_METHOD(Hash, hexdigest)
    Returns hash block size */
 PHP_CRYPTO_METHOD(Hash, getBlockSize)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(EVP_MD_block_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS)));
 }
 
@@ -1527,12 +1558,12 @@ PHP_CRYPTO_METHOD(Hash, getBlockSize)
    Returns hash size */
 PHP_CRYPTO_METHOD(Hash, getSize)
 {
-	struct _phpc_crypto_alg__obj *PHPC_THIS;
+	PHPC_THIS_DECLARE(crypto_alg);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS = (struct _phpc_crypto_alg__obj *) zend_object_store_get_object(getThis() TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_alg);
 	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS)));
 }
