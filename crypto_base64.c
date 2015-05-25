@@ -273,7 +273,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 			RETURN_EMPTY_STRING();
 		}
 		buff[update_len] = '\0';
-		PHPC_CSTR_WITH_LEN_RETURN(buff, update_len);
+		PHPC_CSTRL_RETURN(buff, update_len);
 	} else {
 		PHPC_STR_ALLOC(out, real_len);
 		php_crypto_base64_encode_update(PHPC_THIS->ctx,
@@ -310,7 +310,7 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 		RETURN_EMPTY_STRING();
 	}
 	out[out_len] = '\0';
-	PHPC_CSTR_WITH_LEN_RETURN(out, out_len);
+	PHPC_CSTRL_RETURN(out, out_len);
 }
 
 /* {{{ proto Crypto\Base64::decode(string $data)
@@ -348,7 +348,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 			RETURN_EMPTY_STRING();
 		}
 		buff[update_len] = '\0';
-		PHPC_CSTR_WITH_LEN_RETURN(buff, update_len);
+		PHPC_CSTRL_RETURN(buff, update_len);
 	} else {
 		PHPC_STR_ALLOC(out, real_len);
 		if (php_crypto_base64_decode_update(PHPC_THIS->ctx,
@@ -388,5 +388,5 @@ PHP_CRYPTO_METHOD(Base64, decodeFinish)
 		RETURN_EMPTY_STRING();
 	}
 	buff[final_len] = 0;
-	PHPC_CSTR_WITH_LEN_RETURN(buff, final_len);
+	PHPC_CSTRL_RETURN(buff, final_len);
 }
