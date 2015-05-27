@@ -1027,16 +1027,17 @@ PHP_CRYPTO_METHOD(Cipher, hasMode)
 PHP_CRYPTO_METHOD(Cipher, __callStatic)
 {
 	char *algorithm;
-	phpc_str_size_t algorithm_len;
 	int argc;
-	zval **ppz_mode, *pz_key_size, *args;
+	phpc_str_size_t algorithm_len;
+	phpc_val *ppv_mode;
+	zval *pz_mode, *pz_key_size, *args;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sa",
 			&algorithm, &algorithm_len, &args) == FAILURE) {
 		return;
 	}
 
-	argc = zend_hash_num_elements(Z_ARRVAL_P(args));
+	argc = PHPC_HASH_NUM_ELEMENTS(Z_ARRVAL_P(args));
 	if (argc > 2) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, STATIC_METHOD_TOO_MANY_ARGS), algorithm);
 		return;
@@ -1052,18 +1053,19 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 		return;
 	}
 
-	zend_hash_internal_pointer_reset(Z_ARRVAL_P(args));
-	zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_mode);
+	PHPC_HASH_INTERNAL_POINTER_RESET(Z_ARRVAL_P(args));
+	PHPC_HASH_GET_CURRENT_DATA(Z_ARRVAL_P(args), ppv_mode);
+	PHPC_PVAL_TO_PZVAL(ppv_mode, pz_mode);
 	if (argc == 1) {
 		pz_key_size = NULL;
 	} else {
-		zval **ppz_key_size;
-		zend_hash_move_forward(Z_ARRVAL_P(args));
-		zend_hash_get_current_data(Z_ARRVAL_P(args), (void **) &ppz_key_size);
-		pz_key_size = *ppz_key_size;
+		phpc_val *ppv_key_size;
+		PHPC_HASH_MOVE_FORWARD(Z_ARRVAL_P(args));
+		PHPC_HASH_GET_CURRENT_DATA(Z_ARRVAL_P(args), ppv_key_size);
+		PHPC_PVAL_TO_PZVAL(ppv_key_size, pz_key_size);
 	}
 	php_crypto_set_cipher_algorithm_from_params_ex(
-			return_value, algorithm, algorithm_len, *ppz_mode, pz_key_size, 1 TSRMLS_CC);
+			return_value, algorithm, algorithm_len, pz_mode, pz_key_size, 1 TSRMLS_CC);
 }
 /* }}} */
 

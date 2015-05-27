@@ -21,7 +21,6 @@
 ## Cipher
 - phpc compat
   - Algorithm read algorithm property
-  - Cipher::__callStatic
 - int overflow check for 7
   - php_crypto_cipher_update::data_len
   - php_crypto_cipher_crypt::data_len
