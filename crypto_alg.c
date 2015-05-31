@@ -211,8 +211,8 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_alg);
 
 /* algorithm name getter macros */
 #define PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object) \
-	zend_read_property(php_crypto_algorithm_ce, this_object, \
-		"algorithm", sizeof("algorithm")-1, 1 TSRMLS_CC)
+	PHPC_READ_PROPERTY(php_crypto_algorithm_ce, this_object, \
+		"algorithm", sizeof("algorithm")-1, 1)
 
 #define PHP_CRYPTO_GET_ALGORITHM_NAME(this_object) \
 	Z_STRVAL_P(PHP_CRYPTO_GET_ALGORITHM_NAME_EX(this_object))
@@ -484,7 +484,10 @@ PHP_CRYPTO_METHOD(Algorithm, __construct)
    Returns algorithm string */
 PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 {
-	zval *algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
+	zval *algorithm;
+	PHPC_READ_PROPERTY_RV_DECLARE;
+
+	algorithm = PHP_CRYPTO_GET_ALGORITHM_NAME_EX(getThis());
 	RETURN_ZVAL(algorithm, 1, 0);
 }
 /* }}} */
@@ -727,6 +730,7 @@ static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(cryp
 		int key_len TSRMLS_DC)
 {
 	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	PHPC_READ_PROPERTY_RV_DECLARE;
 
 	if (key_len != alg_key_len &&
 			!EVP_CIPHER_CTX_set_key_length(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), key_len)) {
@@ -743,6 +747,8 @@ static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypt
 		const php_crypto_cipher_mode *mode, int iv_len TSRMLS_DC)
 {
 	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	PHPC_READ_PROPERTY_RV_DECLARE;
+
 	if (iv_len == alg_iv_len) {
 		return SUCCESS;
 	}
