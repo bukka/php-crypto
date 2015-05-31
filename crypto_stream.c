@@ -72,7 +72,7 @@ static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_
 	while (bio && (bio = BIO_find_type(bio, BIO_TYPE_CIPHER))) {
 		EVP_CIPHER_CTX *cipher_ctx;
 		const php_crypto_cipher_mode *mode;
-		
+
 		BIO_get_cipher_ctx(bio, &cipher_ctx);
 		mode = php_crypto_get_cipher_mode(EVP_CIPHER_CTX_cipher(cipher_ctx));
 		if (mode->auth_enc) {
@@ -102,7 +102,7 @@ static void php_crypto_stream_set_meta(php_stream *stream, const char *key, cons
 {
 	char *header;
 	size_t len = strlen(key) + strlen(value) + 3;
-	
+
 	if (stream->wrapperdata && Z_TYPE_P(stream->wrapperdata) != IS_ARRAY) {
 		zval_ptr_dtor(&stream->wrapperdata);
 		stream->wrapperdata = NULL;
@@ -110,7 +110,7 @@ static void php_crypto_stream_set_meta(php_stream *stream, const char *key, cons
 	if (stream->wrapperdata) {
 		HashPosition pos;
 		zval **ppz_wrapperdata_item;
-		
+
 		for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(stream->wrapperdata), &pos);
 			zend_hash_get_current_data_ex(Z_ARRVAL_P(stream->wrapperdata), (void **) &ppz_wrapperdata_item, &pos) == SUCCESS;
 			zend_hash_move_forward_ex(Z_ARRVAL_P(stream->wrapperdata), &pos)
@@ -125,17 +125,17 @@ static void php_crypto_stream_set_meta(php_stream *stream, const char *key, cons
 				php_crypto_stream_create_meta_field(Z_STRVAL_PP(ppz_wrapperdata_item), key, value);
 				return;
 			}
-			
+
 		}
 	} else {
 		MAKE_STD_ZVAL(stream->wrapperdata);
 		array_init(stream->wrapperdata);
 	}
-	
+
 	header = emalloc(len);
 	php_crypto_stream_create_meta_field(header, key, value);
 	add_next_index_string(stream->wrapperdata, header, 0);
-	
+
 }
 /* }}} */
 
@@ -228,7 +228,7 @@ static int php_crypto_stream_seek(php_stream *stream, off_t offset, int whence, 
 {
 	int ret;
 	php_crypto_stream_data *data;
-		
+
 	/* The only supported value in OpenSSL */
 	if (whence != SEEK_SET) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(SEEK_OPERATION_FORBIDDEN));
@@ -239,7 +239,7 @@ static int php_crypto_stream_seek(php_stream *stream, off_t offset, int whence, 
 		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(SEEK_OFFSET_HIGH), INT_MAX);
 		return -1;
 	}
-	
+
 	data = (php_crypto_stream_data *) stream->abstract;
 	ret = BIO_seek(data->bio, offset);
 	*newoffset = (off_t) BIO_tell(data->bio);
@@ -268,23 +268,23 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	const php_crypto_cipher_mode *mode;
 	unsigned char *aad;
 	int enc = 1, aad_len;
-	
+
 	if (Z_TYPE_PP(ppz_cipher) != IS_ARRAY) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_CONTEXT_TYPE_INVALID));
 		return FAILURE;
 	}
-	
+
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "action", sizeof("action"), (void **) &ppz_action) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_NOT_SUPPLIED));
 		return FAILURE;
 	}
-	if (Z_TYPE_PP(ppz_action) != IS_STRING || 
+	if (Z_TYPE_PP(ppz_action) != IS_STRING ||
 			!(strncmp(Z_STRVAL_PP(ppz_action), "encrypt", sizeof("encrypt") - 1) == 0 ||
 				(enc = strncmp(Z_STRVAL_PP(ppz_action),  "decrypt", sizeof("decrypt") - 1)) == 0)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_INVALID));
 		return FAILURE;
 	}
-	
+
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "algorithm", sizeof("algorithm"), (void **) &ppz_alg) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_NOT_SUPPLIED));
 		return FAILURE;
@@ -304,12 +304,12 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	if (!cipher) {
 		return FAILURE;
 	}
-	
+
 	mode = php_crypto_get_cipher_mode(cipher);
 	if (mode->auth_enc) {
 		data->auth_enc = 1;
 	}
-	
+
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key", sizeof("key"), (void **) &ppz_key) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_NOT_SUPPLIED));
 		return FAILURE;
@@ -318,7 +318,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_TYPE_INVALID));
 		return FAILURE;
 	}
-	
+
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "iv", sizeof("iv"), (void **) &ppz_iv) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_NOT_SUPPLIED));
 		return FAILURE;
@@ -327,7 +327,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_TYPE_INVALID));
 		return FAILURE;
 	}
-	
+
 	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
 		ppz_tag = NULL;
 	} else if (!mode->auth_enc) {
@@ -341,14 +341,14 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	} else if (!mode->auth_enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_AAD_USELESS));
 	}
-	
+
 	cipher_bio = BIO_new(BIO_f_cipher());
 	BIO_set_cipher(cipher_bio, cipher, NULL, NULL, enc);
 	BIO_push(cipher_bio, data->bio);
 	data->bio = cipher_bio;
-		
+
 	BIO_get_cipher_ctx(cipher_bio, &cipher_ctx);
-	
+
 	/* check key length */
 	if (Z_STRLEN_PP(ppz_key) != EVP_CIPHER_key_length(cipher) &&
 			!EVP_CIPHER_CTX_set_key_length(cipher_ctx, Z_STRLEN_PP(ppz_key))) {
@@ -361,20 +361,20 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID), EVP_CIPHER_iv_length(cipher));
 		return FAILURE;
 	}
-	
+
 	/* initialize cipher with key and iv */
 	if (!EVP_CipherInit_ex(cipher_ctx, NULL, NULL,
 			(unsigned char *) Z_STRVAL_PP(ppz_key), (unsigned char *) Z_STRVAL_PP(ppz_iv), enc)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_INIT_FAILED));
 		return FAILURE;
 	}
-	
+
 	if (!mode->auth_enc) {
 		return SUCCESS;
 	}
-	
+
 	/* authentication tag */
-	if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode, 
+	if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode,
 			(unsigned char *) Z_STRVAL_PP(ppz_tag), Z_STRLEN_PP(ppz_tag) TSRMLS_CC) == FAILURE) {
 		return FAILURE;
 	}
@@ -389,7 +389,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	if (php_crypto_cipher_write_aad(cipher_ctx, aad, aad_len TSRMLS_CC) == FAILURE) {
 		return FAILURE;
 	}
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -403,33 +403,33 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 	php_stream *stream;
 	php_crypto_stream_data *self;
 	php_crypto_error_action initial_error_action = PHP_CRYPTO_G(error_action);
-	
+
 	if (strncasecmp(PHP_CRYPTO_STREAM_FILE_SCHEME, path, PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE) == 0) {
 		path += PHP_CRYPTO_STREAM_FILE_SCHEME_SIZE;
 	}
-	
+
 	if (((options & STREAM_DISABLE_OPEN_BASEDIR) == 0) && php_check_open_basedir(path TSRMLS_CC)) {
 		return NULL;
 	}
-	
+
 	if (options & STREAM_ASSUME_REALPATH) {
 		realpath = estrdup(path);
 	} else if ((realpath = expand_filepath(path, NULL TSRMLS_CC)) == NULL) {
 		return NULL;
 	}
-	
+
 	PHP_CRYPTO_G(error_action) = PHP_CRYPTO_STREAM_ERROR_ACTION;
-	
+
 	self = emalloc(sizeof(*self));
 	self->bio = BIO_new_file(realpath, mode);
 	if (self->bio == NULL) {
 		goto opener_error_on_bio_init;
 	}
-	
+
 	if (php_stream_context_get_option(context, PHP_CRYPTO_STREAM_WRAPPER_NAME, "filters", &ppz_filter) != FAILURE) {
 		HashPosition pos;
 		zval **ppz_filter_item, **ppz_type;
-		
+
 		if (Z_TYPE_PP(ppz_filter) != IS_ARRAY) {
 			php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTERS_CONTEXT_TYPE_INVALID));
 			goto opener_error;
@@ -461,7 +461,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_cry
 			}
 		}
 	}
-	
+
 	stream = php_stream_alloc_rel(&php_crypto_stream_ops, self, 0, mode);
 	if (stream) {
 		if (opened_path) {
@@ -509,7 +509,7 @@ static php_stream_wrapper php_crypto_stream_wrapper = {
 PHP_MINIT_FUNCTION(crypto_stream)
 {
 	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME, &php_crypto_stream_wrapper TSRMLS_CC);
-	
+
 	return SUCCESS;
 }
 /* }}} */
@@ -518,7 +518,7 @@ PHP_MINIT_FUNCTION(crypto_stream)
 PHP_MSHUTDOWN_FUNCTION(crypto_stream)
 {
 	php_unregister_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME TSRMLS_CC);
-	
+
 	return SUCCESS;
 }
 /* }}} */
