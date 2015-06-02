@@ -224,7 +224,8 @@ static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 /* }}} */
 
 /* {{{ php_crypto_stream_seek */
-static int php_crypto_stream_seek(php_stream *stream, off_t offset, int whence, off_t *newoffset TSRMLS_DC)
+static int php_crypto_stream_seek(php_stream *stream,
+		phpc_off_t offset, int whence, phpc_off_t *newoffset TSRMLS_DC)
 {
 	int ret;
 	php_crypto_stream_data *data;

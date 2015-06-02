@@ -1,13 +1,15 @@
 # TODO list
 
 ## BIO
+- overflow check
+  - BIO_seek : phpc_off_t -> long
+- Why SEEK_CUR is 0 when passed to crypto_stream_seek?
+  - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 - Add new streams
   - connect
   - fd
   - socket
 - Add support for persistent connection
-- Why SEEK_CUR is 0 when passed to crypto_stream_seek?
-  - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 - Add crypto PHP stream filters
 
 ## Base64
