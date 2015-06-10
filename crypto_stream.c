@@ -62,12 +62,14 @@ static size_t php_crypto_stream_write(php_stream *stream, const char *buf, size_
 {
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	int bytes_written = BIO_write(data->bio, buf, count > INT_MAX ? INT_MAX : count);
+
 	return bytes_written <= 0 ? 0 : (size_t) bytes_written;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_get_first_bio */
-static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_CIPHER_CTX **p_cipher_ctx)
+static int php_crypto_stream_auth_get_first_bio(
+		BIO *bio, BIO **p_auth_bio, EVP_CIPHER_CTX **p_cipher_ctx)
 {
 	while (bio && (bio = BIO_find_type(bio, BIO_TYPE_CIPHER))) {
 		EVP_CIPHER_CTX *cipher_ctx;
@@ -78,16 +80,19 @@ static int php_crypto_stream_auth_get_first_bio(BIO *bio, BIO **p_auth_bio, EVP_
 		if (mode->auth_enc) {
 			*p_cipher_ctx = cipher_ctx;
 			*p_auth_bio = bio;
+
 			return SUCCESS;
 		}
 		bio = bio->next_bio;
 	}
+
 	return FAILURE;
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_create_meta_field */
-static void inline php_crypto_stream_create_meta_field(char *out, const char *key, const char *value)
+static void inline php_crypto_stream_create_meta_field(
+		char *out, const char *key, const char *value)
 {
 	char *ptr;
 	strcpy(out, key);
@@ -98,54 +103,61 @@ static void inline php_crypto_stream_create_meta_field(char *out, const char *ke
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_save_tag */
-static void php_crypto_stream_set_meta(php_stream *stream, const char *key, const char *value)
+static void php_crypto_stream_set_meta(php_stream *stream,
+		const char *key, const char *value)
 {
-	char *header;
-	size_t len = strlen(key) + strlen(value) + 3;
+	PHPC_STR_DECLARE(header);
+	size_t len = strlen(key) + strlen(value) + 2;
 
-	if (stream->wrapperdata && Z_TYPE_P(stream->wrapperdata) != IS_ARRAY) {
-		zval_ptr_dtor(&stream->wrapperdata);
-		stream->wrapperdata = NULL;
+	if (PHPC_STREAM_WRAPPERDATA_ISSET(stream) && PHPC_TYPE(stream->wrapperdata) != IS_ARRAY) {
+		PHPC_STREAM_WRAPPERDATA_UNSET(stream);
 	}
-	if (stream->wrapperdata) {
+	if (PHPC_STREAM_WRAPPERDATA_ISSET(stream)) {
 		HashPosition pos;
-		zval **ppz_wrapperdata_item;
+		phpc_val *ppv_wrapperdata_item;
 
-		for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_P(stream->wrapperdata), &pos);
-			zend_hash_get_current_data_ex(Z_ARRVAL_P(stream->wrapperdata), (void **) &ppz_wrapperdata_item, &pos) == SUCCESS;
-			zend_hash_move_forward_ex(Z_ARRVAL_P(stream->wrapperdata), &pos)
-		) {
-			if (Z_TYPE_PP(ppz_wrapperdata_item) == IS_STRING &&
-				(size_t) Z_STRLEN_PP(ppz_wrapperdata_item) > strlen(key) &&
-				!strncmp(Z_STRVAL_PP(ppz_wrapperdata_item), key, strlen(key))
+		PHPC_HASH_FOREACH_VAL(PHPC_ARRVAL(stream->wrapperdata), ppv_wrapperdata_item) {
+			if (PHPC_TYPE_P(ppv_wrapperdata_item) == IS_STRING &&
+				(size_t) PHPC_STRLEN_P(ppv_wrapperdata_item) > strlen(key) &&
+				!strncmp(PHPC_STRVAL_P(ppv_wrapperdata_item), key, strlen(key))
 			) {
-				if (len > (size_t) Z_STRLEN_PP(ppz_wrapperdata_item)) {
-					Z_STRVAL_PP(ppz_wrapperdata_item) = erealloc(Z_STRVAL_PP(ppz_wrapperdata_item), len);
+				if (len != (size_t) PHPC_STRLEN_P(ppv_wrapperdata_item)) {
+					PHPC_STR_DECLARE(item);
+
+					PHPC_STR_INIT(item,
+							PHPC_STRVAL_P(ppv_wrapperdata_item),
+							PHPC_STRLEN_P(ppv_wrapperdata_item));
+					zval_ptr_dtor(ppv_wrapperdata_item);
+					PHPC_VAL_STR(*ppv_wrapperdata_item, item);
 				}
-				php_crypto_stream_create_meta_field(Z_STRVAL_PP(ppz_wrapperdata_item), key, value);
+				php_crypto_stream_create_meta_field(
+						PHPC_STRVAL_P(ppv_wrapperdata_item), key, value);
 				return;
 			}
 
-		}
+		} PHPC_HASH_FOREACH_END();
 	} else {
-		MAKE_STD_ZVAL(stream->wrapperdata);
-		array_init(stream->wrapperdata);
+		PHPC_STREAM_WRAPPERDATA_ALLOC(stream);
+		PHPC_ARRAY_INIT(stream->wrapperdata);
 	}
 
-	header = emalloc(len);
-	php_crypto_stream_create_meta_field(header, key, value);
-	add_next_index_string(stream->wrapperdata, header, 0);
+	PHPC_STR_ALLOC(header, len);
+	php_crypto_stream_create_meta_field(PHPC_STR_VAL(header), key, value);
+	PHPC_ARRAY_ADD_NEXT_INDEX_STR(stream->wrapperdata, header);
 
 }
 /* }}} */
 
 /* {{{ php_crypto_stream_auth_save_tag */
-static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *cipher_ctx TSRMLS_DC)
+static void php_crypto_stream_auth_save_tag(php_stream *stream,
+		EVP_CIPHER_CTX *cipher_ctx TSRMLS_DC)
 {
 	char hex_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX * 2 + 1];
 	unsigned char bin_tag[PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX + 1];
-	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(EVP_CIPHER_CTX_cipher(cipher_ctx));
-	if (EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_get_tag_flag, PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX, &bin_tag[0])) {
+	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode(
+			EVP_CIPHER_CTX_cipher(cipher_ctx));
+	if (EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_get_tag_flag,
+			PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX, &bin_tag[0])) {
 		php_crypto_hash_bin2hex(&hex_tag[0], &bin_tag[0], PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MAX);
 		php_crypto_stream_set_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_TAG, &hex_tag[0]);
 	} else {
@@ -157,7 +169,10 @@ static void php_crypto_stream_auth_save_tag(php_stream *stream, EVP_CIPHER_CTX *
 /* {{{ php_crypto_stream_auth_save_result */
 static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
 {
-	php_crypto_stream_set_meta(stream, PHP_CRYPTO_STREAM_META_AUTH_RESULT, ok ? "success" : "failure");
+	php_crypto_stream_set_meta(
+			stream,
+			PHP_CRYPTO_STREAM_META_AUTH_RESULT,
+			ok ? "success" : "failure");
 }
 /* }}} */
 
@@ -396,8 +411,8 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 /* }}} */
 
 /* {{{ php_crypto_stream_opener */
-static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, php_crypto_stream_opener_char_t *path,
-		php_crypto_stream_opener_char_t *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, phpc_stream_opener_char_t *path,
+		phpc_stream_opener_char_t *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
 	char *realpath;
 	zval **ppz_filter;
