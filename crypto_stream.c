@@ -258,7 +258,7 @@ static int php_crypto_stream_seek(php_stream *stream,
 
 	data = (php_crypto_stream_data *) stream->abstract;
 	ret = BIO_seek(data->bio, offset);
-	*newoffset = (off_t) BIO_tell(data->bio);
+	*newoffset = (phpc_off_t) BIO_tell(data->bio);
 	return ret;
 }
 /* }}} */
@@ -411,8 +411,9 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 /* }}} */
 
 /* {{{ php_crypto_stream_opener */
-static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, phpc_stream_opener_char_t *path,
-		phpc_stream_opener_char_t *mode, int options, char **opened_path, php_stream_context *context STREAMS_DC TSRMLS_DC)
+static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper,
+		phpc_stream_opener_char_t *path, phpc_stream_opener_char_t *mode, int options,
+		PHPC_STR_ARG_PTR_VAL(p_opened_path), php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
 	char *realpath;
 	zval **ppz_filter;
@@ -480,13 +481,13 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper, phpc_st
 
 	stream = php_stream_alloc_rel(&php_crypto_stream_ops, self, 0, mode);
 	if (stream) {
-		if (opened_path) {
-			*opened_path = realpath;
-			realpath = NULL;
+		if (PHPC_STR_EXISTS(p_opened_path)) {
+			PHPC_STR_DECLARE(opened_path);
+			PHPC_STR_INIT(opened_path, realpath, strlen(realpath));
+			PHPC_STR_DEREF_VAL(p_opened_path) = PHPC_STR_PASS_VAL(opened_path);
 		}
-		if (realpath) {
-			efree(realpath);
-		}
+
+		efree(realpath);
 	}
 	return stream;
 
