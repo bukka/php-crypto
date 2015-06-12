@@ -275,9 +275,12 @@ php_stream_ops  php_crypto_stream_ops = {
 };
 
 /* {{{ php_crypto_stream_set_cipher */
-static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz_cipher TSRMLS_DC)
+static int php_crypto_stream_set_cipher(php_crypto_stream_data *data,
+		phpc_val *ppv_cipher TSRMLS_DC)
 {
-	zval **ppz_action, **ppz_alg, **ppz_mode, **ppz_key_size, **ppz_key, **ppz_iv, **ppz_tag, **ppz_aad;
+	phpc_val *ppv_action, *ppv_alg, *ppv_mode;
+	phpc_val *ppv_key_size, *ppv_key, *ppv_iv, *ppv_tag, *ppv_aad;
+	zval *pz_mode, *pz_key_size;
 	BIO *cipher_bio;
 	const EVP_CIPHER *cipher;
 	EVP_CIPHER_CTX *cipher_ctx;
@@ -285,38 +288,48 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	unsigned char *aad;
 	int enc = 1, aad_len;
 
-	if (Z_TYPE_PP(ppz_cipher) != IS_ARRAY) {
+	if (PHPC_TYPE_P(ppv_cipher) != IS_ARRAY) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_CONTEXT_TYPE_INVALID));
 		return FAILURE;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "action", sizeof("action"), (void **) &ppz_action) == FAILURE) {
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "action", ppv_action)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_NOT_SUPPLIED));
 		return FAILURE;
 	}
-	if (Z_TYPE_PP(ppz_action) != IS_STRING ||
-			!(strncmp(Z_STRVAL_PP(ppz_action), "encrypt", sizeof("encrypt") - 1) == 0 ||
-				(enc = strncmp(Z_STRVAL_PP(ppz_action),  "decrypt", sizeof("decrypt") - 1)) == 0)) {
+	if (PHPC_TYPE_P(ppv_action) != IS_STRING ||
+			!(strncmp(PHPC_STRVAL_P(ppv_action), "encrypt", sizeof("encrypt") - 1) == 0 ||
+			 (enc = strncmp(PHPC_STRVAL_P(ppv_action),  "decrypt", sizeof("decrypt") - 1)) == 0)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_INVALID));
 		return FAILURE;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "algorithm", sizeof("algorithm"), (void **) &ppz_alg) == FAILURE) {
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "algorithm", ppv_alg)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_NOT_SUPPLIED));
 		return FAILURE;
 	}
-	if (Z_TYPE_PP(ppz_alg) != IS_STRING) {
+	if (PHPC_TYPE_P(ppv_alg) != IS_STRING) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_TYPE_INVALID));
 		return FAILURE;
 	}
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "mode", sizeof("mode"), (void **) &ppz_mode) == FAILURE) {
-		ppz_mode = NULL;
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "mode", ppv_mode)) {
+		ppv_mode = NULL;
 	}
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key_size", sizeof("key_size"), (void **) &ppz_key_size) == FAILURE) {
-		ppz_key_size = NULL;
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "key_size", ppv_key_size)) {
+		ppv_key_size = NULL;
+	}
+	if (ppv_mode) {
+		PHPC_PVAL_TO_PZVAL(ppv_mode, pz_mode);
+	} else {
+		pz_mode = NULL;
+	}
+	if (ppv_key_size) {
+		PHPC_PVAL_TO_PZVAL(ppv_key_size, pz_key_size);
+	} else {
+		pz_key_size = NULL;
 	}
 	cipher = php_crypto_get_cipher_algorithm_from_params(
-		Z_STRVAL_PP(ppz_alg), Z_STRLEN_PP(ppz_alg), ppz_mode ? *ppz_mode: NULL, ppz_key_size ? *ppz_key_size: NULL TSRMLS_CC);
+			PHPC_STRVAL_P(ppv_alg), PHPC_STRLEN_P(ppv_alg), pz_mode, pz_key_size TSRMLS_CC);
 	if (!cipher) {
 		return FAILURE;
 	}
@@ -326,34 +339,34 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 		data->auth_enc = 1;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "key", sizeof("key"), (void **) &ppz_key) == FAILURE) {
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "key", ppv_key)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_NOT_SUPPLIED));
 		return FAILURE;
 	}
-	if (Z_TYPE_PP(ppz_key) != IS_STRING) {
+	if (PHPC_TYPE_P(ppv_key) != IS_STRING) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_TYPE_INVALID));
 		return FAILURE;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "iv", sizeof("iv"), (void **) &ppz_iv) == FAILURE) {
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "iv", ppv_iv)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_NOT_SUPPLIED));
 		return FAILURE;
 	}
-	if (Z_TYPE_PP(ppz_iv) != IS_STRING) {
+	if (PHPC_TYPE_P(ppv_iv) != IS_STRING) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_TYPE_INVALID));
 		return FAILURE;
 	}
 
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "tag", sizeof("tag"), (void **) &ppz_tag) == FAILURE) {
-		ppz_tag = NULL;
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "tag", ppv_tag)) {
+		ppv_tag = NULL;
 	} else if (!mode->auth_enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_USELESS));
 	} else if (enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_TAG_FORBIDDEN));
 		return FAILURE;
 	}
-	if (zend_hash_find(Z_ARRVAL_PP(ppz_cipher), "aad", sizeof("aad"), (void **) &ppz_aad) == FAILURE) {
-		ppz_aad = NULL;
+	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "aad", ppv_aad)) {
+		ppv_aad = NULL;
 	} else if (!mode->auth_enc) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_AAD_USELESS));
 	}
@@ -366,21 +379,25 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	BIO_get_cipher_ctx(cipher_bio, &cipher_ctx);
 
 	/* check key length */
-	if (Z_STRLEN_PP(ppz_key) != EVP_CIPHER_key_length(cipher) &&
-			!EVP_CIPHER_CTX_set_key_length(cipher_ctx, Z_STRLEN_PP(ppz_key))) {
-		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_LENGTH_INVALID), EVP_CIPHER_key_length(cipher));
+	if (PHPC_STRLEN_P(ppv_key) != EVP_CIPHER_key_length(cipher) &&
+			!EVP_CIPHER_CTX_set_key_length(cipher_ctx, PHPC_STRLEN_P(ppv_key))) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_KEY_LENGTH_INVALID),
+				EVP_CIPHER_key_length(cipher));
 		return FAILURE;
 	}
 	/* check iv length */
-	if (Z_STRLEN_PP(ppz_iv) != EVP_CIPHER_iv_length(cipher) &&
-			(!mode->auth_enc || !EVP_CIPHER_CTX_ctrl(cipher_ctx, mode->auth_ivlen_flag, Z_STRLEN_PP(ppz_iv), NULL))) {
-		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID), EVP_CIPHER_iv_length(cipher));
+	if (PHPC_STRLEN_P(ppv_iv) != EVP_CIPHER_iv_length(cipher) &&
+			(!mode->auth_enc || !EVP_CIPHER_CTX_ctrl(
+				cipher_ctx, mode->auth_ivlen_flag, PHPC_STRLEN_P(ppv_iv), NULL))) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_IV_LENGTH_INVALID),
+				EVP_CIPHER_iv_length(cipher));
 		return FAILURE;
 	}
 
 	/* initialize cipher with key and iv */
 	if (!EVP_CipherInit_ex(cipher_ctx, NULL, NULL,
-			(unsigned char *) Z_STRVAL_PP(ppz_key), (unsigned char *) Z_STRVAL_PP(ppz_iv), enc)) {
+			(unsigned char *) PHPC_STRVAL_P(ppv_key),
+			(unsigned char *) PHPC_STRVAL_P(ppv_iv), enc)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_INIT_FAILED));
 		return FAILURE;
 	}
@@ -390,14 +407,15 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data, zval **ppz
 	}
 
 	/* authentication tag */
-	if (ppz_tag && php_crypto_cipher_set_tag(cipher_ctx, mode,
-			(unsigned char *) Z_STRVAL_PP(ppz_tag), Z_STRLEN_PP(ppz_tag) TSRMLS_CC) == FAILURE) {
+	if (ppv_tag && php_crypto_cipher_set_tag(cipher_ctx, mode,
+			(unsigned char *) PHPC_STRVAL_P(ppv_tag),
+			PHPC_STRLEN_P(ppv_tag) TSRMLS_CC) == FAILURE) {
 		return FAILURE;
 	}
 	/* additional authentication data */
-	if (ppz_aad) {
-		aad =  (unsigned char *) Z_STRVAL_PP(ppz_aad);
-		aad_len = Z_STRLEN_PP(ppz_aad);
+	if (ppv_aad) {
+		aad =  (unsigned char *) PHPC_STRVAL_P(ppv_aad);
+		aad_len = PHPC_STRLEN_P(ppv_aad);
 	} else {
 		aad = NULL;
 		aad_len = 0;
@@ -416,7 +434,7 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper,
 		PHPC_STR_ARG_PTR_VAL(p_opened_path), php_stream_context *context STREAMS_DC TSRMLS_DC)
 {
 	char *realpath;
-	zval **ppz_filter;
+	phpc_val *ppv_filter;
 	php_stream *stream;
 	php_crypto_stream_data *self;
 	php_crypto_error_action initial_error_action = PHP_CRYPTO_G(error_action);
@@ -443,40 +461,37 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper,
 		goto opener_error_on_bio_init;
 	}
 
-	if (php_stream_context_get_option(context, PHP_CRYPTO_STREAM_WRAPPER_NAME, "filters", &ppz_filter) != FAILURE) {
-		HashPosition pos;
-		zval **ppz_filter_item, **ppz_type;
+	if (PHPC_STREAM_CONTEXT_GET_OPTION_IN_COND(context,
+			PHP_CRYPTO_STREAM_WRAPPER_NAME, "filters", ppv_filter)) {
+		phpc_val *ppv_filter_item, *ppv_type;
 
-		if (Z_TYPE_PP(ppz_filter) != IS_ARRAY) {
+		if (PHPC_TYPE_P(ppv_filter) != IS_ARRAY) {
 			php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTERS_CONTEXT_TYPE_INVALID));
 			goto opener_error;
 		}
-		for (zend_hash_internal_pointer_reset_ex(Z_ARRVAL_PP(ppz_filter), &pos);
-			zend_hash_get_current_data_ex(Z_ARRVAL_PP(ppz_filter), (void **) &ppz_filter_item, &pos) == SUCCESS;
-			zend_hash_move_forward_ex(Z_ARRVAL_PP(ppz_filter), &pos)
-		) {
-			if (Z_TYPE_PP(ppz_filter_item) != IS_ARRAY) {
+		PHPC_HASH_FOREACH_VAL(PHPC_ARRVAL_P(ppv_filter), ppv_filter_item) {
+			if (PHPC_TYPE_P(ppv_filter_item) != IS_ARRAY) {
 				php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTERS_ITEM_CONTEXT_TYPE_INVALID));
 				goto opener_error;
 			}
-			if (zend_hash_find(Z_ARRVAL_PP(ppz_filter_item), "type", sizeof("type"), (void **) &ppz_type) == FAILURE) {
+			if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_filter_item), "type", ppv_type)) {
 				php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTER_TYPE_NOT_SUPPLIED));
 				goto opener_error;
 			}
-			if (Z_TYPE_PP(ppz_type) != IS_STRING) {
+			if (PHPC_TYPE_P(ppv_type) != IS_STRING) {
 				php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTER_TYPE_INVALID));
 				goto opener_error;
 			}
 			/* call filter handler for supplied type */
-			if (strncmp(Z_STRVAL_PP(ppz_type), "cipher", sizeof("cipher") - 1) == 0) {
-				if (php_crypto_stream_set_cipher(self, ppz_filter_item TSRMLS_CC) == FAILURE) {
+			if (strncmp(PHPC_STRVAL_P(ppv_type), "cipher", sizeof("cipher") - 1) == 0) {
+				if (php_crypto_stream_set_cipher(self, ppv_filter_item TSRMLS_CC) == FAILURE) {
 					goto opener_error;
 				}
 			} else {
 				php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(FILTER_TYPE_UNKNOWN));
 				goto opener_error;
 			}
-		}
+		} PHPC_HASH_FOREACH_END();
 	}
 
 	stream = php_stream_alloc_rel(&php_crypto_stream_ops, self, 0, mode);
