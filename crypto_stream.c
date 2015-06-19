@@ -108,6 +108,8 @@ static void php_crypto_stream_set_meta(php_stream *stream,
 {
 	PHPC_STR_DECLARE(header);
 	size_t len = strlen(key) + strlen(value) + 2;
+	zval *p_wrapper;
+	PHPC_VAL_TO_PZVAL(stream->wrapperdata, p_wrapper);
 
 	if (PHPC_STREAM_WRAPPERDATA_ISSET(stream) && PHPC_TYPE(stream->wrapperdata) != IS_ARRAY) {
 		PHPC_STREAM_WRAPPERDATA_UNSET(stream);
@@ -138,12 +140,12 @@ static void php_crypto_stream_set_meta(php_stream *stream,
 		} PHPC_HASH_FOREACH_END();
 	} else {
 		PHPC_STREAM_WRAPPERDATA_ALLOC(stream);
-		PHPC_ARRAY_INIT(stream->wrapperdata);
+		PHPC_ARRAY_INIT(p_wrapper);
 	}
 
 	PHPC_STR_ALLOC(header, len);
 	php_crypto_stream_create_meta_field(PHPC_STR_VAL(header), key, value);
-	PHPC_ARRAY_ADD_NEXT_INDEX_STR(stream->wrapperdata, header);
+	PHPC_ARRAY_ADD_NEXT_INDEX_STR(p_wrapper, header);
 
 }
 /* }}} */

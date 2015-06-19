@@ -170,9 +170,10 @@ static inline int php_crypto_base64_decode_update(
 /* }}} */
 
 /* {{{ php_crypto_base64_decode_finish */
-static inline void php_crypto_base64_decode_finish(EVP_ENCODE_CTX *ctx, char *out, int *outl)
+static inline void php_crypto_base64_decode_finish(EVP_ENCODE_CTX *ctx,
+		char *out, phpc_str_size_t *outl)
 {
-	EVP_DecodeFinal(ctx, (unsigned char *) out, outl);
+	EVP_DecodeFinal(ctx, (unsigned char *) out, (int *) outl);
 }
 /* }}} */
 

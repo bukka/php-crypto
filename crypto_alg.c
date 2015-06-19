@@ -404,17 +404,16 @@ PHP_MINIT_FUNCTION(crypto_alg)
 
 	/* Hash class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Hash), php_crypto_hash_object_methods);
-	php_crypto_hash_ce = zend_register_internal_class_ex(&ce,
-			php_crypto_algorithm_ce, NULL TSRMLS_CC);
+	php_crypto_hash_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_algorithm_ce, NULL);
 
 	/* HMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(HMAC), NULL);
-	php_crypto_hmac_ce = zend_register_internal_class_ex(&ce, php_crypto_hash_ce, NULL TSRMLS_CC);
+	php_crypto_hmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
 
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(CMAC), NULL);
-	php_crypto_cmac_ce = zend_register_internal_class_ex(&ce, php_crypto_hash_ce, NULL TSRMLS_CC);
+	php_crypto_cmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
 #endif
 
 	return SUCCESS;
@@ -437,7 +436,7 @@ static void php_crypto_do_all_algorithms(const OBJ_NAME *name, void *arg)
 	php_crypto_do_all_algorithms_param *pp = (php_crypto_do_all_algorithms_param *) arg;
 	if ((pp->aliases || name->alias == 0) &&
 			(!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
-		add_next_index_string(pp->return_value, (char *) name->name, 1);
+		PHPC_ARRAY_ADD_NEXT_INDEX_CSTR(pp->return_value, (char *) name->name);
 	}
 }
 /* }}} */
@@ -866,7 +865,8 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data;
-	phpc_str_size_t data_len, out_len, update_len;
+	phpc_str_size_t data_len;
+	int out_len, update_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
 		return;
@@ -960,7 +960,8 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data, *key, *iv = NULL;
-	phpc_str_size_t out_len, update_len, final_len, data_len, key_len, iv_len = 0;
+	phpc_str_size_t data_len, key_len, iv_len = 0;
+	int update_len, out_len, final_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s",
 			&data, &data_len, &key, &key_len, &iv, &iv_len) == FAILURE) {

@@ -160,7 +160,7 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 	phpc_str_size_t path_len;
 	phpc_long_t max_bytes = -1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG"|l", &path, &path_len, &max_bytes) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_PATH_ZPP_FLAG"|l", &path, &path_len, &max_bytes) == FAILURE) {
 		return;
 	}
 
@@ -178,7 +178,7 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 	phpc_str_size_t path_len;
 	int bytes_written;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG, &path, &path_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_PATH_ZPP_FLAG, &path, &path_len) == FAILURE) {
 		return;
 	}
 
@@ -203,7 +203,7 @@ PHP_CRYPTO_METHOD(Rand, egd)
 	zend_bool seed;
 	PHPC_STR_DECLARE(buf);
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_ZPP_PATH_FLAG"|lb", &path, &path_len, &bytes, &seed) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_PATH_ZPP_FLAG"|lb", &path, &path_len, &bytes, &seed) == FAILURE) {
 		return;
 	}
 
