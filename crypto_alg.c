@@ -642,7 +642,7 @@ static int php_crypto_set_cipher_algorithm_from_params_ex(
 
 /* {{{ php_crypto_set_cipher_algorithm_from_params */
 static int php_crypto_set_cipher_algorithm_from_params(
-		zval *object, char *algorithm, int algorithm_len,
+		zval *object, char *algorithm, phpc_str_size_t algorithm_len,
 		zval *pz_mode, zval *pz_key_size TSRMLS_DC)
 {
 	return php_crypto_set_cipher_algorithm_from_params_ex(
@@ -726,7 +726,7 @@ static int php_crypto_cipher_check_tag_len(long tag_len TSRMLS_DC)
 
 /* {{{ php_crypto_cipher_check_key_len */
 static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
-		int key_len TSRMLS_DC)
+		phpc_str_size_t key_len TSRMLS_DC)
 {
 	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_READ_PROPERTY_RV_DECLARE;
@@ -743,7 +743,7 @@ static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(cryp
 
 /* {{{ php_crypto_cipher_check_iv_len */
 static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
-		const php_crypto_cipher_mode *mode, int iv_len TSRMLS_DC)
+		const php_crypto_cipher_mode *mode, phpc_str_size_t iv_len TSRMLS_DC)
 {
 	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_READ_PROPERTY_RV_DECLARE;
@@ -765,7 +765,8 @@ static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypt
 
 /* {{{ php_crypto_cipher_init_ex */
 static PHPC_OBJ_STRUCT_NAME(crypto_alg) *php_crypto_cipher_init_ex(
-		zval *zobject, char *key, int key_len, char *iv, int iv_len, int enc TSRMLS_DC)
+		zval *zobject, char *key, phpc_str_size_t key_len,
+		char *iv, phpc_str_size_t iv_len, int enc TSRMLS_DC)
 {
 	const php_crypto_cipher_mode *mode;
 	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_alg, zobject);
@@ -822,7 +823,7 @@ static PHPC_OBJ_STRUCT_NAME(crypto_alg) *php_crypto_cipher_init_ex(
 static inline void php_crypto_cipher_init(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	char *key, *iv = NULL;
-	int key_len, iv_len = 0;
+	phpc_str_size_t key_len, iv_len = 0;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|s",
 			&key, &key_len, &iv, &iv_len) == FAILURE) {
@@ -1042,7 +1043,7 @@ PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
    Finds out whether the cipher mode is defined in the used OpenSSL library */
 PHP_CRYPTO_METHOD(Cipher, hasMode)
 {
-	long mode;
+	phpc_long_t mode;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &mode) == FAILURE) {
 		return;
@@ -1104,7 +1105,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
 	char *algorithm;
-	int algorithm_len;
+	phpc_str_size_t algorithm_len;
 	zval *mode = NULL, *key_size = NULL;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|zz",
@@ -1313,7 +1314,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
 	PHPC_THIS_DECLARE(crypto_alg);
 	char *aad;
-	int aad_len;
+	phpc_str_size_t aad_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &aad, &aad_len) == FAILURE) {
 		return;

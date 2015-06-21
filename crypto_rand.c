@@ -95,11 +95,11 @@ PHP_CRYPTO_METHOD(Rand, generate)
 	zval *zstrong_result = NULL;
 	zend_bool strong_result, must_be_strong = 1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz", &num, &must_be_strong, &zstrong_result) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz/", &num, &must_be_strong, &zstrong_result) == FAILURE) {
 		return;
 	}
 
-	PHPC_STR_ALLOC(buf, (phpc_str_size_t) num);
+	PHPC_STR_ALLOC(buf, num);
 
 	if (must_be_strong) {
 		if (!RAND_bytes((unsigned char *) PHPC_STR_VAL(buf), num)) {
