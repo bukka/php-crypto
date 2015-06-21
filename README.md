@@ -35,11 +35,9 @@ where `x` is an installed minor version number and `y` bug fixing version number
 
 #### Manual Installation
 
-First download the source
-```
-wget -O - https://github.com/bukka/php-crypto/archive/master.tar.gz | tar xzp
-```
-or if you prefer to clone the repository
+It's important to have a git installed as it's necessary for recursive fetch of [phpc](https://github.com/bukka/phpc).
+
+First clone recursively the repository
 ```
 git clone --recursive https://github.com/bukka/php-crypto.git
 ```
@@ -48,7 +46,7 @@ Then go to the created directory and compile the extension. The PHP development 
 ```
 cd php-crypto
 phpize
-./configure --with-crypto
+./configure
 make
 sudo make install
 ```
