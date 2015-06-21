@@ -109,13 +109,11 @@ static void php_crypto_stream_set_meta(php_stream *stream,
 	PHPC_STR_DECLARE(header);
 	size_t len = strlen(key) + strlen(value) + 2;
 	zval *p_wrapper;
-	PHPC_VAL_TO_PZVAL(stream->wrapperdata, p_wrapper);
 
 	if (PHPC_STREAM_WRAPPERDATA_ISSET(stream) && PHPC_TYPE(stream->wrapperdata) != IS_ARRAY) {
 		PHPC_STREAM_WRAPPERDATA_UNSET(stream);
 	}
 	if (PHPC_STREAM_WRAPPERDATA_ISSET(stream)) {
-		HashPosition pos;
 		phpc_val *ppv_wrapperdata_item;
 
 		PHPC_HASH_FOREACH_VAL(PHPC_ARRVAL(stream->wrapperdata), ppv_wrapperdata_item) {
@@ -138,8 +136,11 @@ static void php_crypto_stream_set_meta(php_stream *stream,
 			}
 
 		} PHPC_HASH_FOREACH_END();
+
+		PHPC_VAL_TO_PZVAL(stream->wrapperdata, p_wrapper);
 	} else {
 		PHPC_STREAM_WRAPPERDATA_ALLOC(stream);
+		PHPC_VAL_TO_PZVAL(stream->wrapperdata, p_wrapper);
 		PHPC_ARRAY_INIT(p_wrapper);
 	}
 
