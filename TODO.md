@@ -21,16 +21,16 @@
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
 
 ## Cipher
-- phpc compat
-  - Algorithm read algorithm property
 - int overflow check for 7
   - php_crypto_cipher_update::data_len
   - php_crypto_cipher_crypt::data_len
   - php_crypto_cipher_check_key_len: key_len
   - php_crypto_cipher_check_iv_len: key_len
-- limit algorithm name len
-- Rename `auth_enc` to `aead`
+- Separate from alg
+- Limit algorithm name len
 - CCM plaintext/ciphertext length must be passed
+  - either add some options to pass length then disable it for streams and updates
+- Rename `auth_enc` to `aead`
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
 - Add KDF parameter to encryptInit and encrypt
@@ -38,7 +38,6 @@
 - Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
 - Setting input and output stream based filters (hex, base64...)
 - Fix memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
-- Separate code from alg
 
 ## KDF
 - Add new class KDF for Key derivation function
@@ -46,15 +45,12 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
-- phpc compat
-  - Hash::__callStatic
-  - Hash::update (check ZVAL_ZVAL)
 - int overflow check for 7
   - php_crypto_hash_update::data_len
+- Separate from alg
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
-- Separate code from alg
 
 ## Rand
 - Check for overflow in `Rand::generate::buf_len` (positive int is required)
