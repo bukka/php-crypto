@@ -21,11 +21,6 @@
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
 
 ## Cipher
-- int overflow check for 7
-  - php_crypto_cipher_update::data_len
-  - php_crypto_cipher_crypt::data_len
-  - php_crypto_cipher_check_key_len: key_len
-  - php_crypto_cipher_check_iv_len: key_len
 - Separate from alg
 - Limit algorithm name len
 - CCM plaintext/ciphertext length must be passed

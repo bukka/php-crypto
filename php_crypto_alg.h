@@ -107,6 +107,9 @@ PHP_CRYPTO_EXCEPTION_EXPORT(Hash)
 PHP_CRYPTO_ERROR_INFO_EXPORT(Cipher)
 PHP_CRYPTO_ERROR_INFO_EXPORT(Hash)
 
+/* Maximal algorithm length of the cipher algorithm name */
+#define PHP_CRYPTO_CIPHER_ALGORITHM_LEN_MAX 1024
+
 /* Mode string length */
 #define PHP_CRYPTO_CIPHER_MODE_LEN 3
 

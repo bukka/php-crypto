@@ -40,6 +40,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(KEY_LENGTH_INVALID, "Invalid length of key for ciphe
 PHP_CRYPTO_ERROR_INFO_ENTRY(IV_LENGTH_INVALID, "Invalid length of initial vector for cipher '%s' algorithm (required length: %d)")
 PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FORBIDDEN, "AAD setter has to be called before encryption or decryption")
 PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_SETTER_FAILED, "AAD setter failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(AAD_LENGTH_HIGH, "AAD length can't exceed max integer length")
 PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FORBIDDEN, "Tag getter has to be called after encryption")
 PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_SETTER_FORBIDDEN, "Tag setter has to be called before decryption")
 PHP_CRYPTO_ERROR_INFO_ENTRY(TAG_GETTER_FAILED, "Tag getter failed")
@@ -56,6 +57,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_DECRYPT_FORBIDDEN, "Cipher object is not init
 PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_FAILED, "Finalizing of cipher failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_ENCRYPT_FORBIDDEN, "Cipher object is not initialized for encryption")
 PHP_CRYPTO_ERROR_INFO_ENTRY(FINISH_DECRYPT_FORBIDDEN, "Cipher object is not initialized for decryption")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INPUT_DATA_LENGTH_HIGH, "Input data length can't exceed max integer length")
 PHP_CRYPTO_ERROR_INFO_END()
 
 PHP_CRYPTO_EXCEPTION_DEFINE(Hash)
@@ -66,6 +68,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(STATIC_METHOD_TOO_MANY_ARGS, "Hash static method %s 
 PHP_CRYPTO_ERROR_INFO_ENTRY(INIT_FAILED, "Initialization of hash failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(UPDATE_FAILED, "Updating of hash context failed")
 PHP_CRYPTO_ERROR_INFO_ENTRY(DIGEST_FAILED, "Creating of hash digest failed")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INPUT_DATA_LENGTH_HIGH, "Hashed message length can't exceed max integer length")
 PHP_CRYPTO_ERROR_INFO_END()
 
 
@@ -495,9 +498,15 @@ PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName)
 /* CIPHER METHODS */
 
 /* {{{ php_crypto_get_cipher_algorithm */
-PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(char *algorithm, int algorithm_len)
+PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(
+		char *algorithm, phpc_str_size_t algorithm_len)
 {
 	const EVP_CIPHER *cipher;
+
+	if (algorithm_len > PHP_CRYPTO_CIPHER_ALGORITHM_LEN_MAX) {
+		return NULL;
+	}
+
 	php_strtoupper(algorithm, algorithm_len);
 	cipher = EVP_get_cipherbyname(algorithm);
 	if (!cipher) {
@@ -601,7 +610,7 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 
 /* {{{ php_crypto_set_cipher_algorithm_ex */
 static int php_crypto_set_cipher_algorithm_ex(PHPC_THIS_DECLARE(crypto_alg),
-		char *algorithm, int algorithm_len TSRMLS_DC)
+		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
 	if (!cipher) {
@@ -710,7 +719,7 @@ PHP_CRYPTO_API int php_crypto_cipher_set_tag(EVP_CIPHER_CTX *cipher_ctx,
 /* }}} */
 
 /* {{{ php_crypto_cipher_check_tag_len */
-static int php_crypto_cipher_check_tag_len(long tag_len TSRMLS_DC)
+static int php_crypto_cipher_check_tag_len(int tag_len TSRMLS_DC)
 {
 	if (tag_len < PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MIN) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_LENGTH_LOW));
@@ -728,11 +737,12 @@ static int php_crypto_cipher_check_tag_len(long tag_len TSRMLS_DC)
 static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
 		phpc_str_size_t key_len TSRMLS_DC)
 {
-	int alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	int int_key_len, alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_READ_PROPERTY_RV_DECLARE;
 
-	if (key_len != alg_key_len &&
-			!EVP_CIPHER_CTX_set_key_length(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), key_len)) {
+	if (php_crypto_str_size_to_int(key_len, &int_key_len) == SUCCESS &&
+			int_key_len != alg_key_len &&
+			!EVP_CIPHER_CTX_set_key_length(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), int_key_len)) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, KEY_LENGTH_INVALID),
 				PHP_CRYPTO_GET_ALGORITHM_NAME(zobject), alg_key_len);
 		return FAILURE;
@@ -745,16 +755,20 @@ static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(cryp
 static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
 		const php_crypto_cipher_mode *mode, phpc_str_size_t iv_len TSRMLS_DC)
 {
-	int alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
+	int int_iv_len, alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_READ_PROPERTY_RV_DECLARE;
 
-	if (iv_len == alg_iv_len) {
+	if (php_crypto_str_size_to_int(iv_len, &int_iv_len) == FAILURE) {
+		return FAILURE;
+	}
+
+	if (int_iv_len == alg_iv_len) {
 		return SUCCESS;
 	}
 
-	if (!mode->auth_enc ||
+	if (!mode->auth_enc || int_iv_len == INT_MAX ||
 			!EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-				mode->auth_ivlen_flag, iv_len, NULL)) {
+				mode->auth_ivlen_flag, int_iv_len, NULL)) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Cipher, IV_LENGTH_INVALID),
 				PHP_CRYPTO_GET_ALGORITHM_NAME(zobject), alg_iv_len);
 		return FAILURE;
@@ -866,11 +880,16 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data;
-	phpc_str_size_t data_len;
-	int out_len, update_len;
+	phpc_str_size_t data_str_size;
+	int out_len, update_len, data_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &data, &data_str_size) == FAILURE) {
 		return;
+	}
+
+	if (php_crypto_str_size_to_int(data_str_size, &data_len)) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, INPUT_DATA_LENGTH_HIGH));
+		RETURN_FALSE;
 	}
 
 	PHPC_THIS_FETCH(crypto_alg);
@@ -961,12 +980,17 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data, *key, *iv = NULL;
-	phpc_str_size_t data_len, key_len, iv_len = 0;
-	int update_len, out_len, final_len;
+	phpc_str_size_t data_str_size, key_len, iv_len = 0;
+	int data_len, update_len, out_len, final_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss|s",
-			&data, &data_len, &key, &key_len, &iv, &iv_len) == FAILURE) {
+			&data, &data_str_size, &key, &key_len, &iv, &iv_len) == FAILURE) {
 		return;
+	}
+
+	if (php_crypto_str_size_to_int(data_str_size, &data_len)) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, INPUT_DATA_LENGTH_HIGH));
+		RETURN_FALSE;
 	}
 
 	PHPC_THIS = php_crypto_cipher_init_ex(getThis(), key, key_len, iv, iv_len, enc TSRMLS_CC);
@@ -1237,15 +1261,17 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 	PHPC_THIS_DECLARE(crypto_alg);
 	const php_crypto_cipher_mode *mode;
 	PHPC_STR_DECLARE(tag);
-	phpc_long_t tag_len;
+	phpc_long_t tag_len_long;
+	int tag_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len_long) == FAILURE) {
 		return;
 	}
 
 	PHPC_THIS_FETCH(crypto_alg);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
+			php_crypto_long_to_int(tag_len_long, &tag_len) == FAILURE ||
 			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1275,15 +1301,17 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 	PHPC_THIS_DECLARE(crypto_alg);
 	const php_crypto_cipher_mode *mode;
 	char *tag;
-	phpc_str_size_t tag_len;
+	phpc_str_size_t tag_str_size;
+	int tag_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &tag, &tag_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &tag, &tag_str_size) == FAILURE) {
 		return;
 	}
 
 	PHPC_THIS_FETCH(crypto_alg);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
+			php_crypto_str_size_to_int(tag_str_size, &tag_len) == FAILURE ||
 			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1314,9 +1342,10 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
 	PHPC_THIS_DECLARE(crypto_alg);
 	char *aad;
-	phpc_str_size_t aad_len;
+	phpc_str_size_t aad_str_size;
+	int aad_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &aad, &aad_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &aad, &aad_str_size) == FAILURE) {
 		return;
 	}
 
@@ -1325,7 +1354,10 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		RETURN_FALSE;
 	}
 
-	if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_CLEAR ||
+	if (php_crypto_str_size_to_int(aad_str_size, &aad_len) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, AAD_LENGTH_HIGH));
+		RETURN_FALSE;
+	} else if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_CLEAR ||
 			PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT ||
 			PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
 		if (!PHP_CRYPTO_CIPHER_AAD(PHPC_THIS)) {

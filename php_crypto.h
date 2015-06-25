@@ -30,6 +30,13 @@ extern zend_module_entry crypto_module_entry;
 #	define PHP_CRYPTO_API
 #endif
 
+/* always inline even in debug mode */
+#if defined(__GNUC__) && __GNUC__ >= 3
+#define php_crypto_always_inline inline __attribute__((always_inline))
+#else
+#define php_crypto_always_inline inline
+#endif
+
 #ifdef ZTS
 #include "TSRM.h"
 #endif
@@ -57,6 +64,25 @@ extern zend_module_entry crypto_module_entry;
 #define PHP_CRYPTO_NS_METHOD(ns, classname, method) PHP_METHOD(Crypto_##ns##_##classname, method)
 #define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
 #define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
+
+/* NUMERIC CONVERSIONS */
+
+/* {{{ php_crypto_str_size_to_int */
+php_crypto_always_inline int php_crypto_str_size_to_int(phpc_str_size_t size_len, int *int_len)
+{
+	PHPC_SIZE_TO_INT_EX(size_len, *int_len, return FAILURE);
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ php_crypto_long_to_int */
+php_crypto_always_inline int php_crypto_long_to_int(phpc_long_t plv, int *lv)
+{
+	PHPC_LONG_TO_INT_EX(plv, *lv, return FAILURE);
+	return SUCCESS;
+}
+/* }}} */
+
 
 /* ERROR TYPES */
 

@@ -30,6 +30,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(ENCODE_FINISH_FORBIDDEN, "The object has not been in
 PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FORBIDDEN, "The object is already used for encoding")
 PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_FINISH_FORBIDDEN, "The object has not been intialized for decoding")
 PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FAILED, "Base64 decoded string does not contain valid characters")
+PHP_CRYPTO_ERROR_INFO_ENTRY(INPUT_DATA_LENGTH_HIGH, "Input data length can't exceed max integer length")
 PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_base64_data, 0)
