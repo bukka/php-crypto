@@ -429,7 +429,7 @@ PHP_MINIT_FUNCTION(crypto_alg)
 typedef struct {
 	zend_bool aliases;
 	char *prefix;
-	int prefix_len;
+	phpc_str_size_t prefix_len;
 	zval *return_value;
 } php_crypto_do_all_algorithms_param;
 
@@ -1406,8 +1406,16 @@ static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_alg) TSRMLS_DC)
 
 /* {{{ php_crypto_hash_update */
 static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_alg),
-		char *data, phpc_str_size_t data_len TSRMLS_DC)
+		char *data, phpc_str_size_t data_str_size TSRMLS_DC)
 {
+	int data_len;
+
+	/* check string length overflow */
+	if (php_crypto_str_size_to_int(data_str_size, &data_len) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INPUT_DATA_LENGTH_HIGH));
+		return FAILURE;
+	}
+
 	/* check if hash is initialized and if it's not, then try to initialize */
 	if (PHPC_THIS->status != PHP_CRYPTO_ALG_STATUS_HASH &&
 			php_crypto_hash_init(PHPC_THIS TSRMLS_CC) == FAILURE) {

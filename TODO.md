@@ -40,8 +40,6 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
-- int overflow check for 7
-  - php_crypto_hash_update::data_len
 - Separate from alg
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
