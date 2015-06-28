@@ -130,13 +130,23 @@ static inline void php_crypto_base64_encode_init(EVP_ENCODE_CTX *ctx)
 /* }}} */
 
 /* {{{ php_crypto_base64_encode_update */
-static inline void php_crypto_base64_encode_update(
+static inline int php_crypto_base64_encode_update(
 		EVP_ENCODE_CTX *ctx, char *out, int *outl,
-		const char *in, phpc_str_size_t inl)
+		const char *in, phpc_str_size_t in_len TSRMLS_DC)
 {
+	int inl;
+
+	/* check string length overflow */
+	if (php_crypto_str_size_to_int(in_len, &inl) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, INPUT_DATA_LENGTH_HIGH));
+		return FAILURE;
+	}
+
 	EVP_EncodeUpdate(ctx,
 			(unsigned char *) out, outl,
 			(const unsigned char *) in, inl);
+
+	return SUCCESS;
 }
 /* }}} */
 
@@ -158,15 +168,25 @@ static inline void php_crypto_base64_decode_init(EVP_ENCODE_CTX *ctx)
 /* {{{ php_crypto_base64_decode_update */
 static inline int php_crypto_base64_decode_update(
 		EVP_ENCODE_CTX *ctx, char *out, int *outl,
-		const char *in, phpc_str_size_t inl TSRMLS_DC)
+		const char *in, phpc_str_size_t in_len TSRMLS_DC)
 {
+	int inl;
+
+	/* check string length overflow */
+	if (php_crypto_str_size_to_int(in_len, &inl) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, INPUT_DATA_LENGTH_HIGH));
+		return FAILURE;
+	}
+
 	int rc = EVP_DecodeUpdate(ctx,
 			(unsigned char *) out, outl,
 			(const unsigned char *) in, inl);
 	if (rc < 0) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Base64, DECODE_UPDATE_FAILED));
+		return FAILURE;
 	}
-	return rc;
+
+	return SUCCESS;
 }
 /* }}} */
 
@@ -195,7 +215,11 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	php_crypto_base64_encode_init(&ctx);
 	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, &ctx);
 	PHPC_STR_ALLOC(out, real_len);
-	php_crypto_base64_encode_update(&ctx, PHPC_STR_VAL(out), &update_len, in, in_len);
+	if (php_crypto_base64_encode_update(
+			&ctx, PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) == FAILURE) {
+		PHPC_STR_RELEASE(out);
+		RETURN_NULL();
+	}
 	php_crypto_base64_encode_finish(&ctx, PHPC_STR_VAL(out) + update_len, &final_len);
 	final_len += update_len;
 	if (real_len > final_len) {
@@ -223,7 +247,8 @@ PHP_CRYPTO_METHOD(Base64, decode)
 	real_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
 	PHPC_STR_ALLOC(out, real_len);
 
-	if (php_crypto_base64_decode_update(&ctx, PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) < 0) {
+	if (php_crypto_base64_decode_update(&ctx, PHPC_STR_VAL(out),
+			&update_len, in, in_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 	php_crypto_base64_decode_finish(&ctx, PHPC_STR_VAL(out), &final_len);
@@ -272,7 +297,10 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, PHPC_THIS->ctx);
 	if (real_len < PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN) {
 		char buff[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
-		php_crypto_base64_encode_update(PHPC_THIS->ctx, buff, &update_len, in, in_len);
+		if (php_crypto_base64_encode_update(PHPC_THIS->ctx,
+				buff, &update_len, in, in_len TSRMLS_CC) == FAILURE) {
+			RETURN_NULL();
+		}
 		if (update_len == 0) {
 			RETURN_EMPTY_STRING();
 		}
@@ -280,8 +308,11 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 		PHPC_CSTRL_RETURN(buff, update_len);
 	} else {
 		PHPC_STR_ALLOC(out, real_len);
-		php_crypto_base64_encode_update(PHPC_THIS->ctx,
-				PHPC_STR_VAL(out), &update_len, in, in_len);
+		if (php_crypto_base64_encode_update(PHPC_THIS->ctx,
+				PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) == FAILURE) {
+			PHPC_STR_RELEASE(out);
+			RETURN_NULL();
+		}
 		if (real_len > update_len) {
 			PHPC_STR_REALLOC(out, update_len);
 		}
@@ -346,7 +377,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 	if (real_len < PHP_CRYPTO_BASE64_DECODING_SIZE_MIN) {
 		char buff[PHP_CRYPTO_BASE64_DECODING_SIZE_MIN];
 		if (php_crypto_base64_decode_update(PHPC_THIS->ctx,
-				buff, &update_len, in, in_len TSRMLS_CC) < 0) {
+				buff, &update_len, in, in_len TSRMLS_CC) == FAILURE) {
 			RETURN_FALSE;
 		}
 		if (update_len == 0) {
@@ -357,7 +388,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 	} else {
 		PHPC_STR_ALLOC(out, real_len);
 		if (php_crypto_base64_decode_update(PHPC_THIS->ctx,
-				PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) < 0) {
+				PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) == FAILURE) {
 			PHPC_STR_RELEASE(out);
 			RETURN_FALSE;
 		}

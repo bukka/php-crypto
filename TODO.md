@@ -13,9 +13,6 @@
 - Add crypto PHP stream filters
 
 ## Base64
-- int overflow check for 7
-  - php_crypto_base64_encode_update::inl
-  - php_crypto_base64_decode_update::inl
 - Memory testing
 - Why does decodeFinish always return empty string?
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
