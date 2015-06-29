@@ -43,8 +43,6 @@
   - it would be better to return the same object and just add ref
 
 ## Rand
-- Check for overflow in `Rand::generate::buf_len` (positive int is required)
-- Check for overflow in `Rand::loadFile::max_bytes` (positive long or -1 is required?)
 - Add open_basedir check
   - `Rand::loadFile`
   - `Rand::writeFile`
