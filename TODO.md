@@ -1,8 +1,6 @@
 # TODO list
 
 ## BIO
-- overflow check
-  - BIO_seek : phpc_off_t -> long
 - Why SEEK_CUR is 0 when passed to crypto_stream_seek?
   - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 - Add new streams
@@ -43,27 +41,26 @@
   - it would be better to return the same object and just add ref
 
 ## Rand
+- Drop egd
 - Add open_basedir check
   - `Rand::loadFile`
   - `Rand::writeFile`
-  - `Rand::egd`
-
-## Internal issues
-- Add compatibility layer for PHP 7
 
 ## Build
-- Add EGD check (LibreSSL compat)
 - Version check for minimum version
   - At least 0.9.8 should be used
 
-# Upcoming releases
+# Plan for upcoming releases
 
 ## 0.2.0 (devel)
-- Crypto stream
-  - BIO wrapper
-- Improved error handling
 - Support for PHP 7
+- Crypto stream BIO wrapper
+- Improved error handling
+- Removed Algorithm class and AlogirithmException class
+- Fixed CCM plaintext length setting
+- Removed Rand::egd
 
 ## 0.3.0 (devel)
 - New API for KDF
+- Added open_basedir check for Rand::loadFile and Rand::writeFile
 
