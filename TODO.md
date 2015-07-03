@@ -26,6 +26,9 @@
 - Add KDF parameter to encryptInit and encrypt
 - Add support for `EVP_CIPHER_CTX_rand_key`
 - Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
+- Review cloning
+  - There are some issues for some modes (e.g. gcm and old OpenSSL)
+  - Use exception when cloning fails
 - Setting input and output stream based filters (hex, base64...)
 - Fix memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
 
