@@ -593,7 +593,7 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 /* }}} */
 
 /* {{{ php_crypto_set_cipher_algorithm_ex */
-static int php_crypto_set_cipher_algorithm_ex(PHPC_THIS_DECLARE(crypto_alg),
+static int php_crypto_set_cipher_algorithm_ex(PHPC_THIS_DECLARE(crypto_cipher),
 		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
@@ -609,7 +609,7 @@ static int php_crypto_set_cipher_algorithm_ex(PHPC_THIS_DECLARE(crypto_alg),
 static int php_crypto_set_cipher_algorithm(zval *object,
 		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
-	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_alg, object);
+	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_cipher, object);
 	php_crypto_cipher_set_algorithm_name(object, algorithm, algorithm_len TSRMLS_CC);
 	return php_crypto_set_cipher_algorithm_ex(PHPC_THIS, algorithm, algorithm_len TSRMLS_CC);
 }
@@ -620,7 +620,7 @@ static int php_crypto_set_cipher_algorithm_from_params_ex(
 		zval *object, char *algorithm, phpc_str_size_t algorithm_len,
 		zval *pz_mode, zval *pz_key_size, zend_bool is_static TSRMLS_DC)
 {
-	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_alg, object);
+	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_cipher, object);
 	const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm_from_params_ex(
 			object, algorithm, algorithm_len, pz_mode, pz_key_size, is_static TSRMLS_CC);
 
@@ -680,7 +680,7 @@ static int php_crypto_cipher_is_mode_authenticated_ex(const php_crypto_cipher_mo
 }
 
 /* {{{ php_crypto_cipher_is_mode_authenticated */
-static int php_crypto_cipher_is_mode_authenticated(PHPC_THIS_DECLARE(crypto_alg) TSRMLS_DC)
+static int php_crypto_cipher_is_mode_authenticated(PHPC_THIS_DECLARE(crypto_cipher) TSRMLS_DC)
 {
 	return php_crypto_cipher_is_mode_authenticated_ex(
 			php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS)) TSRMLS_CC);
@@ -718,7 +718,7 @@ static int php_crypto_cipher_check_tag_len(int tag_len TSRMLS_DC)
 /* }}} */
 
 /* {{{ php_crypto_cipher_check_key_len */
-static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
+static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(crypto_cipher),
 		phpc_str_size_t key_len TSRMLS_DC)
 {
 	int int_key_len, alg_key_len = EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
@@ -736,7 +736,7 @@ static int php_crypto_cipher_check_key_len(zval *zobject, PHPC_THIS_DECLARE(cryp
 /* }}} */
 
 /* {{{ php_crypto_cipher_check_iv_len */
-static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypto_alg),
+static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypto_cipher),
 		const php_crypto_cipher_mode *mode, phpc_str_size_t iv_len TSRMLS_DC)
 {
 	int int_iv_len, alg_iv_len = EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
@@ -762,12 +762,12 @@ static int php_crypto_cipher_check_iv_len(zval *zobject, PHPC_THIS_DECLARE(crypt
 /* }}} */
 
 /* {{{ php_crypto_cipher_init_ex */
-static PHPC_OBJ_STRUCT_NAME(crypto_alg) *php_crypto_cipher_init_ex(
+static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 		zval *zobject, char *key, phpc_str_size_t key_len,
 		char *iv, phpc_str_size_t iv_len, int enc TSRMLS_DC)
 {
 	const php_crypto_cipher_mode *mode;
-	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_alg, zobject);
+	PHPC_THIS_DECLARE_AND_FETCH_FROM_ZVAL(crypto_cipher, zobject);
 
 	/* check algorithm status */
 	if (enc && PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(PHPC_THIS)) {
@@ -860,7 +860,7 @@ PHP_CRYPTO_API int php_crypto_cipher_write_aad(
 /* {{{ php_crypto_cipher_update */
 static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data;
@@ -876,7 +876,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		RETURN_FALSE;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(PHPC_THIS)) {
@@ -919,7 +919,7 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 /* {{{ php_crypto_cipher_finish */
 static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
 	int out_len, final_len;
 
@@ -927,7 +927,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 
 	/* check algorithm status */
 	if (enc && !PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(PHPC_THIS)) {
@@ -960,7 +960,7 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 /* {{{ php_crypto_cipher_crypt */
 static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
 	const php_crypto_cipher_mode *mode;
 	char *data, *key, *iv = NULL;
@@ -1197,13 +1197,13 @@ PHP_CRYPTO_METHOD(Cipher, decrypt)
    Returns cipher block size */
 PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	RETURN_LONG(EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1211,13 +1211,13 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize)
    Returns cipher key length */
 PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	RETURN_LONG(EVP_CIPHER_key_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1225,13 +1225,13 @@ PHP_CRYPTO_METHOD(Cipher, getKeyLength)
    Returns cipher IV length */
 PHP_CRYPTO_METHOD(Cipher, getIVLength)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	RETURN_LONG(EVP_CIPHER_iv_length(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS)));
 }
 
@@ -1239,13 +1239,13 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
    Returns cipher mode */
 PHP_CRYPTO_METHOD(Cipher, getMode)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	RETURN_LONG(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 }
 /* }}} */
@@ -1254,7 +1254,7 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
    Returns authentication tag */
 PHP_CRYPTO_METHOD(Cipher, getTag)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	const php_crypto_cipher_mode *mode;
 	PHPC_STR_DECLARE(tag);
 	phpc_long_t tag_len_long;
@@ -1264,7 +1264,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
 			php_crypto_long_to_int(tag_len_long, &tag_len) == FAILURE ||
@@ -1272,7 +1272,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 		RETURN_FALSE;
 	}
 
-	if (PHPC_THIS->status != PHP_CRYPTO_ALG_STATUS_ENCRYPT_FINAL) {
+	if (PHPC_THIS->status != PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_FINAL) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_GETTER_FORBIDDEN));
 		RETURN_FALSE;
 	}
@@ -1294,7 +1294,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
    Sets authentication tag */
 PHP_CRYPTO_METHOD(Cipher, setTag)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	const php_crypto_cipher_mode *mode;
 	char *tag;
 	phpc_str_size_t tag_str_size;
@@ -1304,7 +1304,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
 			php_crypto_str_size_to_int(tag_str_size, &tag_len) == FAILURE ||
@@ -1312,7 +1312,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		RETURN_FALSE;
 	}
 
-	if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_CLEAR) {
+	if (PHPC_THIS->status == PHP_CRYPTO_CIPHER_STATUS_CLEAR) {
 		if (!PHP_CRYPTO_CIPHER_TAG(PHPC_THIS)) {
 			PHP_CRYPTO_CIPHER_TAG(PHPC_THIS) = emalloc(tag_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) < tag_len) {
@@ -1321,7 +1321,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 		}
 		memcpy(PHP_CRYPTO_CIPHER_TAG(PHPC_THIS), tag, tag_len + 1);
 		PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) = tag_len;
-	} else if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
+	} else if (PHPC_THIS->status == PHP_CRYPTO_CIPHER_STATUS_DECRYPT_INIT) {
 		php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode,
 				(unsigned char *) tag, tag_len TSRMLS_CC);
 	} else {
@@ -1336,7 +1336,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
    Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
-	PHPC_THIS_DECLARE(crypto_alg);
+	PHPC_THIS_DECLARE(crypto_cipher);
 	char *aad;
 	phpc_str_size_t aad_str_size;
 	int aad_len;
@@ -1345,7 +1345,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 		return;
 	}
 
-	PHPC_THIS_FETCH(crypto_alg);
+	PHPC_THIS_FETCH(crypto_cipher);
 	if (php_crypto_cipher_is_mode_authenticated(PHPC_THIS TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
@@ -1353,9 +1353,9 @@ PHP_CRYPTO_METHOD(Cipher, setAAD)
 	if (php_crypto_str_size_to_int(aad_str_size, &aad_len) == FAILURE) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, AAD_LENGTH_HIGH));
 		RETURN_FALSE;
-	} else if (PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_CLEAR ||
-			PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT ||
-			PHPC_THIS->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT) {
+	} else if (PHPC_THIS->status == PHP_CRYPTO_CIPHER_STATUS_CLEAR ||
+			PHPC_THIS->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_INIT ||
+			PHPC_THIS->status == PHP_CRYPTO_CIPHER_STATUS_DECRYPT_INIT) {
 		if (!PHP_CRYPTO_CIPHER_AAD(PHPC_THIS)) {
 			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS) = emalloc(aad_len + 1);
 		} else if (PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) < aad_len) {

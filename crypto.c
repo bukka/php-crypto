@@ -25,7 +25,7 @@
 #include "zend_exceptions.h"
 #include "ext/standard/info.h"
 #include "php_crypto.h"
-#include "php_crypto_alg.h"
+#include "php_crypto_hash.h"
 #include "php_crypto_base64.h"
 #include "php_crypto_stream.h"
 #include "php_crypto_rand.h"

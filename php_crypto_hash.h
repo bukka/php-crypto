@@ -16,8 +16,8 @@
   +----------------------------------------------------------------------+
 */
 
-#ifndef PHP_CRYPTO_ALG_H
-#define PHP_CRYPTO_ALG_H
+#ifndef PHP_CRYPTO_HASH_H
+#define PHP_CRYPTO_HASH_H
 
 #include "php.h"
 #include "php_crypto.h"
@@ -29,62 +29,54 @@
 #endif
 
 typedef enum {
-	PHP_CRYPTO_ALG_NONE = 0,
-	PHP_CRYPTO_ALG_CIPHER,
-	PHP_CRYPTO_ALG_HASH,
-	PHP_CRYPTO_ALG_HMAC,
-	PHP_CRYPTO_ALG_CMAC
-} php_crypto_algorithm_type;
+	PHP_CRYPTO_HASH_TYPE_NONE,
+	PHP_CRYPTO_HASH_TYPE_MD,
+	PHP_CRYPTO_HASH_TYPE_HMAC,
+	PHP_CRYPTO_HASH_TYPE_CMAC
+} php_crypto_hash_type;
 
 typedef enum {
-	PHP_CRYPTO_ALG_STATUS_CLEAR,
-	PHP_CRYPTO_ALG_STATUS_HASH,
-	PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT,
-	PHP_CRYPTO_ALG_STATUS_ENCRYPT_UPDATE,
-	PHP_CRYPTO_ALG_STATUS_ENCRYPT_FINAL,
-	PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT,
-	PHP_CRYPTO_ALG_STATUS_DECRYPT_UPDATE,
-	PHP_CRYPTO_ALG_STATUS_DECRYPT_FINAL
-} php_crypto_algorithm_status;
+	PHP_CRYPTO_HASH_STATUS_CLEAR,
+	PHP_CRYPTO_HASH_STATUS_HASH
+} php_crypto_hash_status;
 
-PHPC_OBJ_STRUCT_BEGIN(crypto_alg)
-	php_crypto_algorithm_type type;
-	php_crypto_algorithm_status status;
+PHPC_OBJ_STRUCT_BEGIN(crypto_hash)
+	php_crypto_hash_type type;
+	php_crypto_hash_status status;
 	union {
-		struct {
-			const EVP_MD *alg;
-			union {
-				EVP_MD_CTX *md;
-				HMAC_CTX *hmac;
-			} ctx;
-		} hash;
-	} evp;
-PHPC_OBJ_STRUCT_END()
-/* php_crypto_algorithm_object -> struct _phpc_crypto_alg__obj */
-
-/* Algorithm object accessors */
+		const EVP_MD *md;
 #ifdef PHP_CRYPTO_HAS_CMAC
-#define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->evp.cipher.ctx.cmac
-#define PHP_CRYPTO_CMAC_ALG PHP_CRYPTO_CIPHER_ALG
+		const EVP_CIPHER *cipher;
 #endif
-#define PHP_CRYPTO_HASH_CTX(pobj) (pobj)->evp.hash.ctx.md
-#define PHP_CRYPTO_HASH_ALG(pobj) (pobj)->evp.hash.alg
-#define PHP_CRYPTO_HMAC_CTX(pobj)   (pobj)->evp.hash.ctx.hmac
-#define PHP_CRYPTO_HMAC_ALG PHP_CRYPTO_HASH_ALG
+	} alg;
+	union {
+		EVP_MD_CTX *md;
+		HMAC_CTX *hmac;
+#ifdef PHP_CRYPTO_HAS_CMAC
+		CMAC_CTX *cmac;
+#endif
+	} ctx;
+PHPC_OBJ_STRUCT_END()
 
-/* Exceptions */
-PHP_CRYPTO_EXCEPTION_EXPORT(Algorithm)
+/* Hash or MAC object accessors */
+#ifdef PHP_CRYPTO_HAS_CMAC
+#define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->ctx.cmac
+#define PHP_CRYPTO_CMAC_ALG(pobj) (pobj)->alg.cipher
+#endif
+#define PHP_CRYPTO_HASH_CTX(pobj) (pobj)->ctx.md
+#define PHP_CRYPTO_HASH_ALG(pobj) (pobj)->alg.md
+#define PHP_CRYPTO_HMAC_CTX(pobj) (pobj)->ctx.hmac
+#define PHP_CRYPTO_HMAC_ALG(pobj) (pobj)->alg.hmac
+
+/* Exception */
 PHP_CRYPTO_EXCEPTION_EXPORT(Hash)
 /* Error infos */
 PHP_CRYPTO_ERROR_INFO_EXPORT(Hash)
 
 
-
-
 /* CLASSES */
 
 /* Class entries */
-extern PHP_CRYPTO_API zend_class_entry *php_crypto_algorithm_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 #ifdef PHP_CRYPTO_HAS_CMAC
@@ -93,17 +85,15 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
 
 /* USER METHODS */
 
-/* Module init for Crypto Algorithm */
-PHP_MINIT_FUNCTION(crypto_alg);
+/* Module init for Crypto Hash */
+PHP_MINIT_FUNCTION(crypto_hash);
 
-/* Algorithm methods */
-PHP_CRYPTO_METHOD(Algorithm, __construct);
-PHP_CRYPTO_METHOD(Algorithm, getAlgorithmName);
 /* Hash methods */
 PHP_CRYPTO_METHOD(Hash, getAlgorithms);
 PHP_CRYPTO_METHOD(Hash, hasAlgorithm);
 PHP_CRYPTO_METHOD(Hash, __callStatic);
 PHP_CRYPTO_METHOD(Hash, __construct);
+PHP_CRYPTO_METHOD(Hash, getAlgorithmName);
 PHP_CRYPTO_METHOD(Hash, update);
 PHP_CRYPTO_METHOD(Hash, digest);
 PHP_CRYPTO_METHOD(Hash, hexdigest);

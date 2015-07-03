@@ -39,6 +39,9 @@
 
 ## Hash
 - Separate from alg
+- Test and fix HMAC and CMAC
+  - shouldn't `php_crypto_hash_digest` call different context?
+  - check cloning
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref

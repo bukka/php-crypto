@@ -35,7 +35,7 @@ typedef enum {
 	PHP_CRYPTO_CIPHER_STATUS_DECRYPT_FINAL
 } php_crypto_cipher_status;
 
-PHPC_OBJ_STRUCT_BEGIN(crypto_alg)
+PHPC_OBJ_STRUCT_BEGIN(crypto_cipher)
 	php_crypto_cipher_status status;
 	const EVP_CIPHER *alg;
 	EVP_CIPHER_CTX *cipher;
@@ -47,15 +47,15 @@ PHPC_OBJ_STRUCT_END()
 
 /* Cipher status accessors */
 #define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(pobj) \
-	((pobj)->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_INIT || \
-	(pobj)->status == PHP_CRYPTO_ALG_STATUS_ENCRYPT_UPDATE)
+	((pobj)->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_INIT || \
+	(pobj)->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_UPDATE)
 #define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_DECRYPTION(pobj) \
-	((pobj)->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_INIT || \
-	(pobj)->status == PHP_CRYPTO_ALG_STATUS_DECRYPT_UPDATE)
+	((pobj)->status == PHP_CRYPTO_CIPHER_STATUS_DECRYPT_INIT || \
+	(pobj)->status == PHP_CRYPTO_CIPHER_STATUS_DECRYPT_UPDATE)
 #define PHP_CRYPTO_CIPHER_SET_STATUS(pobj, is_enc, status_name) \
 	(pobj)->status = ((is_enc) ? \
-		PHP_CRYPTO_ALG_STATUS_ENCRYPT_ ## status_name : \
-		PHP_CRYPTO_ALG_STATUS_DECRYPT_ ## status_name)
+		PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_ ## status_name : \
+		PHP_CRYPTO_CIPHER_STATUS_DECRYPT_ ## status_name)
 
 /* Algorithm object accessors */
 #define PHP_CRYPTO_CIPHER_CTX(pobj)     (pobj)->cipher
@@ -146,6 +146,7 @@ PHP_CRYPTO_METHOD(Cipher, hasAlgorithm);
 PHP_CRYPTO_METHOD(Cipher, hasMode);
 PHP_CRYPTO_METHOD(Cipher, __callStatic);
 PHP_CRYPTO_METHOD(Cipher, __construct);
+PHP_CRYPTO_METHOD(Cipher, getAlgorithmName);
 PHP_CRYPTO_METHOD(Cipher, encryptInit);
 PHP_CRYPTO_METHOD(Cipher, encryptUpdate);
 PHP_CRYPTO_METHOD(Cipher, encryptFinish);
