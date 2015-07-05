@@ -14,7 +14,7 @@ $cipher = new Crypto\Cipher('aes-256-gcm');
 try {
     $cipher->getTag(16);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::TAG_GETTER_FORBIDDEN) {
 		echo "FLOW\n";
 	}

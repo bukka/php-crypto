@@ -18,7 +18,7 @@ if (!is_int($int_data))
 try {
 	Crypto\Hash::non_existant();
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\HashException $e) {
 	if ($e->getCode() === Crypto\HashException::STATIC_METHOD_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}

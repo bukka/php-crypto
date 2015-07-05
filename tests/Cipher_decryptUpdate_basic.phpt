@@ -13,7 +13,7 @@ $cipher = new Crypto\Cipher('aes-256-cbc');
 try {
 	$cipher->decryptUpdate('ddd');
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::UPDATE_DECRYPT_FORBIDDEN) {
 		echo "UPDATE STATUS\n";
 	}

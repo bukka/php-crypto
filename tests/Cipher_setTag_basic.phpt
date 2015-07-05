@@ -15,7 +15,7 @@ $cipher->setTag('wrong tag');
 try {
 	echo $cipher->decrypt($data, $key, $iv) . "\n";
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if (Crypto\CipherException::FINISH_FAILED) {
 		echo "FAILED\n";
 	}
@@ -29,7 +29,7 @@ echo $cipher->decrypt($data, $key, $iv) . "\n";
 try {
     $cipher->setTag($tag);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::TAG_SETTER_FORBIDDEN) {
 		echo "FLOW\n";
 	}

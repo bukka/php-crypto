@@ -13,7 +13,7 @@ $cipher = new Crypto\Cipher('aes-256-cbc');
 try {
 	$cipher->encrypt($data, 'short_key', $iv);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::KEY_LENGTH_INVALID) {
 		echo "SHORT KEY\n";
 	}
@@ -23,7 +23,7 @@ catch (Crypto\AlgorithmException $e) {
 try {
 	$cipher->encrypt($data, $key, 'short_iv');
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::IV_LENGTH_INVALID) {
 		echo "SHORT IV\n";
 	}

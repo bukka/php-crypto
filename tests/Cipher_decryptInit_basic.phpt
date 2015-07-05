@@ -10,7 +10,7 @@ $iv = str_repeat('i', 16);
 try {
 	$cipher->decryptInit('short_key', $iv);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::KEY_LENGTH_INVALID) {
 		echo "SHORT KEY\n";
 	}
@@ -20,7 +20,7 @@ catch (Crypto\AlgorithmException $e) {
 try {
 	$cipher->decryptInit($key, 'short_iv');
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::IV_LENGTH_INVALID) {
 		echo "SHORT IV\n";
 	}
@@ -30,7 +30,7 @@ catch (Crypto\AlgorithmException $e) {
 try {
 	$cipher->decryptInit($key);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::IV_LENGTH_INVALID) {
 		echo "NO IV\n";
 	}
@@ -40,7 +40,7 @@ catch (Crypto\AlgorithmException $e) {
 try {
 	$cipher->decryptInit('short_key');
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	// key checking is first
 	if ($e->getCode() === Crypto\CipherException::KEY_LENGTH_INVALID) {
 		echo "BOTH\n";

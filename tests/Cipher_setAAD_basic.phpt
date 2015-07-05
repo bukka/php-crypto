@@ -1,7 +1,10 @@
 --TEST--
 Crypto\Cipher::getAAD basic usage.
 --SKIPIF--
-<?php if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_GCM)) die("Skip: GCM mode not defined (update OpenSSL version)"); ?>
+<?php
+if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_GCM))
+	die("Skip: GCM mode not defined (update OpenSSL version)");
+?>
 --FILE--
 <?php
 $key = str_repeat('x', 32);
@@ -26,7 +29,7 @@ echo $cipher->decrypt($ct, $key, $iv) . "\n";
 try {
 	$cipher->setAAD($aad);
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::AAD_SETTER_FORBIDDEN) {
 		echo "CIPHER_AAD_SETTER_FLOW\n";
 	}
@@ -39,7 +42,7 @@ try {
 	$cipher->setTag($tag);
 	echo $cipher->decrypt($ct, $key, $iv) . "\n";
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::FINISH_FAILED) {
 		echo "CIPHER_FINISH_FAILED\n";
 	}

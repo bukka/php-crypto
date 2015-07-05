@@ -451,6 +451,7 @@ PHP_MINIT_FUNCTION(crypto_cipher)
 
 	/* Cipher class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Cipher), php_crypto_cipher_object_methods);
+	PHPC_CLASS_SET_HANDLER_CREATE(ce, crypto_cipher);
 	php_crypto_cipher_ce = PHPC_CLASS_REGISTER(ce);
 	PHPC_OBJ_INIT_HANDLERS(crypto_cipher);
 	PHPC_OBJ_SET_HANDLER_OFFSET(crypto_cipher);

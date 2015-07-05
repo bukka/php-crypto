@@ -10,7 +10,7 @@ if ($hash instanceof Crypto\Hash)
 try {
 	$hash = new Crypto\Hash('nnn');	
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\HashException $e) {
 	if ($e->getCode() === Crypto\HashException::ALGORITHM_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}

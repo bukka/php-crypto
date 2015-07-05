@@ -12,7 +12,7 @@ $cipher = new Crypto\Cipher('aes-256-cbc');
 try {
 	$cipher->encryptFinish();
 }
-catch (Crypto\AlgorithmException $e) {
+catch (Crypto\CipherException $e) {
 	if ($e->getCode() === Crypto\CipherException::FINISH_ENCRYPT_FORBIDDEN) {
 		echo "FINAL STATUS\n";
 	}
