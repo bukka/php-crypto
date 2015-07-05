@@ -33,7 +33,7 @@ typedef struct {
 /* {{{ php_crypto_object_do_all */
 static void php_crypto_object_do_all(const OBJ_NAME *name, void *arg)
 {
-	php_crypto_object_do_all_param *pp = (php_crypto_do_all_algorithms_param *) arg;
+	php_crypto_object_do_all_param *pp = (php_crypto_object_do_all_param *) arg;
 	if ((pp->aliases || name->alias == 0) &&
 			(!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
 		PHPC_ARRAY_ADD_NEXT_INDEX_CSTR(pp->return_value, (char *) name->name);
@@ -44,13 +44,13 @@ static void php_crypto_object_do_all(const OBJ_NAME *name, void *arg)
 /* {{{ php_crypto_object_fn_get_names */
 PHP_CRYPTO_API void php_crypto_object_fn_get_names(INTERNAL_FUNCTION_PARAMETERS, int type)
 {
-	php_crypto_do_all_algorithms_param param = { 0, NULL, 0, return_value };
+	php_crypto_object_do_all_param param = { 0, NULL, 0, return_value };
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|bs",
 			&param.aliases, &param.prefix, &param.prefix_len) == FAILURE) {
 		return;
 	}
 	array_init(return_value);
-	OBJ_NAME_do_all_sorted(type, php_crypto_do_all_algorithms, &param);
+	OBJ_NAME_do_all_sorted(type, php_crypto_object_do_all, &param);
 }
 /* }}} */

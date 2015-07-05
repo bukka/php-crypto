@@ -210,7 +210,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, hasAlgorithm,
-		arginfo_crypto_algorithm,
+		arginfo_crypto_cipher_algorithm,
 		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -352,7 +352,7 @@ PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_cipher);
 
 /* algorithm name getter macros */
 #define PHP_CRYPTO_CIPHER_GET_ALGORITHM_NAME_EX(this_object) \
-	PHPC_READ_PROPERTY(php_crypto_algorithm_ce, this_object, \
+	PHPC_READ_PROPERTY(php_crypto_cipher_ce, this_object, \
 		"algorithm", sizeof("algorithm")-1, 1)
 
 #define PHP_CRYPTO_CIPHER_GET_ALGORITHM_NAME(this_object) \

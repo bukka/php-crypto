@@ -19,6 +19,7 @@
 #include "php.h"
 #include "php_crypto.h"
 #include "php_crypto_stream.h"
+#include "php_crypto_cipher.h"
 #include "php_crypto_hash.h"
 
 #include <openssl/bio.h>

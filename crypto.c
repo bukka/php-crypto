@@ -26,6 +26,7 @@
 #include "ext/standard/info.h"
 #include "php_crypto.h"
 #include "php_crypto_hash.h"
+#include "php_crypto_cipher.h"
 #include "php_crypto_base64.h"
 #include "php_crypto_stream.h"
 #include "php_crypto_rand.h"
@@ -79,7 +80,8 @@ PHP_MINIT_FUNCTION(crypto)
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
 
-	PHP_MINIT(crypto_alg)(INIT_FUNC_ARGS_PASSTHRU);
+	PHP_MINIT(crypto_cipher)(INIT_FUNC_ARGS_PASSTHRU);
+	PHP_MINIT(crypto_hash)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_base64)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_stream)(INIT_FUNC_ARGS_PASSTHRU);
 	PHP_MINIT(crypto_rand)(INIT_FUNC_ARGS_PASSTHRU);
