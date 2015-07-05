@@ -167,7 +167,7 @@ PHP_CRYPTO_METHOD(Cipher, setAAD);
 /* API FUNCTIONS */
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(
 		char *algorithm,
-		int algorithm_len);
+		phpc_str_size_t algorithm_len);
 
 PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params(
 		char *algorithm,
