@@ -23,7 +23,9 @@ if test "$PHP_CRYPTO" != "no"; then
     PHP_SUBST(CRYPTO_SHARED_LIBADD)
     PHP_NEW_EXTENSION(crypto, 
       crypto.c \
-      crypto_alg.c \
+	  crypto_object.c \
+	  crypto_cipher.c \
+	  crypto_hash.c \
       crypto_base64.c \
       crypto_stream.c \
       crypto_rand.c,
