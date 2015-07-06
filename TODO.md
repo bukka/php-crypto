@@ -1,6 +1,8 @@
 # TODO list
 
 ## BIO
+- Better overflow handling for php_crypto_stream_write
+  - Do not silently discard to INT_MAX
 - Why SEEK_CUR is 0 when passed to crypto_stream_seek?
   - it should be 1 otherwise it's the same as SEEK_SET which is the only allowed value for cryto.file
 - Add new streams
