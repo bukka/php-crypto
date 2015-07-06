@@ -78,33 +78,9 @@ The internal code is written in C so the body of methods is not shown.
 ```php
 <?php
 /**
- * Alorithm class (parent of cipher and digest algorithms)
- */
-class Crypto\Algorithm {
-    /**
-     * Algorithm name
-     * @var string
-     */
-    protected $algorithm;
-    
-    /**
-     * Algorithm constructor
-     * @param string $algorithm
-     */
-    public function __construct($algorithm) {}
-    
-    /**
-     * Returns algorithm string
-     * @return string
-     */
-    public function getAlgorithmName() {}
-    
-}
-
-/**
  * Class providing cipher algorithms
  */
-class Crypto\Cipher extends Crypto\Algorithm {
+class Crypto\Cipher {
     const MODE_ECB = 1;
     const MODE_CBC = 2;
     const MODE_CFB = 3;
@@ -150,6 +126,12 @@ class Crypto\Cipher extends Crypto\Algorithm {
      * @param string $key_size
      */
     public function __construct($algorithm, $mode = NULL, $key_size = NULL) {}
+    
+    /**
+     * Returns cipher algorithm name
+     * @return string
+     */
+    public function getAlgorithmName() {}
     
     /**
      * Initializes cipher encryption
@@ -261,7 +243,7 @@ class Crypto\Cipher extends Crypto\Algorithm {
 /**
  * Class providing hash algorithms
  */
-class Crypto\Hash extends Crypto\Algorithm {
+class Crypto\Hash {
     /**
      * Returns hash algorithms
      * @param bool $aliases
@@ -289,6 +271,12 @@ class Crypto\Hash extends Crypto\Algorithm {
      * @param string $algorithm
      */
     public function __construct($algorithm) {}
+    
+    /**
+     * Returns hash algorithm name
+     * @return string
+     */
+    public function getAlgorithmName() {}
     
     /**
      * Updates hash
@@ -320,44 +308,6 @@ class Crypto\Hash extends Crypto\Algorithm {
      * @return int
      */
     public function getSize() {}
-    
-}
-
-/**
- * Exception class for algorithms errors
- */
-class Crypto\AlgorithmException extends Exception {
-    const CIPHER_NOT_FOUND = 1;
-    const CIPHER_MODE_NOT_FOUND = 2;
-    const CIPHER_MODE_NOT_AVAILABLE = 3;
-    const CIPHER_AUTHENTICATION_NOT_SUPPORTED = 4;
-    const CIPHER_AUTHENTICATION_FAILED = 5;
-    const CIPHER_KEY_LENGTH = 6;
-    const CIPHER_IV_LENGTH = 7;
-    const CIPHER_AAD_SETTER_FLOW = 8;
-    const CIPHER_AAD_SETTER_FAILED = 9;
-    const CIPHER_TAG_GETTER_FLOW = 10;
-    const CIPHER_TAG_SETTER_FLOW = 11;
-    const CIPHER_TAG_GETTER_FAILED = 12;
-    const CIPHER_TAG_SETTER_FAILED = 13;
-    const CIPHER_TAG_LENGTH_UNDER = 14;
-    const CIPHER_TAG_LENGTH_OVER = 15;
-    const CIPHER_TAG_VARIFY_FAILED = 16;
-    const CIPHER_INIT_ALG_FAILED = 17;
-    const CIPHER_INIT_CTX_FAILED = 18;
-    const CIPHER_UPDATE_FAILED = 19;
-    const CIPHER_FINISH_FAILED = 20;
-    const ENCRYPT_INIT_STATUS = 21;
-    const ENCRYPT_UPDATE_STATUS = 22;
-    const ENCRYPT_FINISH_STATUS = 23;
-    const DECRYPT_INIT_STATUS = 24;
-    const DECRYPT_UPDATE_STATUS = 25;
-    const DECRYPT_FINISH_STATUS = 26;
-    const HASH_ALGORITHM_NOT_FOUND = 27;
-    const HASH_STATIC_NOT_FOUND = 28;
-    const HASH_INIT_FAILED = 29;
-    const HASH_UPDATE_FAILED = 30;
-    const HASH_DIGEST_FAILED = 31;
     
 }
 
@@ -476,14 +426,14 @@ class Crypto\Rand {
 
 ## Examples
 
-The examples can be found in [the example directory](https://github.com/bukka/php-crypto/tree/master/examples).
+The examples can be found in [the example directory](examples).
 
 
 ## TODO list
 
-The TODO list can be found [here](https://github.com/bukka/php-crypto/blob/master/TODO.md).
+The TODO list can be found [here](TODO.md).
 
 
 ## History
 
-The release history can be found [here](https://github.com/bukka/php-crypto/blob/master/HISTORY.md).
+The release history can be found [here](HISTORY.md).
