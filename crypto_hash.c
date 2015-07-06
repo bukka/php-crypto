@@ -401,8 +401,9 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 }
 /* }}} */
 
-/* {{{ proto static string Crypto\Hash::getAlgorithms(bool $aliases = false, string $prefix = null)
-   Returns hash algorithms */
+/* {{{ proto static string Crypto\Hash::getAlgorithms(bool $aliases = false,
+			string $prefix = null)
+	Returns hash algorithms */
 PHP_CRYPTO_METHOD(Hash, getAlgorithms)
 {
 	php_crypto_object_fn_get_names(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_MD_METH);
@@ -410,7 +411,7 @@ PHP_CRYPTO_METHOD(Hash, getAlgorithms)
 /* }}} */
 
 /* {{{ proto static bool Crypto\Hash::hasAlgorithm(string $algorithm)
-   Finds out whether algorithm exists */
+	Finds out whether algorithm exists */
 PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
 {
 	char *algorithm;
@@ -430,7 +431,7 @@ PHP_CRYPTO_METHOD(Hash, hasAlgorithm)
 /* }}} */
 
 /* {{{ proto static Crypto\Hash::__callStatic(string $name, array $arguments)
-   Hash magic method for calling static methods */
+	Hash magic method for calling static methods */
 PHP_CRYPTO_METHOD(Hash, __callStatic)
 {
 	char *algorithm;
@@ -477,7 +478,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 /* }}} */
 
 /* {{{ proto Crypto\Hash::__construct(string $algorithm)
-   Hash constructor */
+	Hash constructor */
 PHP_CRYPTO_METHOD(Hash, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_hash);
@@ -511,7 +512,7 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 /* }}} */
 
 /* {{{ proto string Crypto\Hash::getAlgorithmName()
-   Returns hash algorithm string */
+	Returns hash algorithm string */
 PHP_CRYPTO_METHOD(Hash, getAlgorithmName)
 {
 	zval *algorithm;
@@ -523,7 +524,7 @@ PHP_CRYPTO_METHOD(Hash, getAlgorithmName)
 /* }}} */
 
 /* {{{ proto void Crypto\Hash::update(string $data)
-   Updates hash */
+	Updates hash */
 PHP_CRYPTO_METHOD(Hash, update)
 {
 	PHPC_THIS_DECLARE(crypto_hash);
@@ -541,7 +542,7 @@ PHP_CRYPTO_METHOD(Hash, update)
 /* }}} */
 
 /* {{{ proto string Crypto\Hash::digest()
-   Return hash digest in raw foramt */
+	Return hash digest in raw foramt */
 PHP_CRYPTO_METHOD(Hash, digest)
 {
 	php_crypto_hash_digest(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
@@ -549,7 +550,7 @@ PHP_CRYPTO_METHOD(Hash, digest)
 /* }}} */
 
 /* {{{ proto string Crypto\Hash::hexdigest()
-   Return hash digest in hex format */
+	Return hash digest in hex format */
 PHP_CRYPTO_METHOD(Hash, hexdigest)
 {
 	php_crypto_hash_digest(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
@@ -557,7 +558,7 @@ PHP_CRYPTO_METHOD(Hash, hexdigest)
 /* }}} */
 
 /* {{{ proto int Crypto\Hash::getBlockSize()
-   Returns hash block size */
+	Returns hash block size */
 PHP_CRYPTO_METHOD(Hash, getBlockSize)
 {
 	PHPC_THIS_DECLARE(crypto_hash);
@@ -571,7 +572,7 @@ PHP_CRYPTO_METHOD(Hash, getBlockSize)
 }
 
 /* {{{ proto int Crypto\Hash::getSize()
-   Returns hash size */
+	Returns hash size */
 PHP_CRYPTO_METHOD(Hash, getSize)
 {
 	PHPC_THIS_DECLARE(crypto_hash);

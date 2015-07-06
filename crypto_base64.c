@@ -25,12 +25,30 @@
 
 PHP_CRYPTO_EXCEPTION_DEFINE(Base64)
 PHP_CRYPTO_ERROR_INFO_BEGIN(Base64)
-PHP_CRYPTO_ERROR_INFO_ENTRY(ENCODE_UPDATE_FORBIDDEN, "The object is already used for decoding")
-PHP_CRYPTO_ERROR_INFO_ENTRY(ENCODE_FINISH_FORBIDDEN, "The object has not been intialized for encoding")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FORBIDDEN, "The object is already used for encoding")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_FINISH_FORBIDDEN, "The object has not been intialized for decoding")
-PHP_CRYPTO_ERROR_INFO_ENTRY(DECODE_UPDATE_FAILED, "Base64 decoded string does not contain valid characters")
-PHP_CRYPTO_ERROR_INFO_ENTRY(INPUT_DATA_LENGTH_HIGH, "Input data length can't exceed max integer length")
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	ENCODE_UPDATE_FORBIDDEN,
+	"The object is already used for decoding"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	ENCODE_FINISH_FORBIDDEN,
+	"The object has not been intialized for encoding"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	DECODE_UPDATE_FORBIDDEN,
+	"The object is already used for encoding"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	DECODE_FINISH_FORBIDDEN,
+	"The object has not been intialized for decoding"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	DECODE_UPDATE_FAILED,
+	"Base64 decoded string does not contain valid characters"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	INPUT_DATA_LENGTH_HIGH,
+	"Input data length can't exceed max integer length"
+)
 PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_base64_data, 0)
@@ -38,13 +56,41 @@ ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_base64_object_methods[] = {
-	PHP_CRYPTO_ME(Base64,    encode,            arginfo_crypto_base64_data,  ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    decode,            arginfo_crypto_base64_data,  ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    __construct,       NULL,                        ZEND_ACC_CTOR|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    encodeUpdate,      arginfo_crypto_base64_data,  ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    encodeFinish,      NULL,                        ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    decodeUpdate,      arginfo_crypto_base64_data,  ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Base64,    decodeFinish,      NULL,                        ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(
+		Base64, encode,
+		arginfo_crypto_base64_data,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, decode,
+		arginfo_crypto_base64_data,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, __construct,
+		NULL,
+		ZEND_ACC_CTOR|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, encodeUpdate,
+		arginfo_crypto_base64_data,
+		ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, encodeFinish,
+		NULL,
+		ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, decodeUpdate,
+		arginfo_crypto_base64_data,
+		ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Base64, decodeFinish,
+		NULL,
+		ZEND_ACC_PUBLIC
+	)
 	PHPC_FE_END
 };
 
@@ -199,7 +245,7 @@ static inline void php_crypto_base64_decode_finish(EVP_ENCODE_CTX *ctx,
 /* }}} */
 
 /* {{{ proto string Crypto\Base64::encode(string $data)
-   Encodes string $data to base64 encoding */
+	Encodes string $data to base64 encoding */
 PHP_CRYPTO_METHOD(Base64, encode)
 {
 	char *in;
@@ -230,7 +276,7 @@ PHP_CRYPTO_METHOD(Base64, encode)
 }
 
 /* {{{ proto string Crypto\Base64::decode(string $data)
-   Decodes base64 string $data to raw encoding */
+	Decodes base64 string $data to raw encoding */
 PHP_CRYPTO_METHOD(Base64, decode)
 {
 	char *in;
@@ -270,7 +316,8 @@ PHP_CRYPTO_METHOD(Base64, __construct)
 }
 
 /* {{{ proto Crypto\Base64::encode(string $data)
-   Encodes block of characters from $data and saves the reminder of the last block to the encoding context */
+	Encodes block of characters from $data and saves the reminder of
+	the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 {
 	char *in;
@@ -322,7 +369,7 @@ PHP_CRYPTO_METHOD(Base64, encodeUpdate)
 }
 
 /* {{{ proto Crypto\Base64::encodeFinish()
-   Encodes characters that left in the encoding context */
+	Encodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, encodeFinish)
 {
 	char out[PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN+1];
@@ -349,7 +396,8 @@ PHP_CRYPTO_METHOD(Base64, encodeFinish)
 }
 
 /* {{{ proto Crypto\Base64::decode(string $data)
-   Decodes block of characters from $data and saves the reminder of the last block to the encoding context */
+	Decodes block of characters from $data and saves the reminder
+	of the last block to the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 {
 	char *in;
@@ -401,7 +449,7 @@ PHP_CRYPTO_METHOD(Base64, decodeUpdate)
 }
 
 /* {{{ proto Crypto\Base64::decodeFinish()
-   Decodes characters that left in the encoding context */
+	Decodes characters that left in the encoding context */
 PHP_CRYPTO_METHOD(Base64, decodeFinish)
 {
 	char buff[PHP_CRYPTO_BASE64_DECODING_SIZE_MIN];

@@ -26,28 +26,97 @@
 #include <openssl/evp.h>
 
 PHP_CRYPTO_ERROR_INFO_BEGIN(Stream)
-PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OPERATION_FORBIDDEN, "Requested seek operation is forbidden (only SEEK_SET is allowed)")
-PHP_CRYPTO_ERROR_INFO_ENTRY(SEEK_OFFSET_HIGH, "The offset greater than %d is not allowed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILTERS_CONTEXT_TYPE_INVALID, "The filters context field has to be an array")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILTERS_ITEM_CONTEXT_TYPE_INVALID, "The filters item context field has to be an array")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILTER_TYPE_NOT_SUPPLIED, "The filters context param 'type' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILTER_TYPE_INVALID, "The filters type has to be a string")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILTER_TYPE_UNKNOWN, "The filters type '%s' is not known")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_CONTEXT_TYPE_INVALID, "The filters field cipher has to be an array")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_NOT_SUPPLIED, "The cipher context parameter 'action' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ACTION_INVALID, "The cipher context parameter 'action' has to be either 'encode' or 'decode'")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_NOT_SUPPLIED, "The cipher context parameter 'algorithm' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_ALGORITHM_TYPE_INVALID, "The cipher algorithm has to be a string")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_NOT_SUPPLIED, "The cipher context parameter 'key' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_TYPE_INVALID, "The cipher key has to be a string")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_KEY_LENGTH_INVALID, "The cipher key length must be %d characters")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_NOT_SUPPLIED, "The cipher context parameter 'iv' is required")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_TYPE_INVALID, "The cipher IV has to be a string")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_IV_LENGTH_INVALID, "The cipher IV length must be %d characters")
-PHP_CRYPTO_ERROR_INFO_ENTRY(CIPHER_TAG_FORBIDDEN, "The cipher tag can be set only for encryption")
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_FAILED, "The cipher tag retrieving failed", E_NOTICE)
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_TAG_USELESS, "The cipher tag is useful only for authenticated mode", E_NOTICE)
-PHP_CRYPTO_ERROR_INFO_ENTRY_EX(CIPHER_AAD_USELESS, "The cipher AAD is useful only for authenticated mode", E_NOTICE)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	SEEK_OPERATION_FORBIDDEN,
+	"Requested seek operation is forbidden (only SEEK_SET is allowed)"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	SEEK_OFFSET_HIGH,
+	"The offset greater than %d is not allowed"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILTERS_CONTEXT_TYPE_INVALID,
+	"The filters context field has to be an array"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILTERS_ITEM_CONTEXT_TYPE_INVALID,
+	"The filters item context field has to be an array"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILTER_TYPE_NOT_SUPPLIED,
+	"The filters context param 'type' is required"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILTER_TYPE_INVALID,
+	"The filters type has to be a string"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILTER_TYPE_UNKNOWN,
+	"The filters type '%s' is not known"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_CONTEXT_TYPE_INVALID,
+	"The filters field cipher has to be an array"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_ACTION_NOT_SUPPLIED,
+	"The cipher context parameter 'action' is required"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_ACTION_INVALID,
+	"The cipher context parameter 'action' has to be either 'encode' or 'decode'"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_ALGORITHM_NOT_SUPPLIED,
+	"The cipher context parameter 'algorithm' is required"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_ALGORITHM_TYPE_INVALID,
+	"The cipher algorithm has to be a string"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_KEY_NOT_SUPPLIED,
+	"The cipher context parameter 'key' is required"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_KEY_TYPE_INVALID,
+	"The cipher key has to be a string"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_KEY_LENGTH_INVALID,
+	"The cipher key length must be %d characters"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_IV_NOT_SUPPLIED,
+	"The cipher context parameter 'iv' is required"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_IV_TYPE_INVALID,
+	"The cipher IV has to be a string"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_IV_LENGTH_INVALID,
+	"The cipher IV length must be %d characters"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_TAG_FORBIDDEN,
+	"The cipher tag can be set only for encryption"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(
+	CIPHER_TAG_FAILED,
+	"The cipher tag retrieving failed",
+	E_NOTICE
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(
+	CIPHER_TAG_USELESS,
+	"The cipher tag is useful only for authenticated mode",
+	E_NOTICE
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY_EX(
+	CIPHER_AAD_USELESS,
+	"The cipher AAD is useful only for authenticated mode",
+	E_NOTICE
+)
 PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_EXTERN_MODULE_GLOBALS(crypto)
@@ -59,7 +128,8 @@ typedef struct {
 } php_crypto_stream_data;
 
 /* {{{ php_crypto_stream_write */
-static size_t php_crypto_stream_write(php_stream *stream, const char *buf, size_t count TSRMLS_DC)
+static size_t php_crypto_stream_write(php_stream *stream,
+		const char *buf, size_t count TSRMLS_DC)
 {
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	int bytes_written = BIO_write(data->bio, buf, count > INT_MAX ? INT_MAX : count);
@@ -544,7 +614,8 @@ static php_stream_wrapper php_crypto_stream_wrapper = {
 /* {{{ PHP_MINIT_FUNCTION */
 PHP_MINIT_FUNCTION(crypto_stream)
 {
-	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME, &php_crypto_stream_wrapper TSRMLS_CC);
+	php_register_url_stream_wrapper(PHP_CRYPTO_STREAM_FILE_WRAPPER_NAME,
+			&php_crypto_stream_wrapper TSRMLS_CC);
 
 	return SUCCESS;
 }

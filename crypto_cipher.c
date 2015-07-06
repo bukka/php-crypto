@@ -1020,16 +1020,18 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 }
 /* }}} */
 
-/* {{{ proto static string Crypto\Cipher::getAlgorithms(bool $aliases = false, string $prefix = null)
-   Returns cipher algorithms */
+/* {{{ proto static string Crypto\Cipher::getAlgorithms(bool $aliases = false,
+			string $prefix = null)
+	Returns cipher algorithms */
 PHP_CRYPTO_METHOD(Cipher, getAlgorithms)
 {
-	php_crypto_object_fn_get_names(INTERNAL_FUNCTION_PARAM_PASSTHRU, OBJ_NAME_TYPE_CIPHER_METH);
+	php_crypto_object_fn_get_names(INTERNAL_FUNCTION_PARAM_PASSTHRU,
+			OBJ_NAME_TYPE_CIPHER_METH);
 }
 /* }}} */
 
 /* {{{ proto static bool Crypto\Cipher::hasAlgorithm(string $algorithm)
-   Finds out whether algorithm exists */
+	Finds out whether algorithm exists */
 PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
 {
 	char *algorithm;
@@ -1049,7 +1051,7 @@ PHP_CRYPTO_METHOD(Cipher, hasAlgorithm)
 /* }}} */
 
 /* {{{ proto static bool Crypto\Cipher::hasMode(int $mode)
-   Finds out whether the cipher mode is defined in the used OpenSSL library */
+	Finds out whether the cipher mode is defined in the used OpenSSL library */
 PHP_CRYPTO_METHOD(Cipher, hasMode)
 {
 	phpc_long_t mode;
@@ -1063,7 +1065,7 @@ PHP_CRYPTO_METHOD(Cipher, hasMode)
 /* }}} */
 
 /* {{{ proto static Crypto\Cipher::__callStatic(string $name, array $arguments)
-   Cipher magic method for calling static methods */
+	Cipher magic method for calling static methods */
 PHP_CRYPTO_METHOD(Cipher, __callStatic)
 {
 	char *algorithm;
@@ -1110,7 +1112,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 /* }}} */
 
 /* {{{ proto Crypto\Cipher::__construct(string $algorithm, int $mode = NULL, string $key_size = NULL)
-   Cipher constructor */
+	Cipher constructor */
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
 	char *algorithm;
@@ -1127,7 +1129,7 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 /* }}} */
 
 /* {{{ proto string Crypto\Cipher::getAlgorithmName()
-   Returns cipher algorithm string */
+	Returns cipher algorithm string */
 PHP_CRYPTO_METHOD(Cipher, getAlgorithmName)
 {
 	zval *algorithm;
@@ -1139,63 +1141,63 @@ PHP_CRYPTO_METHOD(Cipher, getAlgorithmName)
 /* }}} */
 
 /* {{{ proto bool Crypto\Cipher::encryptInit(string $key, string $iv = null)
-   Initializes cipher encryption */
+	Initializes cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptInit)
 {
 	php_crypto_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto string Crypto\Cipher::encryptUpdate(string $data)
-   Updates cipher encryption */
+	Updates cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptUpdate)
 {
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto string Crypto\Cipher::encryptFinish()
-   Finalizes cipher encryption */
+	Finalizes cipher encryption */
 PHP_CRYPTO_METHOD(Cipher, encryptFinish)
 {
 	php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto string Crypto\Cipher::encrypt(string $data, string $key, string $iv = null)
-   Encrypts text to ciphertext */
+	Encrypts text to ciphertext */
 PHP_CRYPTO_METHOD(Cipher, encrypt)
 {
 	php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 1);
 }
 
 /* {{{ proto void Crypto\Cipher::decryptInit(string $key, string $iv = null)
-   Initializes cipher decryption */
+	Initializes cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptInit)
 {
 	php_crypto_cipher_init(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto string Crypto\Cipher::decryptUpdate(string $data)
-   Updates cipher decryption */
+	Updates cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptUpdate)
 {
 	php_crypto_cipher_update(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto string Crypto\Cipher::decryptFinish()
-   Finalizes cipher decryption */
+	Finalizes cipher decryption */
 PHP_CRYPTO_METHOD(Cipher, decryptFinish)
 {
 	php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto string Crypto\Cipher::decrypt(string $data, string $key, string $iv = null)
-   Decrypts ciphertext to decrypted text */
+	Decrypts ciphertext to decrypted text */
 PHP_CRYPTO_METHOD(Cipher, decrypt)
 {
 	php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAM_PASSTHRU, 0);
 }
 
 /* {{{ proto int Crypto\Cipher::getBlockSize()
-   Returns cipher block size */
+	Returns cipher block size */
 PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1209,7 +1211,7 @@ PHP_CRYPTO_METHOD(Cipher, getBlockSize)
 }
 
 /* {{{ proto int Crypto\Cipher::getKeyLength()
-   Returns cipher key length */
+	Returns cipher key length */
 PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1223,7 +1225,7 @@ PHP_CRYPTO_METHOD(Cipher, getKeyLength)
 }
 
 /* {{{ proto int Crypto\Cipher::getIVLength()
-   Returns cipher IV length */
+	Returns cipher IV length */
 PHP_CRYPTO_METHOD(Cipher, getIVLength)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1237,7 +1239,7 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength)
 }
 
 /* {{{ proto int Crypto\Cipher::getMode()
-   Returns cipher mode */
+	Returns cipher mode */
 PHP_CRYPTO_METHOD(Cipher, getMode)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1252,7 +1254,7 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 /* }}} */
 
 /* {{{ proto string Crypto\Cipher::getTag(int $tag_size)
-   Returns authentication tag */
+	Returns authentication tag */
 PHP_CRYPTO_METHOD(Cipher, getTag)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1292,7 +1294,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 /* }}} */
 
 /* {{{ proto bool Crypto\Cipher::setTag(string $tag)
-   Sets authentication tag */
+	Sets authentication tag */
 PHP_CRYPTO_METHOD(Cipher, setTag)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
@@ -1334,7 +1336,7 @@ PHP_CRYPTO_METHOD(Cipher, setTag)
 /* }}} */
 
 /* {{{ proto bool Crypto\Cipher::setAAD(string $aad)
-   Sets additional application data for authenticated encryption */
+	Sets additional application data for authenticated encryption */
 PHP_CRYPTO_METHOD(Cipher, setAAD)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);

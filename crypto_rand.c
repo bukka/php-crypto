@@ -26,10 +26,22 @@
 
 PHP_CRYPTO_EXCEPTION_DEFINE(Rand)
 PHP_CRYPTO_ERROR_INFO_BEGIN(Rand)
-PHP_CRYPTO_ERROR_INFO_ENTRY(GENERATE_PREDICTABLE, "The PRNG state is not yet unpridactable")
-PHP_CRYPTO_ERROR_INFO_ENTRY(FILE_WRITE_PREDICTABLE, "The bytes written were generated without appropriate seed")
-PHP_CRYPTO_ERROR_INFO_ENTRY(REQUESTED_BYTES_NUMBER_TOO_HIGH, "The requested number of bytes is too high")
-PHP_CRYPTO_ERROR_INFO_ENTRY(SEED_LENGTH_TOO_HIGH, "The supplied seed length is too high")
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	GENERATE_PREDICTABLE,
+	"The PRNG state is not yet unpridactable"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	FILE_WRITE_PREDICTABLE,
+	"The bytes written were generated without appropriate seed"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	REQUESTED_BYTES_NUMBER_TOO_HIGH,
+	"The requested number of bytes is too high"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	SEED_LENGTH_TOO_HIGH,
+	"The supplied seed length is too high"
+)
 PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_rand_generate, 0, 0, 1)
@@ -59,12 +71,36 @@ ZEND_ARG_INFO(0, seed)
 ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_rand_object_methods[] = {
-	PHP_CRYPTO_ME(Rand,   generate,     arginfo_crypto_rand_generate,     ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Rand,   seed,         arginfo_crypto_rand_seed,         ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Rand,   cleanup,      NULL,                             ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Rand,   loadFile,     arginfo_crypto_rand_load_file,    ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Rand,   writeFile,    arginfo_crypto_rand_write_file,   ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
-	PHP_CRYPTO_ME(Rand,   egd,          arginfo_crypto_rand_egd,          ZEND_ACC_STATIC|ZEND_ACC_PUBLIC)
+	PHP_CRYPTO_ME(
+		Rand, generate,
+		arginfo_crypto_rand_generate,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Rand, seed,
+		arginfo_crypto_rand_seed,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Rand, cleanup,
+		NULL,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Rand, loadFile,
+		arginfo_crypto_rand_load_file,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Rand, writeFile,
+		arginfo_crypto_rand_write_file,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		Rand, egd,
+		arginfo_crypto_rand_egd,
+		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
+	)
 	PHPC_FE_END
 };
 
@@ -77,7 +113,8 @@ PHP_MINIT_FUNCTION(crypto_rand)
 	zend_class_entry ce;
 
 	/* Rand class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Rand), php_crypto_rand_object_methods);
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(Rand),
+			php_crypto_rand_object_methods);
 	php_crypto_rand_ce = PHPC_CLASS_REGISTER(ce);
 
 	/* RandException class */
@@ -88,8 +125,10 @@ PHP_MINIT_FUNCTION(crypto_rand)
 }
 /* }}} */
 
-/* {{{ proto static string Crypto\Rand::generate(int $num, bool $must_be_strong = true, &bool $returned_strong_result = true)
-   Generates pseudo random bytes */
+/* {{{ proto static string Crypto\Rand::generate(
+			int $num, bool $must_be_strong = true,
+			&bool $returned_strong_result = true)
+	Generates pseudo random bytes */
 PHP_CRYPTO_METHOD(Rand, generate)
 {
 	phpc_long_t num_long;
@@ -98,7 +137,8 @@ PHP_CRYPTO_METHOD(Rand, generate)
 	zval *zstrong_result = NULL;
 	zend_bool strong_result, must_be_strong = 1;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz/", &num_long, &must_be_strong, &zstrong_result) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz/",
+				&num_long, &must_be_strong, &zstrong_result) == FAILURE) {
 		return;
 	}
 
@@ -128,8 +168,9 @@ PHP_CRYPTO_METHOD(Rand, generate)
 }
 /* }}} */
 
-/* {{{ proto static void Crypto\Rand::seed(string $buf, float $entropy = (float) strlen($buf))
-   Mixes bytes in $buf into PRNG state */
+/* {{{ proto static void Crypto\Rand::seed(
+			string $buf, float $entropy = (float) strlen($buf))
+	Mixes bytes in $buf into PRNG state */
 PHP_CRYPTO_METHOD(Rand, seed)
 {
 	char *buf;
@@ -137,7 +178,8 @@ PHP_CRYPTO_METHOD(Rand, seed)
 	int buf_len;
 	double entropy;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|d", &buf, &buf_str_size, &entropy) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|d",
+				&buf, &buf_str_size, &entropy) == FAILURE) {
 		return;
 	}
 
@@ -167,8 +209,9 @@ PHP_CRYPTO_METHOD(Rand, cleanup)
 /* }}} */
 
 /* {{{ proto static int Crypto\Rand::loadFile(string $filename, int $max_bytes = -1)
-   Reads a number of bytes from file $filename and adds them to the PRNG. If max_bytes is non-negative,
-   up to to max_bytes are read; if $max_bytes is negative, the complete file is read */
+	Reads a number of bytes from file $filename and adds them
+	to the PRNG. If max_bytes is non-negative, up to to max_bytes
+	are read; if $max_bytes is negative, the complete file is read */
 PHP_CRYPTO_METHOD(Rand, loadFile)
 {
 	char *path;
@@ -196,8 +239,9 @@ PHP_CRYPTO_METHOD(Rand, loadFile)
 
 
 /* {{{ proto static int Crypto\Rand::writeFile(string $filename)
-   Writes a number of random bytes (currently 1024) to file $filename which can be used to initialize
-   the PRNG by calling Crypto\Rand::loadFile() in a later session */
+	Writes a number of random bytes (currently 1024) to file $filename
+	which can be used to initializethe PRNG by calling
+	Crypto\Rand::loadFile() in a later session */
 PHP_CRYPTO_METHOD(Rand, writeFile)
 {
 	char *path;
@@ -219,9 +263,11 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 }
 /* }}} */
 
-/* {{{ proto static mixed Crypto\Rand::egd(string $path, int $bytes = 255, bool $seed = true)
-   Queries the entropy gathering daemon EGD on socket path. It queries $bytes bytes and if $seed is true,
-   then the data are seeded, otherwise the data are returned */
+/* {{{ proto static mixed Crypto\Rand::egd(string $path,
+			int $bytes = 255, bool $seed = true)
+	Queries the entropy gathering daemon EGD on socket path. It queries
+	$bytes bytes and if $seed is true, then the data are seeded, otherwise
+	the data are returned */
 PHP_CRYPTO_METHOD(Rand, egd)
 {
 	char *path;
