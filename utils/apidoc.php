@@ -4,6 +4,7 @@ class Apidoc {
 
 	private $indent = 0;
 	private $indent_str = "    ";
+	private $description_width = 80;
 	
 	private $conf = array(
 		'classes' => array(
@@ -224,9 +225,21 @@ class Apidoc {
 	private function ckey_exists($key, $c) {
 		return isset($c[$key]) && is_array($c[$key]) && count($c[$key]) > 0;
 	}
+
+	private function splitDescription($desc) {
+	    return explode("\n", wordwrap($desc, $this->description_width));
+	}
+
+	private function outDescriptionPHP($description) {
+		$descs = $this->splitDescription($description);
+		foreach ($descs as $desc) {
+			$this->out(' * %s', $desc);
+		}
+	}
 	
 	public function generatePHP() {
 		$this->indent = 0;
+		$this->out("<?php");
 		foreach ($this->s as $c) {
 			$cprefix = isset($c['prefix']) && strlen($c['prefix']) ? $c['prefix'] . ' ' : '';
 			$this->out('/**');
@@ -241,7 +254,7 @@ class Apidoc {
 					if (isset($const['description'])) {
 						$this->out();
 						$this->out('/**');
-						$this->out(' * %s', $const['description']);
+						$this->outDescriptionPHP($const['description']);
 						$this->out(' */');
 					}
 					$this->out('const %s = %s;', $const['name'], $const['value']);
@@ -253,6 +266,7 @@ class Apidoc {
 				foreach ($c['vars'] as $v) {
 					$this->out('/**');
 					$this->out(' * %s', $v['description']);
+					$this->outDescriptionPHP($v['description']);
 					$this->out(' * @var %s', $v['type']);
 					$this->out(' */');
 					$this->out('%s %s;', $v['prefix'], $v['name']);
@@ -263,7 +277,7 @@ class Apidoc {
 			if ($this->ckey_exists('methods', $c)) {
 				foreach ($c['methods'] as $m) {
 					$this->out('/**');
-					$this->out(' * %s', $m['description']);
+					$this->outDescriptionPHP($m['description']);
 					$params = array();
 					if ($this->ckey_exists('params', $m)) {
 						foreach ($m['params'] as $p) {
