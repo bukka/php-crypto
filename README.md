@@ -118,8 +118,6 @@ where `<result>` can be either `success` or `failure`.
 Code examples can be found in [](examples/stream_cipher_gcm.php) for GCM mode and
 [](examples/stream_cipher_cbc.php) for simple CBC mode.
 
-```
-
 
 ## Examples
 
