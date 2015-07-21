@@ -56,6 +56,8 @@ PHPC_OBJ_STRUCT_BEGIN(crypto_hash)
 		CMAC_CTX *cmac;
 #endif
 	} ctx;
+	char *key;
+	int key_len;
 PHPC_OBJ_STRUCT_END()
 
 /* Hash or MAC object accessors */
@@ -66,7 +68,7 @@ PHPC_OBJ_STRUCT_END()
 #define PHP_CRYPTO_HASH_CTX(pobj) (pobj)->ctx.md
 #define PHP_CRYPTO_HASH_ALG(pobj) (pobj)->alg.md
 #define PHP_CRYPTO_HMAC_CTX(pobj) (pobj)->ctx.hmac
-#define PHP_CRYPTO_HMAC_ALG(pobj) (pobj)->alg.hmac
+#define PHP_CRYPTO_HMAC_ALG(pobj) (pobj)->alg.md
 
 /* Exception */
 PHP_CRYPTO_EXCEPTION_EXPORT(Hash)
@@ -99,6 +101,9 @@ PHP_CRYPTO_METHOD(Hash, digest);
 PHP_CRYPTO_METHOD(Hash, hexdigest);
 PHP_CRYPTO_METHOD(Hash, getSize);
 PHP_CRYPTO_METHOD(Hash, getBlockSize);
+
+/* MAC methods */
+PHP_CRYPTO_METHOD(MAC, __construct);
 
 
 /* CRYPTO API FUNCTIONS */

@@ -53,7 +53,7 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
 	INPUT_DATA_LENGTH_HIGH,
-	"Hashed message length can't exceed max integer length"
+	"Input data length can't exceed max integer length"
 )
 PHP_CRYPTO_ERROR_INFO_END()
 
@@ -130,8 +130,23 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHPC_FE_END
 };
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_mac_construct, 0)
+ZEND_ARG_INFO(0, algorithm)
+ZEND_ARG_INFO(0, key)
+ZEND_END_ARG_INFO()
+
+static const zend_function_entry php_crypto_mac_object_methods[] = {
+	PHP_CRYPTO_ME(
+		MAC, __construct,
+		arginfo_crypto_mac_construct,
+		ZEND_ACC_PUBLIC
+	)
+	PHPC_FE_END
+};
+
 /* class entries */
 PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
+PHP_CRYPTO_API zend_class_entry *php_crypto_mac_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
 #ifdef PHP_CRYPTO_HAS_CMAC
 PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
@@ -163,9 +178,13 @@ PHPC_OBJ_HANDLER_FREE(crypto_hash)
 #ifdef PHP_CRYPTO_HAS_CMAC
 	else if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_CMAC) {
 		CMAC_CTX_cleanup(PHP_CRYPTO_CMAC_CTX(PHPC_THIS));
-		efree(PHP_CRYPTO_CMAC_CTX(PHPC_THIS));
+		CMAC_CTX_free(PHP_CRYPTO_CMAC_CTX(PHPC_THIS));
 	}
 #endif
+
+	if (PHPC_THIS->key) {
+		efree(PHPC_THIS->key);
+	}
 
 	PHPC_OBJ_HANDLER_FREE_DESTROY();
 }
@@ -188,13 +207,15 @@ PHPC_OBJ_HANDLER_CREATE_EX(crypto_hash)
 #ifdef PHP_CRYPTO_HAS_CMAC
 	else if (class_type == php_crypto_cmac_ce) {
 		PHPC_THIS->type = PHP_CRYPTO_HASH_TYPE_CMAC;
-		PHP_CRYPTO_CMAC_CTX(PHPC_THIS) = (CMAC_CTX *) emalloc(sizeof(CMAC_CTX));
-		CMAC_CTX_init(PHP_CRYPTO_CMAC_CTX(PHPC_THIS));
+		PHP_CRYPTO_CMAC_CTX(PHPC_THIS) = CMAC_CTX_new();
 	}
 #endif
 	else {
 		PHPC_THIS->type = PHP_CRYPTO_HASH_TYPE_NONE;
 	}
+
+	PHPC_THIS->key = NULL;
+	PHPC_THIS->key_len = 0;
 
 	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_hash);
 }
@@ -215,6 +236,11 @@ PHPC_OBJ_HANDLER_CLONE(crypto_hash)
 
 	PHPC_THAT->status = PHPC_THIS->status;
 	PHPC_THAT->type = PHPC_THIS->type;
+	if (PHPC_THIS->key) {
+		PHPC_THAT->key = emalloc(PHPC_THIS->key_len + 1);
+		memcpy(PHPC_THAT->key, PHPC_THIS->key, PHPC_THIS->key_len + 1);
+		PHPC_THAT->key_len = PHPC_THIS->key_len;
+	}
 
 	if (PHPC_THAT->type == PHP_CRYPTO_HASH_TYPE_MD) {
 		copy_success = EVP_MD_CTX_copy(
@@ -281,14 +307,19 @@ PHP_MINIT_FUNCTION(crypto_hash)
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, Hash);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(Hash);
 
+	/* MAC class */
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(MAC), php_crypto_mac_object_methods);
+	php_crypto_mac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
+	php_crypto_mac_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
+
 	/* HMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(HMAC), NULL);
-	php_crypto_hmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
+	php_crypto_hmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_mac_ce, NULL);
 
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(CMAC), NULL);
-	php_crypto_cmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
+	php_crypto_cmac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_mac_ce, NULL);
 #endif
 
 	return SUCCESS;
@@ -323,8 +354,39 @@ PHP_CRYPTO_API void php_crypto_hash_bin2hex(char *out, const unsigned char *in, 
 /* {{{ php_crypto_hash_init */
 static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_hash) TSRMLS_DC)
 {
+	int rc;
+
+	if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_MD) {
+		rc = EVP_DigestInit_ex(PHP_CRYPTO_HASH_CTX(PHPC_THIS),
+				PHP_CRYPTO_HASH_ALG(PHPC_THIS), NULL);
+	} else {
+		 /* It is a MAC instance and the key is required */
+		if (!PHPC_THIS->key) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INIT_FAILED));
+			return FAILURE;
+		}
+
+		/* update hash context */
+		switch (PHPC_THIS->type) {
+			case PHP_CRYPTO_HASH_TYPE_HMAC:
+				rc = HMAC_Init_ex(PHP_CRYPTO_HMAC_CTX(PHPC_THIS),
+						PHPC_THIS->key, PHPC_THIS->key_len,
+						PHP_CRYPTO_HMAC_ALG(PHPC_THIS), NULL);
+				break;
+	#ifdef PHP_CRYPTO_HAS_CMAC
+			case PHP_CRYPTO_HASH_TYPE_CMAC:
+				rc = CMAC_Init(PHP_CRYPTO_CMAC_CTX(PHPC_THIS),
+						PHPC_THIS->key, PHPC_THIS->key_len,
+						PHP_CRYPTO_CMAC_ALG(PHPC_THIS), NULL);
+				break;
+	#endif
+			default:
+				rc = 0;
+		}
+	}
+
 	/* initialize hash */
-	if (!EVP_DigestInit_ex(PHP_CRYPTO_HASH_CTX(PHPC_THIS), PHP_CRYPTO_HASH_ALG(PHPC_THIS), NULL)) {
+	if (!rc) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INIT_FAILED));
 		return FAILURE;
 	}
@@ -337,7 +399,7 @@ static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_hash) TSRMLS_DC)
 static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_hash),
 		char *data, phpc_str_size_t data_str_size TSRMLS_DC)
 {
-	int data_len;
+	int data_len, rc;
 
 	/* check string length overflow */
 	if (php_crypto_str_size_to_int(data_str_size, &data_len) == FAILURE) {
@@ -352,7 +414,23 @@ static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_hash),
 	}
 
 	/* update hash context */
-	if (!EVP_DigestUpdate(PHP_CRYPTO_HASH_CTX(PHPC_THIS), data, data_len)) {
+	switch (PHPC_THIS->type) {
+		case PHP_CRYPTO_HASH_TYPE_MD:
+			rc = EVP_DigestUpdate(PHP_CRYPTO_HASH_CTX(PHPC_THIS), data, data_len);
+			break;
+		case PHP_CRYPTO_HASH_TYPE_HMAC:
+			rc = HMAC_Update(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), data, data_len);
+			break;
+#ifdef PHP_CRYPTO_HAS_CMAC
+		case PHP_CRYPTO_HASH_TYPE_CMAC:
+			rc = CMAC_Update(PHP_CRYPTO_CMAC_CTX(PHPC_THIS), data, data_len);
+			break;
+#endif
+		default:
+			rc = 0;
+	}
+
+	if (!rc) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, UPDATE_FAILED));
 		return FAILURE;
 	}
@@ -494,14 +572,6 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 	php_crypto_hash_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
 	PHPC_THIS_FETCH(crypto_hash);
 
-#ifdef PHP_CRYPTO_HAS_CMAC
-	/* CMAC algorithm uses a cipher algorithm */
-	if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_CMAC) {
-		php_crypto_set_cipher_algorithm_ex(PHPC_THIS, algorithm, algorithm_len TSRMLS_CC);
-		return;
-	}
-#endif
-
 	digest = EVP_get_digestbyname(algorithm);
 	if (!digest) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
@@ -583,4 +653,55 @@ PHP_CRYPTO_METHOD(Hash, getSize)
 
 	PHPC_THIS_FETCH(crypto_hash);
 	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS)));
+}
+
+/* {{{ proto int Crypto\MAC::__construct($algorithm, $key)
+	Create a MAC (used by MAC subclasses - HMAC and CMAC) */
+PHP_CRYPTO_METHOD(MAC, __construct)
+{
+	PHPC_THIS_DECLARE(crypto_hash);
+	char *algorithm, *key;
+	phpc_str_size_t algorithm_len, key_len;
+	int key_len_int;
+	const EVP_MD *digest;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
+			&algorithm, &algorithm_len, &key, &key_len) == FAILURE) {
+		return;
+	}
+
+	php_crypto_hash_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
+	PHPC_THIS_FETCH(crypto_hash);
+
+	if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_HMAC) {
+		const EVP_MD *digest = EVP_get_digestbyname(algorithm);
+		if (!digest) {
+			goto php_crypto_mac_alg_not_found;
+		}
+		PHP_CRYPTO_HMAC_ALG(PHPC_THIS) = digest;
+	}
+#ifdef PHP_CRYPTO_HAS_CMAC
+	/* CMAC algorithm uses a cipher algorithm */
+	else if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_CMAC) {
+		const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
+		if (!cipher) {
+			goto php_crypto_mac_alg_not_found;
+		}
+		PHP_CRYPTO_CMAC_ALG(PHPC_THIS) = cipher;
+	}
+#endif
+
+	/* check key length overflow */
+	if (php_crypto_str_size_to_int(key_len, &key_len_int) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INPUT_DATA_LENGTH_HIGH));
+		return;
+	}
+
+	PHPC_THIS->key = emalloc(key_len + 1);
+	memcpy(PHPC_THIS->key, key, key_len);
+	PHPC_THIS->key[key_len] = '\0';
+	PHPC_THIS->key_len = key_len_int;
+
+php_crypto_mac_alg_not_found:
+	php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
 }
