@@ -18,7 +18,6 @@
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
 
 ## Cipher
-- Separate from alg
 - Limit algorithm name len
 - CCM plaintext/ciphertext length must be passed
   - either add some options to pass length then disable it for streams and updates
@@ -40,10 +39,12 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
-- Separate from alg
-- Test and fix HMAC and CMAC
-  - shouldn't `php_crypto_hash_digest` call different context?
-  - check cloning
+- Test and possible fix HMAC and CMAC
+- Consider using the same allocator
+  - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
+- Review cloning
+- Add MAC Exceptions class
+  - key checking
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
