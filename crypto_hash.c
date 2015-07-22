@@ -701,6 +701,7 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 	memcpy(PHPC_THIS->key, key, key_len);
 	PHPC_THIS->key[key_len] = '\0';
 	PHPC_THIS->key_len = key_len_int;
+	return;
 
 php_crypto_mac_alg_not_found:
 	php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
