@@ -446,6 +446,7 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 	PHPC_STR_DECLARE(hash);
 	unsigned char hash_value[EVP_MAX_MD_SIZE + 1];
 	unsigned int hash_len;
+	int rc;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -460,7 +461,23 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 	}
 
 	/* finalize hash context */
-	if (!EVP_DigestFinal(PHP_CRYPTO_HASH_CTX(PHPC_THIS), hash_value, &hash_len)) {
+	switch (PHPC_THIS->type) {
+		case PHP_CRYPTO_HASH_TYPE_MD:
+			rc = EVP_DigestFinal(PHP_CRYPTO_HASH_CTX(PHPC_THIS), hash_value, &hash_len);
+			break;
+		case PHP_CRYPTO_HASH_TYPE_HMAC:
+			rc = HMAC_Final(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), hash_value, &hash_len);
+			break;
+#ifdef PHP_CRYPTO_HAS_CMAC
+		case PHP_CRYPTO_HASH_TYPE_CMAC:
+			rc = CMAC_Final(PHP_CRYPTO_CMAC_CTX(PHPC_THIS), hash_value, &hash_len);
+			break;
+#endif
+		default:
+			rc = 0;
+	}
+
+	if (!rc) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, DIGEST_FAILED));
 		RETURN_FALSE;
 	}
