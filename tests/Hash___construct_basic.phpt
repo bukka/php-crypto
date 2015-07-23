@@ -22,7 +22,7 @@ class SubHash extends Crypto\Hash {
 		echo $this->algorithm . "\n";
 	}
 }
-$subcipher = new SubHash('sha256');
+$subhash = new SubHash('sha256');
 ?>
 --EXPECT--
 FOUND
