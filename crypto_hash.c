@@ -680,7 +680,7 @@ PHP_CRYPTO_METHOD(Hash, getSize)
 PHP_CRYPTO_METHOD(MAC, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_hash);
-	char *algorithm, *key;
+	char *algorithm, *algorithm_uc, *key;
 	phpc_str_size_t algorithm_len, key_len;
 	int key_len_int;
 	const EVP_MD *digest;
@@ -690,11 +690,13 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 		return;
 	}
 
-	php_crypto_hash_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
+	algorithm_uc = estrdup(algorithm);
+	algorithm_len = strlen(algorithm_uc);
+	php_crypto_hash_set_algorithm_name(getThis(), algorithm_uc, algorithm_len TSRMLS_CC);
 	PHPC_THIS_FETCH(crypto_hash);
 
 	if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_HMAC) {
-		const EVP_MD *digest = EVP_get_digestbyname(algorithm);
+		const EVP_MD *digest = EVP_get_digestbyname(algorithm_uc);
 		if (!digest) {
 			goto php_crypto_mac_alg_not_found;
 		}
@@ -703,13 +705,15 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 #ifdef PHP_CRYPTO_HAS_CMAC
 	/* CMAC algorithm uses a cipher algorithm */
 	else if (PHPC_THIS->type == PHP_CRYPTO_HASH_TYPE_CMAC) {
-		const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm, algorithm_len);
+		const EVP_CIPHER *cipher = php_crypto_get_cipher_algorithm(algorithm_uc, algorithm_len);
 		if (!cipher) {
 			goto php_crypto_mac_alg_not_found;
 		}
 		PHP_CRYPTO_CMAC_ALG(PHPC_THIS) = cipher;
 	}
 #endif
+
+	efree(algorithm_uc);
 
 	/* check key length overflow */
 	if (php_crypto_str_size_to_int(key_len, &key_len_int) == FAILURE) {
@@ -725,4 +729,5 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 
 php_crypto_mac_alg_not_found:
 	php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
+	efree(algorithm_uc);
 }
