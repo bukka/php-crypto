@@ -1115,7 +1115,7 @@ PHP_CRYPTO_METHOD(Cipher, __callStatic)
 	Cipher constructor */
 PHP_CRYPTO_METHOD(Cipher, __construct)
 {
-	char *algorithm;
+	char *algorithm, *algorithm_uc;
 	phpc_str_size_t algorithm_len;
 	zval *mode = NULL, *key_size = NULL;
 
@@ -1123,8 +1123,11 @@ PHP_CRYPTO_METHOD(Cipher, __construct)
 			&algorithm, &algorithm_len, &mode, &key_size) == FAILURE) {
 		return;
 	}
+
+	algorithm_uc = estrdup(algorithm);
 	php_crypto_set_cipher_algorithm_from_params(
-			getThis(), algorithm, algorithm_len, mode, key_size TSRMLS_CC);
+			getThis(), algorithm_uc, strlen(algorithm_uc), mode, key_size TSRMLS_CC);
+	efree(algorithm_uc);
 }
 /* }}} */
 

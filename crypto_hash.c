@@ -577,7 +577,7 @@ PHP_CRYPTO_METHOD(Hash, __callStatic)
 PHP_CRYPTO_METHOD(Hash, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_hash);
-	char *algorithm;
+	char *algorithm, *algorithm_uc;
 	phpc_str_size_t algorithm_len;
 	const EVP_MD *digest;
 
@@ -586,15 +586,18 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 		return;
 	}
 
-	php_crypto_hash_set_algorithm_name(getThis(), algorithm, algorithm_len TSRMLS_CC);
+	algorithm_uc = estrdup(algorithm);
+	php_crypto_hash_set_algorithm_name(getThis(), algorithm_uc, strlen(algorithm_uc) TSRMLS_CC);
 	PHPC_THIS_FETCH(crypto_hash);
 
 	digest = EVP_get_digestbyname(algorithm);
 	if (!digest) {
 		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
-		return;
+	} else {
+		PHP_CRYPTO_HASH_ALG(PHPC_THIS) = digest;
 	}
-	PHP_CRYPTO_HASH_ALG(PHPC_THIS) = digest;
+
+	efree(algorithm_uc);
 }
 /* }}} */
 
