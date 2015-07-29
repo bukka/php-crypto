@@ -686,7 +686,7 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 	const EVP_MD *digest;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
-			&algorithm, &algorithm_len, &key, &key_len) == FAILURE) {
+			&key, &key_len, &algorithm, &algorithm_len) == FAILURE) {
 		return;
 	}
 

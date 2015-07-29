@@ -10,7 +10,7 @@ function crypto_test_hmac_digest($alg) {
 	global $msg, $key;
 
 	echo "$alg\n";
-	$hmac = new Crypto\HMAC($alg, $key);
+	$hmac = new Crypto\HMAC($key, $alg);
 	$hmac->update($msg);
 	echo bin2hex($hmac->digest()) . "\n";
 }

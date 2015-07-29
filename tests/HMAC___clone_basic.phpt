@@ -5,7 +5,7 @@ Crypto\HMAC::__clone basic usage.
 $data1 = "The quick brown fox ";
 $data2 = "jumps over the lazy dog";
 
-$hmac = new Crypto\HMAC('sha256', 'key');
+$hmac = new Crypto\HMAC('key', 'sha256');
 $hmac->update($data1);
 $hmac_clone = clone $hmac;
 echo $hmac_clone->getAlgorithmName() . "\n";
