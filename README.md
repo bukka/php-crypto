@@ -81,11 +81,61 @@ The extension is still in development so the API is not stabilized yet.
 
 All classes are defined in namespace `Crypto`.
 
+Each base class has an exception class that has the same name and
+`Exception` suffix (e.g. `Hash` class has `HashException`. The exception
+classes are subclasses of the PHP `Exception` class. They define
+exception code as class constants. Each code also has a different message.
+
 ### PHP definition for the classes
 
-As the extension is still in development, the documenation for all classes is
+The PHP based DocBlock documenation for all classes is
 generated from the extension code. It can be found in
-[docs/Crypto.php](docs/Crypto.php) which can be also used for an IDE autocomplete.
+[docs/Crypto.php](docs/Crypto.php). It can be also
+used for an IDE autocomplete.
+
+### Hash
+
+The `Hash` class provides functions for creating message digest from a supplied
+block of data. It allows to choose an algorithm and contains additional methods
+giving more info like it's block size.
+
+#### `Hash::__construct($algorithm)`
+
+_**Description**_: Creates a new `Hash` class if supplied algorithm is supported.
+
+The constructor first check if the algorithm is found. If it's not then
+`HashException` is thrown. Otherwise a new instance of `HashException`
+
+##### *Parameters*
+
+*algorithm* : string - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
+
+##### *Return value*
+
+*Hash*: New instances of the class
+
+##### *Throws*
+
+It can throw `HashException` with code
+
+- `HashException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
+
+##### *Examples*
+
+```php
+$hash = new \Crypto\Hash('sha256');
+```
+
+If the algorithm is passed by user in variable, then it might be a good idea to
+wrap it in a try/catch block:
+```php
+try {
+    $hash = new \Crypto\Hash('sha256');
+}
+catch (\Crypto\HashException $e) {
+    echo $e->getMessage();
+}
+```
 
 ### Streams
 
