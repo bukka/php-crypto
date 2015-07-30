@@ -293,7 +293,7 @@ PHP_CRYPTO_METHOD(Rand, egd)
 	}
 
 	PHPC_STR_ALLOC(buf, (phpc_str_size_t) bytes);
-	RAND_query_egd_bytes(path, PHPC_STR_VAL(buf), bytes);
+	RAND_query_egd_bytes(path, (unsigned char *) PHPC_STR_VAL(buf), bytes);
 	PHPC_STR_VAL(buf)[bytes] = '\0';
 	PHPC_STR_RETURN(buf);
 }

@@ -419,7 +419,7 @@ static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_hash),
 			rc = EVP_DigestUpdate(PHP_CRYPTO_HASH_CTX(PHPC_THIS), data, data_len);
 			break;
 		case PHP_CRYPTO_HASH_TYPE_HMAC:
-			rc = HMAC_Update(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), data, data_len);
+			rc = HMAC_Update(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), (unsigned char *) data, data_len);
 			break;
 #ifdef PHP_CRYPTO_HAS_CMAC
 		case PHP_CRYPTO_HASH_TYPE_CMAC:
