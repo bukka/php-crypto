@@ -130,12 +130,43 @@ If the algorithm is passed by user in variable, then it might be a good idea to
 wrap it in a try/catch block:
 ```php
 try {
-    $hash = new \Crypto\Hash('sha256');
+    $hash = new \Crypto\Hash($hash_algorithm);
 }
 catch (\Crypto\HashException $e) {
     echo $e->getMessage();
 }
 ```
+
+#### `Hash::__callStatic($name, $arguments)`
+
+_**Description**_: Creates hash digest using static call syntax.
+
+The usage of `__callStatic` magic method allows simplified syntax for creating
+`Hash` object (e.g. `Hash::sha256($message)`). The `$name` depicts the algorithm
+which is checked if it's found. If not then `HashException` is thrown. Otherwise
+the new `Hash` instance is returned.
+
+##### *Parameters*
+
+*name* : string - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
+*arguments* : array - there can be just one element which is message
+
+##### *Return value*
+
+*Hash*: New instances of the class
+
+##### *Throws*
+
+It can throw `HashException` with code
+
+- `HashException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+
+##### *Examples*
+
+```php
+echo \Crypto\Hash::sha256('abc')->hexdigest();
+```
+
 
 ### Streams
 
