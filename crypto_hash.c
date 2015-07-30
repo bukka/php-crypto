@@ -651,6 +651,7 @@ PHP_CRYPTO_METHOD(Hash, hexdigest)
 	Returns hash block size */
 PHP_CRYPTO_METHOD(Hash, getBlockSize)
 {
+	int block_size;
 	PHPC_THIS_DECLARE(crypto_hash);
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -658,13 +659,32 @@ PHP_CRYPTO_METHOD(Hash, getBlockSize)
 	}
 
 	PHPC_THIS_FETCH(crypto_hash);
-	RETURN_LONG(EVP_MD_block_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS)));
+
+	/* find out block size */
+	switch (PHPC_THIS->type) {
+		case PHP_CRYPTO_HASH_TYPE_MD:
+			block_size = EVP_MD_block_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS));
+			break;
+		case PHP_CRYPTO_HASH_TYPE_HMAC:
+			block_size = EVP_MD_block_size(PHP_CRYPTO_HMAC_ALG(PHPC_THIS));
+			break;
+#ifdef PHP_CRYPTO_HAS_CMAC
+		case PHP_CRYPTO_HASH_TYPE_CMAC:
+			block_size = EVP_CIPHER_block_size(PHP_CRYPTO_CMAC_ALG(PHPC_THIS));
+			break;
+#endif
+		default:
+			block_size = 0;
+	}
+
+	RETURN_LONG(block_size);
 }
 
 /* {{{ proto int Crypto\Hash::getSize()
 	Returns hash size */
 PHP_CRYPTO_METHOD(Hash, getSize)
 {
+	int hash_size;
 	PHPC_THIS_DECLARE(crypto_hash);
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -672,7 +692,25 @@ PHP_CRYPTO_METHOD(Hash, getSize)
 	}
 
 	PHPC_THIS_FETCH(crypto_hash);
-	RETURN_LONG(EVP_MD_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS)));
+
+	/* find out block size */
+	switch (PHPC_THIS->type) {
+		case PHP_CRYPTO_HASH_TYPE_MD:
+			hash_size = EVP_MD_size(PHP_CRYPTO_HASH_ALG(PHPC_THIS));
+			break;
+		case PHP_CRYPTO_HASH_TYPE_HMAC:
+			hash_size = EVP_MD_size(PHP_CRYPTO_HMAC_ALG(PHPC_THIS));
+			break;
+#ifdef PHP_CRYPTO_HAS_CMAC
+		case PHP_CRYPTO_HASH_TYPE_CMAC:
+			hash_size = EVP_CIPHER_block_size(PHP_CRYPTO_CMAC_ALG(PHPC_THIS));
+			break;
+#endif
+		default:
+			hash_size = 0;
+	}
+
+	RETURN_LONG(hash_size);
 }
 
 /* {{{ proto int Crypto\MAC::__construct($algorithm, $key)
