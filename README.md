@@ -108,11 +108,11 @@ The constructor first check if the algorithm is found. If it's not then
 
 ##### *Parameters*
 
-*algorithm* : string - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
+*algorithm* : `string` - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
 
 ##### *Return value*
 
-*Hash*: New instances of the class
+`Hash`: New instances of the class
 
 ##### *Throws*
 
@@ -148,12 +148,12 @@ the new `Hash` instance is returned.
 
 ##### *Parameters*
 
-*name* : string - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
-*arguments* : array - there can be just one element which is message
+*name* : `string` - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
+*arguments* : `array` - there can be just one element which is message
 
 ##### *Return value*
 
-*Hash*: New instances of the class
+`Hash`: New instances of the class
 
 ##### *Throws*
 
@@ -167,6 +167,32 @@ It can throw `HashException` with code
 echo \Crypto\Hash::sha256('abc')->hexdigest();
 ```
 
+#### `Hash::getAlgorithmName()`
+
+_**Description**_: Returns a hash algorith name
+
+It is a getter for internal `Hash::$algorithm` reod only property
+which is set during the object construction.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`string`: The name of the hash algorithm (e.g. `sha256`)
+
+##### *Examples*
+
+```php
+$hash = \Crypto\Hash('sha256');
+// this will output sha256
+echo $hash->getAlgorithmName();
+```
 
 ### Streams
 
