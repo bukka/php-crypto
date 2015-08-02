@@ -8,11 +8,18 @@ if (is_array($algorithms_all) && !empty($algorithms_all))
 $algorithms_aliases = Crypto\Hash::getAlgorithms(true);
 if (is_array($algorithms_aliases) && !empty($algorithms_aliases))
 	echo "ALIASES\n";
-$algorithms_aes = Crypto\Hash::getAlgorithms(false, 'SHA');
-if (is_array($algorithms_aes) && !empty($algorithms_aes))
-	echo "AES\n";
+$algorithms_sha = Crypto\Hash::getAlgorithms(false, 'SHA');
+foreach ($algorithms_sha as $algorithm_sha) {
+	echo $algorithm_sha . "\n";
+}
+
 ?>
 --EXPECT--
 ALL
 ALIASES
-AES
+SHA
+SHA1
+SHA224
+SHA256
+SHA384
+SHA512
