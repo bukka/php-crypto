@@ -194,6 +194,35 @@ $hash = \Crypto\Hash('sha256');
 echo $hash->getAlgorithmName();
 ```
 
+#### `Hash::getAlgorithms($aliases = false, $prefix = null)`
+
+_**Description**_: Returns all hash algorithms
+
+This static method returns all hash algorithms. Their parameters
+allow filtering of the result. Some algorithms have aliases that
+can be returned if the `$aliases` parameter is `true`. The `$prefixe`
+allows filtering by the supplied prefix string.
+
+##### *Parameters*
+
+*aliases* : `bool` - whether to show aliases
+*prefix* : `string` - prefix that is used for filtering the result
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`array`: list of supported hash alorithms
+
+##### *Examples*
+
+```php
+print_r(\Crypto\Hash::getAlgorithms());
+```
+
+
 ### Streams
 
 The new crypto stream API adds a new stream `crypto.file://`.
