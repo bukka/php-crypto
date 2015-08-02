@@ -40,6 +40,7 @@
 
 ## Hash
 - Test and possible fix HMAC and CMAC
+- Add verification function for Hash
 - Consider using the same allocator
   - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
 - Review cloning
@@ -48,6 +49,7 @@
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
+  - this is probably just for PHP 5 as it is correct on PHP 7
 
 ## Rand
 - Drop egd
@@ -56,6 +58,7 @@
   - `Rand::writeFile`
 
 ## Build
+- Remove build dependency on openssl ext
 - Version check for minimum version
   - At least 0.9.8 should be used
 
@@ -66,10 +69,15 @@
 - Crypto stream BIO wrapper
 - Improved error handling
 - Removed Algorithm class and AlogirithmException class
+- Introduced a MAC class as a parent of HMAC and CMAC
+- Fixed HMAC and CMAC implementation
 - Fixed CCM plaintext length setting
 - Removed Rand::egd
+- Added integer overflow checking
+- Added a complete API documentation
 
 ## 0.3.0 (devel)
 - New API for KDF
+- Added verification function for Hash
 - Added open_basedir check for Rand::loadFile and Rand::writeFile
 
