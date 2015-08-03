@@ -189,7 +189,7 @@ This method does not throw any exception.
 ##### *Examples*
 
 ```php
-$hash = \Crypto\Hash('sha256');
+$hash = new \Crypto\Hash('sha256');
 // this will output sha256
 echo $hash->getAlgorithmName();
 ```
@@ -247,7 +247,7 @@ This method does not throw any exception.
 ##### *Examples*
 
 ```php
-$hash = \Crypto\Hash('sha256');
+$hash = new \Crypto\Hash('sha256');
 // this will output 64
 echo $hash->getBlockSize();
 ```
@@ -274,7 +274,7 @@ This method does not throw any exception.
 ##### *Examples*
 
 ```php
-$hash = \Crypto\Hash('sha256');
+$hash = new \Crypto\Hash('sha256');
 // this will output 32
 echo $hash->getSize();
 ```
