@@ -222,6 +222,62 @@ This method does not throw any exception.
 print_r(\Crypto\Hash::getAlgorithms());
 ```
 
+#### `Hash::getBlockSize()`
+
+_**Description**_: Returns the hash block size in bytes
+
+This method returns the block size of the used hash algorithm. That
+should not be confused with the output size (which is returned by
+`Hash::getSize()`). The block size is a size that the hash algorithm
+operates on and is bigger than output size (e.g. 64 bytes which is 
+512 bits for SHA256).
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: hash block size in bytes
+
+##### *Examples*
+
+```php
+$hash = \Crypto\Hash('sha256');
+// this will output 64
+echo $hash->getBlockSize();
+```
+
+#### `Hash::getSize()`
+
+_**Description**_: Returns the hash output size in bytes
+
+This method returns the output size of the used hash algorithm. It means
+how many bytes will be returned by the `Hash::digest()` method.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: hash output size in bytes
+
+##### *Examples*
+
+```php
+$hash = \Crypto\Hash('sha256');
+// this will output 32
+echo $hash->getSize();
+```
 
 ### Streams
 
