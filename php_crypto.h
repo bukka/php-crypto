@@ -41,6 +41,9 @@ extern zend_module_entry crypto_module_entry;
 #include "TSRM.h"
 #endif
 
+#include "php.h"
+#include <openssl/evp.h>
+
 /* PHP Compatibility layer */
 #include "phpc/phpc.h"
 

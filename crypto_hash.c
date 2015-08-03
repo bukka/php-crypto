@@ -19,6 +19,7 @@
 #include "php.h"
 #include "php_crypto.h"
 #include "php_crypto_hash.h"
+#include "php_crypto_cipher.h"
 #include "php_crypto_object.h"
 #include "zend_exceptions.h"
 #include "ext/standard/php_string.h"
@@ -205,7 +206,7 @@ PHPC_OBJ_HANDLER_CREATE_EX(crypto_hash)
 		HMAC_CTX_init(PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
 	}
 #ifdef PHP_CRYPTO_HAS_CMAC
-	else if (class_type == php_crypto_cmac_ce) {
+	else if (PHPC_CLASS_TYPE == php_crypto_cmac_ce) {
 		PHPC_THIS->type = PHP_CRYPTO_HASH_TYPE_CMAC;
 		PHP_CRYPTO_CMAC_CTX(PHPC_THIS) = CMAC_CTX_new();
 	}
@@ -446,6 +447,7 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 	PHPC_STR_DECLARE(hash);
 	unsigned char hash_value[EVP_MAX_MD_SIZE + 1];
 	unsigned int hash_len;
+	size_t hash_len_size;
 	int rc;
 
 	if (zend_parse_parameters_none() == FAILURE) {
@@ -470,7 +472,9 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 			break;
 #ifdef PHP_CRYPTO_HAS_CMAC
 		case PHP_CRYPTO_HASH_TYPE_CMAC:
-			rc = CMAC_Final(PHP_CRYPTO_CMAC_CTX(PHPC_THIS), hash_value, &hash_len);
+			rc = CMAC_Final(PHP_CRYPTO_CMAC_CTX(PHPC_THIS), hash_value, &hash_len_size);
+			/* this is safe because the hash_len_size is always really small */
+			hash_len = hash_len_size;
 			break;
 #endif
 		default:
