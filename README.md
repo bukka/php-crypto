@@ -174,8 +174,8 @@ _**Description**_: Returns a hash digest in binary encoding
 This method returns a binary digest. It also finalizes the hash
 context which means that if `Hash::update` is called again,
 then the context is reinitialized - the result is the same
-like creating a new object (using the same algorith)and then
-update it.
+like creating a new object using the same algorithm and then
+call `Hash::update` on it.
 
 If the hash object has not been updated, then the result will
 be a hash for the empty string.
