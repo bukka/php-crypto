@@ -167,6 +167,41 @@ It can throw `HashException` with code
 echo \Crypto\Hash::sha256('abc')->hexdigest();
 ```
 
+#### `Hash::digest()`
+
+_**Description**_: Returns a hash digest in binary encoding
+
+This method returns a binary digest. It also finalizes the hash
+context which means that if `Hash::update` is called again,
+then the context is reinitialized - the result is the same
+like creating a new object (using the same algorith)and then
+update it.
+
+If the hash object has not been updated, then the result will
+be a hash for the empty string.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+It can throw `HashException` with code
+
+- `HashException::INIT_FAIED` - initialization failed
+- `HashException::DEGEST_FAIED` - creating digest failed
+
+##### *Return value*
+
+`string`: The hash binary string with length equal to
+the result of `Hash::getSize()`
+
+##### *Examples*
+
+```php
+$digest = \Crypto\Hash::sha256('abc')->digest();
+```
+
 #### `Hash::getAlgorithmName()`
 
 _**Description**_: Returns a hash algorith name
