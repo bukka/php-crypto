@@ -24,6 +24,9 @@
 - Rename `auth_enc` to `aead`
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
+- Add method for setting padding mode
+  - something like `setAutoPadding($auto_padding=true)`
+  - using `EVP_CIPHER_CTX_set_padding`
 - Add KDF parameter to encryptInit and encrypt
 - Add support for `EVP_CIPHER_CTX_rand_key`
 - Improved list of all algorithms - show just once (currently lc, uc [aes, AES])
@@ -40,6 +43,8 @@
 
 ## Hash
 - Test and possible fix HMAC and CMAC
+  - write tests for all inherited methods
+  - test resuming (calling `update` after `digest`)
 - Add verification function for Hash
 - Consider using the same allocator
   - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
@@ -50,6 +55,7 @@
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
   - this is probably just for PHP 5 as it is correct on PHP 7
+- Find out and document when the hash `digest` resp. `hexdigest` throws exc
 
 ## Rand
 - Drop egd
