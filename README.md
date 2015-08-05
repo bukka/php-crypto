@@ -314,6 +314,107 @@ $hash = new \Crypto\Hash('sha256');
 echo $hash->getSize();
 ```
 
+#### `Hash::hasAlgorithm($algorithm)`
+
+_**Description**_: Finds out wheter the supplied algorithm is supported
+
+This static method checks if the supplied algorithm is supported.
+
+##### *Parameters*
+
+*algorithm* : `string` - algorithm name
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`bool`: if the algorithm is supperted, returns `true`, otherwise `false`
+
+##### *Examples*
+
+```php
+if (\Crypto\Hash::hasAlgorithm('sha512')) {
+    // use SHA512
+}
+```
+
+#### `Hash::hexdigest()`
+
+_**Description**_: Returns a hash digest in hex encoding
+
+This method returns a hex digest. It also finalizes the hash
+context which means that if `Hash::update` is called again,
+then the context is reinitialized - the result is the same
+like creating a new object using the same algorithm and then
+call `Hash::update` on it.
+
+If the hash object has not been updated, then the result will
+be a hash for the empty string.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+It can throw `HashException` with code
+
+- `HashException::INIT_FAIED` - initialization failed
+- `HashException::DEGEST_FAIED` - creating digest failed
+
+##### *Return value*
+
+`string`: The hash hex string.
+
+##### *Examples*
+
+```php
+$digest = \Crypto\Hash::sha256('abc')->hexdigest();
+```
+
+#### `Hash::update($data)`
+
+_**Description**_: Updates the hash object with supplied data 
+
+This method updates hash object context with supplied data. It can
+be useful when reading data from database or big files.
+
+Before the update, it also initialize the internal context if it's
+the first update. If initialization or update fails, the exception
+is thrown.
+
+##### *Parameters*
+
+*data* : `string` - data that updates the hash
+
+##### *Throws*
+
+It can throw `HashException` with code
+
+- `HashException::INIT_FAIED` - initialization failed
+- `HashException::UPDATE_FAIED` - updating digest failed
+
+##### *Return value*
+
+`null`: Nothing is returned.
+
+##### *Examples*
+
+```php
+try {
+    $hash = new \Crypto\Hash('sha256');
+    while (($data = read_data_from_somewhere()) !== false) {
+        $hash->update($data);
+    }
+    echo $hash->hexdigest();
+} catch (\Crypto\HashException $e) {
+    echo $e->getMessage();
+}
+```
+
+
 ### Streams
 
 The new crypto stream API adds a new stream `crypto.file://`.
