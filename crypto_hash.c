@@ -398,15 +398,9 @@ static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_hash) TSRMLS_DC)
 
 /* {{{ php_crypto_hash_update */
 static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_hash),
-		char *data, phpc_str_size_t data_str_size TSRMLS_DC)
+		char *data, phpc_str_size_t data_len TSRMLS_DC)
 {
-	int data_len, rc;
-
-	/* check string length overflow */
-	if (php_crypto_str_size_to_int(data_str_size, &data_len) == FAILURE) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INPUT_DATA_LENGTH_HIGH));
-		return FAILURE;
-	}
+	int rc;
 
 	/* check if hash is initialized and if it's not, then try to initialize */
 	if (PHPC_THIS->status != PHP_CRYPTO_HASH_STATUS_HASH &&
