@@ -87,10 +87,10 @@ classes are subclasses of the PHP `Exception` class. They define
 exception code as class constants. Each code also has a different message.
 
 The documentation is devided to sections where it's possible to find 
-a description of the whole functionality
+a description of the functionality:
 
-- [Hash](docs/hash.md)
-- [Streams][docs/streams.md)
+- **[Hash](docs/hash.md)**
+- **[Streams](docs/streams.md)**
 
 ### PHP definition for the classes
 
