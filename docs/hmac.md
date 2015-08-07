@@ -44,7 +44,7 @@ If the algorithm is passed by user in variable, then it might be a good idea to
 wrap it in a try/catch block:
 ```php
 try {
-    $hash = new \Crypto\Hash($key, $hash_algorithm);
+    $hamc = new \Crypto\HMAC($key, $hash_algorithm);
 }
 catch (\Crypto\HashException $e) {
     echo $e->getMessage();
