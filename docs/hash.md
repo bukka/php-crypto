@@ -10,8 +10,8 @@ giving more info like it's block size.
 
 _**Description**_: Creates a new `Hash` class if supplied algorithm is supported.
 
-The constructor first check if the algorithm is found. If it's not then
-`HashException` is thrown. Otherwise a new instance of `HashException`
+The constructor first checks if the algorithm is found. If not, then
+`HashException` is thrown. Otherwise a new instance of `Hash` is created
 
 ##### *Parameters*
 
@@ -19,7 +19,7 @@ The constructor first check if the algorithm is found. If it's not then
 
 ##### *Return value*
 
-`Hash`: New instances of the class
+`Hash`: New instances of the `Hash` class.
 
 ##### *Throws*
 
@@ -60,7 +60,7 @@ the new `Hash` instance is returned.
 
 ##### *Return value*
 
-`Hash`: New instances of the class
+`Hash`: New instances of the class.
 
 ##### *Throws*
 
@@ -82,10 +82,10 @@ This method returns a binary digest. It also finalizes the hash
 context which means that if `Hash::update` is called again,
 then the context is reinitialized - the result is the same
 like creating a new object using the same algorithm and then
-call `Hash::update` on it.
+calling `Hash::update` on that object.
 
-If the hash object has not been updated, then the result will
-be a hash for the empty string.
+If the `Hash` object has not been updated, then the result will
+be a hash for an empty string.
 
 ##### *Parameters*
 
@@ -111,7 +111,7 @@ $digest = \Crypto\Hash::sha256('abc')->digest();
 
 #### `Hash::getAlgorithmName()`
 
-_**Description**_: Returns a hash algorith name
+_**Description**_: Returns a hash algorithm name.
 
 It is a getter for internal `Hash::$algorithm` reod only property
 which is set during the object construction.
@@ -138,7 +138,7 @@ echo $hash->getAlgorithmName();
 
 #### `Hash::getAlgorithms($aliases = false, $prefix = null)`
 
-_**Description**_: Returns all hash algorithms
+_**Description**_: Returns all hash algorithms.
 
 This static method returns all hash algorithms. Their parameters
 allow filtering of the result. Some algorithms have aliases that
@@ -166,7 +166,7 @@ print_r(\Crypto\Hash::getAlgorithms());
 
 #### `Hash::getBlockSize()`
 
-_**Description**_: Returns the hash block size in bytes
+_**Description**_: Returns a hash block size in bytes.
 
 This method returns the block size of the used hash algorithm. That
 should not be confused with the output size (which is returned by
@@ -196,7 +196,7 @@ echo $hash->getBlockSize();
 
 #### `Hash::getSize()`
 
-_**Description**_: Returns the hash output size in bytes
+_**Description**_: Returns a hash output size in bytes.
 
 This method returns the output size of the used hash algorithm. It means
 how many bytes will be returned by the `Hash::digest()` method.
@@ -255,10 +255,10 @@ This method returns a hex digest. It also finalizes the hash
 context which means that if `Hash::update` is called again,
 then the context is reinitialized - the result is the same
 like creating a new object using the same algorithm and then
-call `Hash::update` on it.
+calling `Hash::update` on it.
 
-If the hash object has not been updated, then the result will
-be a hash for the empty string.
+If the `Hash` object has not been updated, then the result will
+be a hash for an empty string.
 
 ##### *Parameters*
 
@@ -273,23 +273,23 @@ It can throw `HashException` with code
 
 ##### *Return value*
 
-`string`: The hash hex string.
+`string`: hash digest hex string
 
 ##### *Examples*
 
 ```php
-$digest = \Crypto\Hash::sha256('abc')->hexdigest();
+echo \Crypto\Hash::sha256('abc')->hexdigest();
 ```
 
 #### `Hash::update($data)`
 
 _**Description**_: Updates the hash object with supplied data 
 
-This method updates hash object context with supplied data. It can
+This method updates `Hash` object context with supplied data. It can
 be useful when reading data from database or big files.
 
-Before the update, it also initialize the internal context if it's
-the first update. If initialization or update fails, the exception
+Before the update, it also initializes the internal context if it's
+the first update. If the initialization or update fails, the exception
 is thrown.
 
 ##### *Parameters*
@@ -305,7 +305,7 @@ It can throw `HashException` with code
 
 ##### *Return value*
 
-`null`: Nothing is returned.
+`Hash`: An instance of the called object (for chaining)
 
 ##### *Examples*
 
