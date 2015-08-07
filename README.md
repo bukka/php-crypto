@@ -90,6 +90,7 @@ The documentation is devided to sections where it's possible to find
 a description of the functionality:
 
 - **[Hash](docs/hash.md)**
+- **[HMAC](docs/hmac.md)**
 - **[Streams](docs/streams.md)**
 
 ### PHP definition for the classes
