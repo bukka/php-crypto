@@ -43,14 +43,10 @@
 
 ## Hash
 - Test and possible fix HMAC and CMAC
-  - write tests for all inherited methods
   - test resuming (calling `update` after `digest`)
 - Add verification function for Hash
 - Consider using the same allocator
   - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
-- Review cloning
-- Add MAC Exceptions class
-  - key checking
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
@@ -75,7 +71,7 @@
   - `pcw` (Php Crypto Wrapper)
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
-
+- Test all overflow check on PHP 7 (skip PHP 5)
 
 # Plan for upcoming releases
 
@@ -83,12 +79,13 @@
 - Support for PHP 7
 - Crypto stream BIO wrapper
 - Improved error handling
+- Added an integer overflow checking
 - Removed Algorithm class and AlogirithmException class
-- Introduced a MAC class as a parent of HMAC and CMAC
-- Fixed HMAC and CMAC implementation
+- Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
+- Added MACException class subclassing HashException
+- Fixed HMAC and CMAC implementation and added key param to constructor
 - Fixed CCM plaintext length setting
 - Removed Rand::egd
-- Added integer overflow checking
 - Added a complete API documentation
 
 ## 0.3.0 (devel)
