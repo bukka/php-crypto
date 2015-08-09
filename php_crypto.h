@@ -53,25 +53,46 @@ extern zend_module_entry crypto_module_entry;
 
 /* NAMESPACE */
 
-/* Macros for Crypto namespace */
+/* Crypto namespace name */
 #define PHP_CRYPTO_NS_NAME "Crypto"
+
+/* Namespace separator */
 #define PHP_CRYPTO_NS_SEPARATOR "\\"
-/* Macros for dealing with Crypto namespace classes */
-#define PHP_CRYPTO_CLASS_NAME(classname) PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #classname
-#define PHP_CRYPTO_METHOD(classname, method) PHP_METHOD(Crypto_##_##classname, method)
-#define PHP_CRYPTO_ME(classname, name, arg_info, flags) PHP_ME(Crypto_##_##classname, name, arg_info, flags)
-#define PHP_CRYPTO_ABSTRACT_ME(classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##_##classname, name, arg_info)
-/* Macros for dealing with Crypto sub namespaces */
-#define PHP_CRYPTO_NS_NAMESPACE(ns) PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #ns
-#define PHP_CRYPTO_NS_CLASS_NAME(ns, classname) PHP_CRYPTO_NS_NAMESPACE(ns) PHP_CRYPTO_NS_SEPARATOR #classname
-#define PHP_CRYPTO_NS_METHOD(ns, classname, method) PHP_METHOD(Crypto_##ns##_##classname, method)
-#define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
-#define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
+
+/* Crypto class name (including namespace) */
+#define PHP_CRYPTO_CLASS_NAME(classname) \
+	PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #classname
+
+/* Crypto method definition */
+#define PHP_CRYPTO_METHOD(classname, method) \
+	PHP_METHOD(Crypto_##_##classname, method)
+
+/* Crypto method entry */
+#define PHP_CRYPTO_ME(classname, name, arg_info, flags) \
+	PHP_ME(Crypto_##_##classname, name, arg_info, flags)
+
+/* Crypto abstract method entry */
+#define PHP_CRYPTO_ABSTRACT_ME(classname, name, arg_info) \
+	PHP_ABSTRACT_ME(Crypto_##_##classname, name, arg_info)
+
+/* Macros for dealing with Crypto sub namespaces (not used yet) */
+#define PHP_CRYPTO_NS_NAMESPACE(ns) \
+	PHP_CRYPTO_NS_NAME PHP_CRYPTO_NS_SEPARATOR #ns
+#define PHP_CRYPTO_NS_CLASS_NAME(ns, classname) \
+	PHP_CRYPTO_NS_NAMESPACE(ns) PHP_CRYPTO_NS_SEPARATOR #classname
+#define PHP_CRYPTO_NS_METHOD(ns, classname, method) \
+	PHP_METHOD(Crypto_##ns##_##classname, method)
+#define PHP_CRYPTO_NS_ME(ns, classname, name, arg_info, flags) \
+	PHP_ME(Crypto_##ns##_##classname, name, arg_info, flags)
+#define PHP_CRYPTO_NS_ABSTRACT_ME(ns, classname, name, arg_info) \
+	PHP_ABSTRACT_ME(Crypto_##ns##_##classname, name, arg_info)
+
 
 /* NUMERIC CONVERSIONS */
 
 /* {{{ php_crypto_str_size_to_int */
-php_crypto_always_inline int php_crypto_str_size_to_int(phpc_str_size_t size_len, int *int_len)
+php_crypto_always_inline int php_crypto_str_size_to_int(
+		phpc_str_size_t size_len, int *int_len)
 {
 	PHPC_SIZE_TO_INT_EX(size_len, *int_len, return FAILURE);
 	return SUCCESS;
@@ -79,7 +100,8 @@ php_crypto_always_inline int php_crypto_str_size_to_int(phpc_str_size_t size_len
 /* }}} */
 
 /* {{{ php_crypto_long_to_int */
-php_crypto_always_inline int php_crypto_long_to_int(phpc_long_t plv, int *lv)
+php_crypto_always_inline int php_crypto_long_to_int(
+		phpc_long_t plv, int *lv)
 {
 	PHPC_LONG_TO_INT_EX(plv, *lv, return FAILURE);
 	return SUCCESS;
@@ -104,43 +126,80 @@ typedef enum {
 	PHP_CRYPTO_ERROR_ACTION_ERROR
 } php_crypto_error_action;
 
-/* Processes error msg and either throw exception, emits error or do nothing (it depends on action) */
-PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args);
+/* Processes error msg and either throw exception,
+ * emits error or do nothing (it depends on action) */
+PHP_CRYPTO_API void php_crypto_verror(
+		const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		php_crypto_error_action action, int ignore_args TSRMLS_DC,
+		const char *name, va_list args);
 /* Main error function with arguments */
-PHP_CRYPTO_API void php_crypto_error_ex(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, ...);
+PHP_CRYPTO_API void php_crypto_error_ex(
+		const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		php_crypto_error_action action, int ignore_args TSRMLS_DC,
+		const char *name, ...);
 /* Main error function without arguments */
-PHP_CRYPTO_API void php_crypto_error(const php_crypto_error_info *info, zend_class_entry *exc_ce,
-		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name);
+PHP_CRYPTO_API void php_crypto_error(
+		const php_crypto_error_info *info, zend_class_entry *exc_ce,
+		php_crypto_error_action action, int ignore_args TSRMLS_DC,
+		const char *name);
 
 /* Macros for crypto exceptions info */
-#define PHP_CRYPTO_EXCEPTION_CE(ename) php_crypto_##ename##Exception_ce
-#define PHP_CRYPTO_EXCEPTION_EXPORT(ename) extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
-#define PHP_CRYPTO_EXCEPTION_DEFINE(ename) PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
+
+#define PHP_CRYPTO_EXCEPTION_CE(ename) \
+	php_crypto_##ename##Exception_ce
+
+#define PHP_CRYPTO_EXCEPTION_EXPORT(ename) \
+	extern PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
+
+#define PHP_CRYPTO_EXCEPTION_DEFINE(ename) \
+	PHP_CRYPTO_API zend_class_entry *PHP_CRYPTO_EXCEPTION_CE(ename);
+
 #define PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, epname_ce) \
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(ename ## Exception), NULL); \
 	PHP_CRYPTO_EXCEPTION_CE(ename) = PHPC_CLASS_REGISTER_EX(ce, epname_ce, NULL)
-#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_CE(epname))
-#define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, Crypto)
+
+#define PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, epname) \
+	PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, ename, PHP_CRYPTO_EXCEPTION_CE(epname))
+
+#define PHP_CRYPTO_EXCEPTION_REGISTER(ce, ename) \
+	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, ename, Crypto)
 
 /* Macros for error info */
-#define PHP_CRYPTO_ERROR_INFO_NAME(ename) php_crypto_error_info_##ename
-#define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
-#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, eilevel) { #einame, eimsg, eilevel },
-#define PHP_CRYPTO_ERROR_INFO_ENTRY(einame, eimsg) PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, E_WARNING)
-#define PHP_CRYPTO_ERROR_INFO_END() { NULL, NULL, 0} };
-#define PHP_CRYPTO_ERROR_INFO_EXPORT(ename) extern php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[];
+
+#define PHP_CRYPTO_ERROR_INFO_NAME(ename) \
+	php_crypto_error_info_##ename
+
+#define PHP_CRYPTO_ERROR_INFO_BEGIN(ename) \
+	php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[] = {
+
+#define PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, eilevel) \
+	{ #einame, eimsg, eilevel },
+
+#define PHP_CRYPTO_ERROR_INFO_ENTRY(einame, eimsg) \
+	PHP_CRYPTO_ERROR_INFO_ENTRY_EX(einame, eimsg, E_WARNING)
+
+#define PHP_CRYPTO_ERROR_INFO_END() \
+	{ NULL, NULL, 0} };
+#define PHP_CRYPTO_ERROR_INFO_EXPORT(ename) \
+		extern php_crypto_error_info PHP_CRYPTO_ERROR_INFO_NAME(ename)[];
+
 #define PHP_CRYPTO_ERROR_INFO_REGISTER(ename) do { \
-	long code = 1; php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
+	long code = 1; \
+	php_crypto_error_info *einfo = PHP_CRYPTO_ERROR_INFO_NAME(ename); \
 	while (einfo->name != NULL) { \
-		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_CE(ename), einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
+		zend_declare_class_constant_long(PHP_CRYPTO_EXCEPTION_CE(ename), \
+			einfo->name, strlen(einfo->name), code++ TSRMLS_CC); \
 		einfo++; \
 	} } while(0)
 
 /* Macros for wrapping error arguments passed to php_crypto_error* */
-#define PHP_CRYPTO_ERROR_ARGS_EX(ename, eexc, eact, einame) PHP_CRYPTO_ERROR_INFO_NAME(ename), eexc, eact, 0 TSRMLS_CC, #einame
-#define PHP_CRYPTO_ERROR_ARGS(ename, einame) PHP_CRYPTO_ERROR_ARGS_EX(ename, PHP_CRYPTO_EXCEPTION_CE(ename), PHP_CRYPTO_ERROR_ACTION_GLOBAL, einame)
+
+#define PHP_CRYPTO_ERROR_ARGS_EX(ename, eexc, eact, einame) \
+	PHP_CRYPTO_ERROR_INFO_NAME(ename), eexc, eact, 0 TSRMLS_CC, #einame
+
+#define PHP_CRYPTO_ERROR_ARGS(ename, einame) \
+	PHP_CRYPTO_ERROR_ARGS_EX(ename, PHP_CRYPTO_EXCEPTION_CE(ename), \
+		PHP_CRYPTO_ERROR_ACTION_GLOBAL, einame)
 
 /* Base exception class */
 PHP_CRYPTO_EXCEPTION_EXPORT(Crypto)
@@ -169,26 +228,17 @@ PHP_MINFO_FUNCTION(crypto);
 
 /* COMPATIBILITY */
 
-/* Macro for initializing properties in obejct (new definition for PHP 5.3) */
-#if PHP_VERSION_ID < 50399
-#define PHP_CRYPTO_OBJECT_PROPERTIES_INIT(zo, class_type) { \
-	zval *tmp; \
-	zend_hash_copy((*(zo)).properties, \
-		&(class_type)->default_properties, \
-		(copy_ctor_func_t) zval_add_ref, \
-		(void *) &tmp, \
-		sizeof(zval *)); \
-}
-#define PHP_CRYPTO_PATH_FMT "s"
-#else
-#define PHP_CRYPTO_OBJECT_PROPERTIES_INIT(zo, class_type) object_properties_init(zo, class_type)
-#define PHP_CRYPTO_PATH_FMT "p"
-#endif
+#define PHP_CRYPTO_COPY_ERROR_MESSAGE \
+	(PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 5 && PHP_RELEASE_VERSION >= 5) \
+	|| (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 6) \
+	|| (PHP_MAJOR_VERSION > 5)
 
-#if (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 5 && PHP_RELEASE_VERSION >= 5) || (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 6) || (PHP_MAJOR_VERSION > 5)
-#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) (const_msg)
+#if PHP_CRYPTO_COPY_ERROR_MESSAGE
+#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
+	(const_msg)
 #else
-#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) (tmp_msg = estrdup(const_msg))
+#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
+	(tmp_msg = estrdup(const_msg))
 #endif
 
 /* OpenSSL features test */
