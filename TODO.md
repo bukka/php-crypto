@@ -68,6 +68,15 @@
 - Version check for minimum version
   - At least 0.9.8 should be used
 
+## General
+- Create `php_crypto_strtoupper_dup` for algorithm name conversion
+- Consider shorter prefix than `php_crypto`
+  - `pce` (Php Crypto Extension)
+  - `pcw` (Php Crypto Wrapper)
+  - `pcg` (Php CryptoGraphy)
+  - `pct` (Php CrypTo or later maybe Php Crypto Tls)
+
+
 # Plan for upcoming releases
 
 ## 0.2.0 (devel)
