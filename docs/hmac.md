@@ -4,9 +4,9 @@ The `HMAC` class provides functions for creating  a keyed-hash message
 authentication code (HMAC) message digest from a supplied key and
 block of data. It allows to choose a message digest algorithm.
 
-The `HMAC` class extends `MAC` class which extends `Hash` classe. It
+The `HMAC` class extends `MAC` class which extends [`Hash`](hash.md) class. It
 means that with exception of a constructor all methods are inherited
-from `Hash` class.
+from [`Hash`](hash.md) class.
 
 ### Methods
 
@@ -15,7 +15,7 @@ from `Hash` class.
 _**Description**_: Creates a new `HMAC` class if supplied algorithm is supported.
 
 The constructor first checks if the algorithm is found. If not, then
-`HashException` is thrown. Otherwise a new instance of `Hash` is created.
+`HashException` is thrown. Otherwise a new instance of [`Hash`](hash.md) is created.
 
 The key length is compared with block size and if it's smaller, then the
 key is hashed using the supplied algorithm and then saved.
@@ -89,7 +89,7 @@ $hmac = new \Crypto\HMAC('key', 'sha256');
 $digest = $hmac->update('abc')->digest();
 ```
 
-#### `Hash::getAlgorithmName()`
+#### `HMAC::getAlgorithmName()`
 
 _**Description**_: Returns an underlaying hash algorithm name.
 
@@ -146,7 +146,7 @@ $hmac = new \Crypto\HMAC('key', 'sha256');
 echo $hmac->getBlockSize();
 ```
 
-#### `Hash::getSize()`
+#### `HMAC::getSize()`
 
 _**Description**_: Returns an underlaying hash output size in bytes.
 
@@ -173,7 +173,7 @@ $hash = new \Crypto\HMAC('key', 'sha256');
 echo $hash->getSize();
 ```
 
-#### `Hash::hexdigest()`
+#### `HMAC::hexdigest()`
 
 _**Description**_: Returns a MAC in hex encoding.
 
@@ -208,7 +208,7 @@ $hmac = new \Crypto\HMAC('key', 'sha256');
 echo $hmac->update('abc')->hexdigest();
 ```
 
-#### `Hash::update($data)`
+#### `HMAC::update($data)`
 
 _**Description**_: Updates the HMAC object with supplied data 
 
