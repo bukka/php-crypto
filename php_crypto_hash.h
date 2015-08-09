@@ -70,10 +70,11 @@ PHPC_OBJ_STRUCT_END()
 #define PHP_CRYPTO_HMAC_CTX(pobj) (pobj)->ctx.hmac
 #define PHP_CRYPTO_HMAC_ALG(pobj) (pobj)->alg.md
 
-/* Exception */
+/* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(Hash)
+PHP_CRYPTO_EXCEPTION_EXPORT(MAC)
 /* Error infos */
-PHP_CRYPTO_ERROR_INFO_EXPORT(Hash)
+PHP_CRYPTO_ERROR_INFO_EXPORT(MAC)
 
 
 /* CLASSES */

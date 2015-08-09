@@ -6,8 +6,18 @@ $key = pack('H*', '2b7e151628aed2a6abf7158809cf4f3c');
 
 // basic creation
 $cmac = new Crypto\CMAC($key, 'aes-128-cbc');
-if ($cmac instanceof Crypto\CMAC)
+if ($cmac instanceof Crypto\CMAC) {
 	echo "FOUND\n";
+}
+// invalid key
+try {
+	$cmac = new Crypto\CMAC('key', 'aes-128-cbc');
+}
+catch (Crypto\HashException $e) {
+	if ($e->getCode() === Crypto\MACException::KEY_LENGTH_INVALID) {
+		echo "KEY LENGTH INVALID\n";
+	}
+}
 // invalid creation
 try {
 	$cmac = new Crypto\CMAC($key, 'nnn');
@@ -28,5 +38,6 @@ $subcmac = new SubCMAC($key, 'aes-128-cbc');
 ?>
 --EXPECT--
 FOUND
+KEY LENGTH INVALID
 NOT FOUND
 AES-128-CBC

@@ -131,6 +131,14 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHPC_FE_END
 };
 
+PHP_CRYPTO_EXCEPTION_DEFINE(MAC)
+PHP_CRYPTO_ERROR_INFO_BEGIN(MAC)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	KEY_LENGTH_INVALID,
+	"The key length for MAC is invalid"
+)
+PHP_CRYPTO_ERROR_INFO_END()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_mac_construct, 0)
 ZEND_ARG_INFO(0, algorithm)
 ZEND_ARG_INFO(0, key)
@@ -312,6 +320,10 @@ PHP_MINIT_FUNCTION(crypto_hash)
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(MAC), php_crypto_mac_object_methods);
 	php_crypto_mac_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_hash_ce, NULL);
 	php_crypto_mac_ce->ce_flags |= ZEND_ACC_EXPLICIT_ABSTRACT_CLASS;
+
+	/* MACException registration */
+	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, MAC, Hash);
+	PHP_CRYPTO_ERROR_INFO_REGISTER(MAC);
 
 	/* HMAC class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(HMAC), NULL);
@@ -745,6 +757,11 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 		if (!cipher) {
 			goto php_crypto_mac_alg_not_found;
 		}
+		if (key_len != EVP_CIPHER_block_size(cipher)) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(MAC, KEY_LENGTH_INVALID));
+			efree(algorithm_uc);
+			return;
+		}
 		PHP_CRYPTO_CMAC_ALG(PHPC_THIS) = cipher;
 	}
 #endif
@@ -753,7 +770,7 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 
 	/* check key length overflow */
 	if (php_crypto_str_size_to_int(key_len, &key_len_int) == FAILURE) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Hash, INPUT_DATA_LENGTH_HIGH));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(MAC, KEY_LENGTH_INVALID));
 		return;
 	}
 
