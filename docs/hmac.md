@@ -4,8 +4,9 @@ The `HMAC` class provides functions for creating  a keyed-hash message
 authentication code (HMAC) message digest from a supplied key and
 block of data. It allows to choose a message digest algorithm.
 
-The `HMAC` class extends `Hash` and except a constructor all methods
-are inherited from hash.
+The `HMAC` class extends `MAC` class which extends `Hash` classe. It
+means that with exception of a constructor all methods are inherited
+from `Hash` class.
 
 ### Methods
 
@@ -33,6 +34,7 @@ key is hashed using the supplied algorithm and then saved.
 It can throw `HashException` with code
 
 - `HashException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
+- `MACException::KEY_LENGTH_INVALID` - the supplied key length is too high (over C INT_MAX)
 
 ##### *Examples*
 
