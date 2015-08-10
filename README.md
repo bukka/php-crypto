@@ -91,6 +91,7 @@ a description of the functionality:
 
 - **[Hash](docs/hash.md)**
 - **[HMAC](docs/hmac.md)**
+- **[CMAC](docs/cmac.md)**
 - **[Streams](docs/streams.md)**
 
 ### PHP definition for the classes
