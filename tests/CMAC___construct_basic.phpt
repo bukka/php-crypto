@@ -13,7 +13,7 @@ if ($cmac instanceof Crypto\CMAC) {
 try {
 	$cmac = new Crypto\CMAC('key', 'aes-128-cbc');
 }
-catch (Crypto\HashException $e) {
+catch (Crypto\MACException $e) {
 	if ($e->getCode() === Crypto\MACException::KEY_LENGTH_INVALID) {
 		echo "KEY LENGTH INVALID\n";
 	}
@@ -22,8 +22,8 @@ catch (Crypto\HashException $e) {
 try {
 	$cmac = new Crypto\CMAC($key, 'nnn');
 }
-catch (Crypto\HashException $e) {
-	if ($e->getCode() === Crypto\HashException::ALGORITHM_NOT_FOUND) {
+catch (Crypto\MACException $e) {
+	if ($e->getCode() === Crypto\MACException::ALGORITHM_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}
 }
