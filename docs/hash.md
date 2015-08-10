@@ -132,7 +132,7 @@ This method does not throw any exception.
 
 ```php
 $hash = new \Crypto\Hash('sha256');
-// this will output sha256
+// this will output SHA256
 echo $hash->getAlgorithmName();
 ```
 

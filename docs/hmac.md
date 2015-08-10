@@ -15,10 +15,13 @@ from [`Hash`](hash.md) class.
 _**Description**_: Creates a new `HMAC` class if supplied algorithm is supported.
 
 The constructor first checks if the algorithm is found. If not, then
-`HashException` is thrown. Otherwise a new instance of [`Hash`](hash.md) is created.
+`MACException` is thrown. Otherwise a new instance of `HMAC` is created.
 
-The key length is compared with block size and if it's smaller, then the
-key is hashed using the supplied algorithm and then saved.
+The key length is compared with block size:
+- if the key length is the same as block size, then the key is used as it is
+- if the key length is smaller, then the key is padded with zero bytes to the block size
+- if the key length is greater, then the key is hashed (unless it's greater than C `INT_MAX`)
+- if the key length is greater then C `INT_MAX`, then the exception is thrown
 
 ##### *Parameters*
 
@@ -31,9 +34,9 @@ key is hashed using the supplied algorithm and then saved.
 
 ##### *Throws*
 
-It can throw `HashException` with code
+It can throw `MACException` with code
 
-- `HashException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
+- `MACException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
 - `MACException::KEY_LENGTH_INVALID` - the supplied key length is too high (over C INT_MAX)
 
 ##### *Examples*
@@ -46,7 +49,7 @@ If the algorithm is passed by user in variable, then it might be a good idea to
 wrap it in a try/catch block:
 ```php
 try {
-    $hamc = new \Crypto\HMAC($key, $hash_algorithm);
+    $hmac = new \Crypto\HMAC($key, $hash_algorithm);
 }
 catch (\Crypto\HashException $e) {
     echo $e->getMessage();
@@ -106,13 +109,13 @@ This method does not throw any exception.
 
 ##### *Return value*
 
-`string`: The name of the hash underlaying  (e.g. `sha256`)
+`string`: The name of the underlaying hash algorithm (e.g. `sha256`)
 
 ##### *Examples*
 
 ```php
 $hmac = new \Crypto\HMAC('key', 'sha256');
-// this will output sha256
+// this will output SHA256
 echo $hmac->getAlgorithmName();
 ```
 
