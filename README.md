@@ -90,6 +90,7 @@ The documentation is devided to sections where it's possible to find
 a description of the functionality:
 
 - **[Hash](docs/hash.md)**
+- **[MAC](docs/mac.md)**
 - **[HMAC](docs/hmac.md)**
 - **[CMAC](docs/cmac.md)**
 - **[Streams](docs/streams.md)**
