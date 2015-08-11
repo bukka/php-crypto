@@ -42,8 +42,8 @@
 - Add KDF subclass for PBKDF2
 
 ## Hash
-- Test and possible fix HMAC and CMAC
-  - test resuming (calling `update` after `digest`)
+- Test context for Hash, HMAC and CMAC resuming
+  - it happens when calling `update` after `digest`
 - Add verification function for Hash
 - Consider using the same allocator
   - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
@@ -72,6 +72,9 @@
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
 - Test all overflow check on PHP 7 (skip PHP 5)
+- Add tests for algorithm name arg variable chenging
+  - it used to uppercase a string in passed variable
+  - it's been fixed but there are no test for that
 
 # Plan for upcoming releases
 
