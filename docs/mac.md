@@ -3,7 +3,7 @@
 The `MAC` abstract class extends [`Hash`](hash.md) class. It is
 a parent of [`HMAC`](hmac.md) and [`CMAC`](hmac.md).
 
-### Methods
+### Instance Methods
 
 #### `MAC::__construct($key, $algorithm)`
 

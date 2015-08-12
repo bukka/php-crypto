@@ -8,7 +8,7 @@ The `HMAC` class extends `MAC` class which extends [`Hash`](hash.md) class. It
 means that with exception of a constructor all methods are inherited
 from [`Hash`](hash.md) class.
 
-### Methods
+### Instance Methods
 
 #### `HMAC::__construct($key, $algorithm)`
 
