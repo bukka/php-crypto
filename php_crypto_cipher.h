@@ -46,6 +46,9 @@ PHPC_OBJ_STRUCT_BEGIN(crypto_cipher)
 PHPC_OBJ_STRUCT_END()
 
 /* Cipher status accessors */
+#define PHP_CRYPTO_CIPHER_IS_IN_INIT_STATE(pobj) \
+	((pobj)->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_INIT || \
+	(pobj)->status == PHP_CRYPTO_CIPHER_STATUS_DECRYPT_INIT)
 #define PHP_CRYPTO_CIPHER_IS_INITIALIZED_FOR_ENCRYPTION(pobj) \
 	((pobj)->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_INIT || \
 	(pobj)->status == PHP_CRYPTO_CIPHER_STATUS_ENCRYPT_UPDATE)
@@ -82,6 +85,7 @@ typedef struct {
 	const char constant[PHP_CRYPTO_CIPHER_MODE_LEN+6];
 	long value;
 	zend_bool auth_enc; /* authenticated encryption */
+	zend_bool auth_inlen_init;
 	int auth_ivlen_flag;
 	int auth_set_tag_flag;
 	int auth_get_tag_flag;
@@ -99,6 +103,7 @@ typedef struct {
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_EX( \
 	mode_name, \
 	mode_auth_enc, \
+	mode_auth_inlen_init, \
 	mode_auth_ivlen_flag, \
 	mode_auth_stag_flag, \
 	mode_auth_gtag_flag) \
@@ -107,22 +112,23 @@ typedef struct {
 		"MODE_" #mode_name, \
 		EVP_CIPH_ ## mode_name ## _MODE, \
 		mode_auth_enc, \
+		mode_auth_inlen_init, \
 		mode_auth_ivlen_flag, \
 		mode_auth_stag_flag, \
 		mode_auth_gtag_flag \
 	},
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY(mode_name) \
-	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, 0, 0, 0, 0)
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(mode_name, 0, 0, 0, 0, 0)
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(mode_name) \
 	{ \
 		#mode_name, \
 		"MODE_" \
 		#mode_name, \
 		PHP_CRYPTO_CIPHER_MODE_NOT_DEFINED, \
-		0, 0, 0, 0 \
+		0, 0, 0, 0, 0 \
 	},
 #define PHP_CRYPTO_CIPHER_MODE_ENTRY_END \
-	{ "", "", 0, 0, 0, 0, 0 }
+	{ "", "", 0, 0, 0, 0, 0, 0 }
 
 /* Cipher authentication tag length max and min */
 #define PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_MIN 4

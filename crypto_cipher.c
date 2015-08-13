@@ -323,14 +323,14 @@ static const php_crypto_cipher_mode php_crypto_cipher_modes[] = {
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(CTR)
 #endif
 #ifdef EVP_CIPH_GCM_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(GCM, 1,
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(GCM, 1, 0,
 			EVP_CTRL_GCM_SET_IVLEN,
 			EVP_CTRL_GCM_SET_TAG, EVP_CTRL_GCM_GET_TAG)
 #else
 	PHP_CRYPTO_CIPHER_MODE_ENTRY_NOT_DEFINED(GCM)
 #endif
 #ifdef EVP_CIPH_CCM_MODE
-	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(CCM, 1,
+	PHP_CRYPTO_CIPHER_MODE_ENTRY_EX(CCM, 1, 1,
 			EVP_CTRL_CCM_SET_IVLEN,
 			EVP_CTRL_CCM_SET_TAG, EVP_CTRL_CCM_GET_TAG)
 #else
@@ -858,12 +858,56 @@ PHP_CRYPTO_API int php_crypto_cipher_write_aad(
 }
 /* }}} */
 
+/* {{{ php_crypto_cipher_write_inlen */
+static int php_crypto_cipher_write_inlen(
+		EVP_CIPHER_CTX *cipher_ctx, int inlen TSRMLS_DC)
+{
+	int outlen;
+
+	if (!EVP_CipherUpdate(cipher_ctx, NULL, &outlen, NULL, inlen)) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
+		return FAILURE;
+	}
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ php_crypto_cipher_auth_init */
+static int php_crypto_cipher_auth_init(
+		PHPC_THIS_DECLARE(crypto_cipher), int inlen TSRMLS_DC)
+{
+	EVP_CIPHER_CTX *cipher_ctx = PHP_CRYPTO_CIPHER_CTX(PHPC_THIS);
+	const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode_ex(
+				PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
+
+	/* auth init is just for auth modes */
+	if (!mode->auth_enc) {
+		return SUCCESS;
+	}
+
+	/* check if plain text length needs to be initialized (CCM mode) */
+	if (mode->auth_inlen_init && php_crypto_cipher_write_inlen(
+			cipher_ctx, inlen TSRMLS_CC) == FAILURE) {
+		return FAILURE;
+	}
+
+	/* write additional authenticated data */
+	if (php_crypto_cipher_write_aad(
+			cipher_ctx,
+			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS),
+			PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+		return FAILURE;
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ php_crypto_cipher_update */
 static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int enc)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
-	const php_crypto_cipher_mode *mode;
 	char *data;
 	phpc_str_size_t data_str_size;
 	int out_len, update_len, data_len;
@@ -888,11 +932,9 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 		RETURN_FALSE;
 	}
 
-	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-
-	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+	/* if the crypto is in init state (first update), then do auth init */
+	if (PHP_CRYPTO_CIPHER_IS_IN_INIT_STATE(PHPC_THIS) &&
+			php_crypto_cipher_auth_init(PHPC_THIS, data_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -963,7 +1005,6 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
-	const php_crypto_cipher_mode *mode;
 	char *data, *key, *iv = NULL;
 	phpc_str_size_t data_str_size, key_len, iv_len = 0;
 	int data_len, update_len, out_len, final_len;
@@ -983,11 +1024,8 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 		RETURN_FALSE;
 	}
 
-	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-
-	if (mode->auth_enc && !php_crypto_cipher_write_aad(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD(PHPC_THIS),
-			PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+	/* do auth init */
+	if (php_crypto_cipher_auth_init(PHPC_THIS, data_len TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
