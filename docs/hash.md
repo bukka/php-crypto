@@ -8,10 +8,10 @@ giving more info like it's block size.
 
 #### `Hash::__callStatic($name, $arguments)`
 
-_**Description**_: Creates hash digest using static call syntax.
+_**Description**_: Creates hash digest using a static call syntax.
 
 The usage of `__callStatic` magic method allows simplified syntax for creating
-`Hash` object (e.g. `Hash::sha256($message)`). The `$name` depicts the algorithm
+a `Hash` object (e.g. `Hash::sha256($message)`). The `$name` depicts the algorithm
 which is checked if it's found. If not then `HashException` is thrown. Otherwise
 the new `Hash` instance is returned.
 
