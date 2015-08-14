@@ -1,5 +1,5 @@
 --TEST--
-Crypto\Cipher::getAAD basic usage.
+Crypto\Cipher::getAAD in GCM mode basic usage.
 --SKIPIF--
 <?php
 if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_GCM))

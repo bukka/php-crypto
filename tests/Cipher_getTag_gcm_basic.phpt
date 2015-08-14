@@ -1,7 +1,10 @@
 --TEST--
-Crypto\Cipher::getTag basic usage.
+Crypto\Cipher::getTag in GCM mode basic usage.
 --SKIPIF--
-<?php if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_GCM)) die("Skip: GCM mode not defined (update OpenSSL version)"); ?>
+<?php
+if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_GCM))
+	die("Skip: GCM mode not defined (update OpenSSL version)");
+?>
 --FILE--
 <?php
 $key = str_repeat('x', 32);
