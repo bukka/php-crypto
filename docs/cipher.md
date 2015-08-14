@@ -5,17 +5,21 @@ as well as provides various information about selecte cipher algorithm.
 
 ### Constants
 
+#### `Cipher::MODE_CBC`
+
+The CBC (Cipher Block Chaining) mode XOR's  the previous block with the
+currently en/decrypted one. It requires random IV to be set.
+
 #### `Cipher::MODE_CCM`
 
 The CCM (Counter with CBC-MAC) is an authenticated mode. It requires
 a length pre-initialization which means that a plain resp. cipher
 text must be known before encryption resp. decription. That makes
-it unsituable for streams or continuous cipher update. 
+it unsituable for streams or continuous cipher update.
 
-#### `Cipher::MODE_CBC`
-
-The CBC (Cipher Block Chaining) mode XOR the previos block with the
-currently en/decrypted one. It requires random IV to be set.
+The crypting is similar to counter mode as it uses a counter and
+a randome nonce. The nonce is passed as an IV and the default
+size is 12 bytes. The default tag size is 12 bytes.
 
 #### `Cipher::MODE_CFB`
 
@@ -24,7 +28,7 @@ a self-synchronizing stream cipher.
 
 #### `Cipher::MODE_CTR`
 
-The CTR (CounTeR) mode is using counter and a random nonce.
+The CTR (CounTeR) mode uses counter and a random nonce.
 
 #### `Cipher::MODE_ECB`
 
@@ -49,6 +53,36 @@ is a mode designed for hard disk storage.
 ### Static Methods
 
 #### `Cipher::__callStatic($name, $arguments)`
+
+_**Description**_: Creates a cipher using a static call syntax.
+
+The usage of `__callStatic` magic method allows simplified syntax for creating
+a `Cipher` object (e.g. `Cipher::aes(Crypto\Cipher::MODE_CBC, 128)`). The `$name`
+depicts the algorithm which is checked if it's found. If not then `CipherException`
+is thrown. Otherwise the new `Cipher` instance is returned.
+
+##### *Parameters*
+
+*name* : `string` - the algorithm name (e.g. `aes`)
+
+*arguments* : `array` - there should be an algorithm mode
+and key size (if supported by algorithm)
+
+##### *Return value*
+
+`Cipher`: New instances of the class.
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+
+##### *Examples*
+
+```php
+$cipher = \Crypto\Cipher::aes(\Crypto\Cipher::MODE_CBC, 128);
+```
 
 #### `Cipher::getAlgorithms($aliases = false, $prefix = null)`
 
