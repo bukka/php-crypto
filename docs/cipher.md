@@ -7,7 +7,7 @@ as well as provides various information about selecte cipher algorithm.
 
 #### `Cipher::MODE_CBC`
 
-The CBC (Cipher Block Chaining) mode XOR's  the previous block with the
+The CBC (Cipher Block Chaining) mode XOR's the previous block with the
 currently en/decrypted one. It requires random IV to be set.
 
 #### `Cipher::MODE_CCM`
@@ -17,9 +17,9 @@ a length pre-initialization which means that a plain resp. cipher
 text must be known before encryption resp. decription. That makes
 it unsituable for streams or continuous cipher update.
 
-The crypting is similar to counter mode as it uses a counter and
-a randome nonce. The nonce is passed as an IV and the default
-size is 12 bytes. The default tag size is 12 bytes.
+Encryption is done using CTR (Counter) mode which means that
+a supplied nonce and counter is used. The nonce is passed as an IV.
+The default tag size is 16 bytes.
 
 #### `Cipher::MODE_CFB`
 
