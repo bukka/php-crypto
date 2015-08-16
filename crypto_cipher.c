@@ -1012,6 +1012,7 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
+	const php_crypto_cipher_mode *mode;
 	char *data, *key, *iv = NULL;
 	phpc_str_size_t data_str_size, key_len, iv_len = 0;
 	int data_len, update_len, out_len, final_len;
@@ -1047,8 +1048,12 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
+
+	/* get mode info */
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
+
 	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+	if (!mode->auth_inlen_init && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) (PHPC_STR_VAL(out) + update_len), &final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
 		PHPC_STR_RELEASE(out);

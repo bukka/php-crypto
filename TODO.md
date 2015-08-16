@@ -20,11 +20,11 @@
 ## Cipher
 - Limit algorithm name len
 - AEAD fixes
-  - CCM finalization (verification) is failing
   - test CCM enc and dec with empty AAD
   - add `Cipher::setTagLength` instead of length param in `Cipher::getTag`
   - disallow (throw exc when) setting tag length for CCM after init
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
+  - make sure that CCM update is not called twice
   - rename `auth_enc` to `aead`
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
