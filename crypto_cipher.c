@@ -794,10 +794,18 @@ static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 	/* get mode */
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 
+	/* mode with inlen init requires also pre-setting tag length */
+	if (mode->auth_inlen_init) {
+		EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode->auth_set_tag_flag,
+				PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_DEFAULT, NULL);
+	}
+
 	/* check initialization vector length */
 	if (php_crypto_cipher_check_iv_len(zobject, PHPC_THIS, mode, iv_len TSRMLS_CC) == FAILURE) {
 		return NULL;
 	}
+
+
 
 	/* initialize encryption */
 	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), NULL, NULL,
