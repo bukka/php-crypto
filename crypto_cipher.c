@@ -795,7 +795,7 @@ static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 
 	/* mode with inlen init requires also pre-setting tag length */
-	if (mode->auth_inlen_init) {
+	if (mode->auth_inlen_init && enc) {
 		EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode->auth_set_tag_flag,
 				PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_DEFAULT, NULL);
 	}
@@ -805,7 +805,12 @@ static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 		return NULL;
 	}
 
-
+	if (mode->auth_enc && !enc &&
+			php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode,
+				PHP_CRYPTO_CIPHER_TAG(PHPC_THIS),
+				PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
+		return NULL;
+	}
 
 	/* initialize encryption */
 	if (!EVP_CipherInit_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), NULL, NULL,
@@ -815,12 +820,6 @@ static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 	}
 	PHP_CRYPTO_CIPHER_SET_STATUS(PHPC_THIS, enc, INIT);
 
-	if (mode->auth_enc && !enc &&
-			php_crypto_cipher_set_tag(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode,
-				PHP_CRYPTO_CIPHER_TAG(PHPC_THIS),
-				PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS) TSRMLS_CC) == FAILURE) {
-		return NULL;
-	}
 
 	return PHPC_THIS;
 }
