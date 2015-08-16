@@ -42,13 +42,13 @@ _**Description**_: Returns all hash algorithms.
 
 This static method returns all hash algorithms. Their parameters
 allow filtering of the result. Some algorithms have aliases that
-can be returned if the `$aliases` parameter is `true`. The `$prefixe`
+can be returned if the `$aliases` parameter is `true`. The `$prefix`
 allows filtering by the supplied prefix string.
 
 ##### *Parameters*
 
 *aliases* : `bool` - whether to show aliases
-*prefix* : `string` - prefix that is used for filtering the result
+*prefix* : `string` - prefix that is used for filtering of the result
 
 ##### *Throws*
 
@@ -68,7 +68,7 @@ print_r(\Crypto\Hash::getAlgorithms());
 
 _**Description**_: Finds out wheter the supplied algorithm is supported
 
-This static method checks if the supplied algorithm is supported.
+This static method checks if the supplied hash algorithm is supported.
 
 ##### *Parameters*
 
