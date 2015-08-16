@@ -86,10 +86,85 @@ $cipher = \Crypto\Cipher::aes(\Crypto\Cipher::MODE_CBC, 128);
 
 #### `Cipher::getAlgorithms($aliases = false, $prefix = null)`
 
+_**Description**_: Returns all cipher algorithms.
+
+This static method returns all cipher algorithms. Their parameters
+allow filtering of the result. Some algorithms have aliases that
+can be returned if the `$aliases` parameter is `true`. The `$prefix`
+allows filtering by the supplied prefix string.
+
+##### *Parameters*
+
+*aliases* : `bool` - whether to show aliases
+*prefix* : `string` - prefix that is used for filtering of the result
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`array`: list of supported cipher alorithms
+
+##### *Examples*
+
+```php
+print_r(\Crypto\Cipher::getAlgorithms());
+```
+
 #### `Cipher::hasAlgorithm($algorithm)`
+
+_**Description**_: Finds out wheter the supplied algorithm is supported
+
+This static method checks if the supplied cipher algorithm is supported.
+
+##### *Parameters*
+
+*algorithm* : `string` - algorithm name
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`bool`: if the algorithm is supperted, returns `true`, otherwise `false`
+
+##### *Examples*
+
+```php
+if (\Crypto\Cipher::hasAlgorithm('aes-128-ccm')) {
+    // use AES wiht CCM mode
+}
+```
 
 #### `Cipher::hasMode($mode)`
 
+_**Description**_: Finds out wheter the supplied mode is supported
+
+This static method checks if the supplied cipher mode is supported.
+The `$mode` parameter must be one of the mode cipher constant
+defined in `Cipher` class.
+
+##### *Parameters*
+
+*mode* : `int` - mode constant
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`bool`: if the mode is supperted, returns `true`, otherwise `false`
+
+##### *Examples*
+
+```php
+if (\Crypto\Cipher::hasMode(\Crypto\Cipher::MODE_CCM)) {
+    // use CCM mode
+}
+```
 
 ### Instance Methods
 
