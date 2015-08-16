@@ -19,9 +19,13 @@
 
 ## Cipher
 - Limit algorithm name len
-- CCM plaintext/ciphertext length must be passed
-  - either add some options to pass length then disable it for streams and updates
-- Rename `auth_enc` to `aead`
+- AEAD fixes
+  - CCM finalization (verification) is failing
+  - test CCM enc and dec with empty AAD
+  - add `Cipher::setTagLength` instead of length param in `Cipher::getTag`
+  - disallow (throw exc when) setting tag length for CCM after init
+  - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
+  - rename `auth_enc` to `aead`
 - Auth tag verification error - it's CipherException::FINISH_FAILED atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
 - Add method for setting padding mode
@@ -71,6 +75,7 @@
   - `pcw` (Php Crypto Wrapper)
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
+  - `pcr` (Php CRypto)
 - Test all overflow check on PHP 7 (skip PHP 5)
 - Add tests for algorithm name arg variable chenging
   - it used to uppercase a string in passed variable
@@ -87,9 +92,10 @@
 - Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
 - Added MACException class subclassing HashException
 - Fixed HMAC and CMAC implementation and added key param to constructor
-- Fixed CCM plaintext length setting
+- Fixed and tested CCM mode
+- Add setTagLength Cipher method replacing length param in getTag
 - Removed Rand::egd
-- Added a complete API documentation
+- Created a complete API documentation
 
 ## 0.3.0 (devel)
 - New API for KDF
