@@ -20,13 +20,13 @@
 ## Cipher
 - Limit algorithm name len
 - AEAD fixes
-  - test CCM enc and dec with empty AAD
   - add `Cipher::setTagLength` instead of length param in `Cipher::getTag`
   - disallow (throw exc when) setting tag length for CCM after init
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - make sure that CCM update is not called twice
   - rename `auth_enc` to `aead`
-- Auth tag verification error - it's CipherException::FINISH_FAILED atm.
+- new errors for AEAD verification errors reporting
+  - it's CipherException::FINISH_FAILED or CipherException::UDPATE_FAILED (CCM) atm.
   - is it possible to find out the reason of failing (try OpenSSL last error)
 - Add method for setting padding mode
   - something like `setAutoPadding($auto_padding=true)`
@@ -62,6 +62,9 @@
 - Add open_basedir check
   - `Rand::loadFile`
   - `Rand::writeFile`
+- Resolve a locking issue with OpenSSL Rand on Windows
+  - maybe it could use php_win32_get_random_bytes
+  - http://lxr.php.net/xref/PHP_5_6/win32/winutil.c#80
 
 ## Build
 - Remove build dependency on openssl ext
