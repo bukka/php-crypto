@@ -10,10 +10,9 @@ if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_CCM)) {
 <?php
 $key = pack("H*", 'ceb009aea4454451feadf0e6b36f45555dd04723baa448e8');
 $nonce = pack("H*", '764043c49460b7');
-$aad = pack("H*", '6e80dd7f1badf3a1c9ab25c75f10bde78c23fa0eb8f9aaa53adefbf4cbf78fe4');
 
 $data = pack("H*", '8a0f3d8229e48e7487fd95a28ad392c80b3681d4fbc7bbfd');
-$tag = pack("H*", '2dd6ef1c45d4ccb723dc074414db506d');
+$tag = pack("H*", '3ec1bc9d62356008ce6a4f78f6e3ceb1');
 
 $cipher = new Crypto\Cipher('aes-192-ccm');
 $cipher->setTag('wrong tag');
@@ -28,7 +27,6 @@ catch (Crypto\CipherException $e) {
 
 $cipher = new Crypto\Cipher('aes-192-ccm');
 $cipher->setTag($tag);
-$cipher->setAAD($aad);
 echo bin2hex($cipher->decrypt($data, $key, $nonce)) . "\n";
 
 
