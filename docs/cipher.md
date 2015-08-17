@@ -168,7 +168,49 @@ if (\Crypto\Cipher::hasMode(\Crypto\Cipher::MODE_CCM)) {
 
 ### Instance Methods
 
-#### `Cipher::__construct($algorithm)`
+#### `Cipher::__construct($algorithm, $mode = NULL, $key_size = NULL)`
+
+_**Description**_: Creates a new cipher object
+
+The constructor allows creating an object using two ways. Either algorithm
+name is a string containing all details (algorithm, mode, key size) or
+it is just a name of the block algorithm (e.g. AES) followed by mode
+`Cipher` class constant and, if algorithm allows that, then key size.
+Internally the name is concatened to the first form so the result is
+the same. The final algorithm name is then checked if it is supported.
+If not, then the `CipherException` is thrown.
+
+##### *Parameters*
+
+*algorithm* : `string` - algorithm name
+
+*mode* : `int` - mode constant
+
+*key_size* : `int` - algorithm key size
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+
+##### *Return value*
+
+`Cipher`: new cipher object
+
+##### *Examples*
+
+Creating cipher using just algorithm parameter
+```php
+$cipher = new \Crypto\Cipher('AES-128-GCM');
+```
+
+Creating cipher using composed parameters
+```php
+use Crypto\Cipher;
+
+$cipher = new Cipher('AES', Cipher::MODE_GCM, 128);
+```
 
 #### `Cipher::decrypt($data, $key, $iv = null)()`
 
