@@ -212,7 +212,50 @@ use Crypto\Cipher;
 $cipher = new Cipher('AES', Cipher::MODE_GCM, 128);
 ```
 
-#### `Cipher::decrypt($data, $key, $iv = null)()`
+#### `Cipher::decrypt($data, $key, $iv = null)`
+
+_**Description**_: Decrypts encrypted data using key and IV
+
+This method decrypts encrypted data (cipher text) on the `Cipher`
+object. It uses a supplied key `$key` and an initial vector `$iv`
+for decryption. Internally it calls init, update and finish
+operations on cipher context. If any of them fails, a `CipherException`
+with an appropriate code is thrown.
+
+The key resp. IV parameters has to contain an exact number of bytes
+that is returned by `Cipher::getKeyLength` resp. `Cipher::getIVLength()`.
+If it's not the case, then a `CipherException` is thrown.
+
+##### *Parameters*
+
+*data* : `string` - cipher text
+
+*key* : `string` - key
+
+*iv* : `string` - initial vector
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::UPDATE_FAILED` - updating of decription failed
+- `CipherException::FINISH_FAILED` - finalizing of decription failed
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
+- `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
+
+##### *Return value*
+
+`string`: The decrypted plain text.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-GCM');
+echo $cipher->descrypt($msg, $key, $iv);
+```
 
 #### `Cipher::decryptFinish()`
 
