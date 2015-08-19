@@ -259,6 +259,42 @@ echo $cipher->descrypt($msg, $key, $iv);
 
 #### `Cipher::decryptFinish()`
 
+_**Description**_: Finalizes a decription
+
+This method decrypts the outstanding incomplete block if there is
+any such block in cipher context. It also closes the context so
+the update cannot be called again unless the object is again
+initialized. In addition it finishes the authentication for GCM mode.
+
+If the operation fails (e.g. verification fails), then
+`CipherException` is thrown. The same exception with different code
+is thrown if the context has not been initialized for decryption
+before.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::FINISH_FAILED` - finalizing of decription failed
+- `CipherException::FINISH_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
+
+##### *Return value*
+
+`string`: The decrypted plain text from the last incomplete block or empty string.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CTR');
+$cipher->descryptInit($key, $iv);
+$ct = $cipher->decryptUpdate($msg);
+$ct .= $cipher->decryptFinish();
+```
+
 #### `Cipher::decryptInit($key, $iv = null)`
 
 #### `Cipher::decryptUpdate($data) `
