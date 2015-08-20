@@ -297,6 +297,57 @@ $ct .= $cipher->decryptFinish();
 
 #### `Cipher::decryptInit($key, $iv = null)`
 
+_**Description**_: Initializes cipher decription
+
+This method initializes decription on the `Cipher` object.
+It uses a supplied key `$key` and an initial vector `$iv`. If
+the initialization fails, a `CipherException` with an appropriate
+code is thrown.
+
+The key resp. IV parameters has to contain an exact number of bytes
+that is returned by `Cipher::getKeyLength` resp. `Cipher::getIVLength()`.
+If it's not the case, then a `CipherException` is thrown.
+
+##### *Parameters*
+
+*key* : `string` - key
+
+*iv* : `string` - initial vector
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
+- `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
+
+##### *Return value*
+
+`null`: Nothing is returned.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CBC');
+try {
+    $cipher->descryptInit($key, $iv);
+} catch (\Crypto\CipherException $ex) {
+    switch ($ex->getCode()) {
+        case \Crypto\CipherException::KEY_LENGTH_INVALID:
+            echo "You need to set a correct key length";
+            break;
+        case \Crypto\CipherException::IV_LENGTH_INVALID:
+            echo "You need to set a correct IV length";
+            break;
+        default:
+            echo $ex->getMessage();
+            break;
+    }
+}
+```
+
 #### `Cipher::decryptUpdate($data) `
 
 #### `Cipher::encrypt($data, $key, $iv = null)`
