@@ -350,6 +350,42 @@ try {
 
 #### `Cipher::decryptUpdate($data) `
 
+_**Description**_: Updates decription context with data and returns encrypted blocks.
+
+This method decrypts encrypted data (cipher text) on the `Cipher` object.
+It updates an initialized context and all encrypted blocks are returned. If it is
+not initialized, the a `CipherException` is thrown.
+
+If the decription fails, a `CipherException` is thrown.
+
+##### *Parameters*
+
+*data* : `string` - cipher text
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::UPDATE_FAILED` - updating of decription failed
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
+
+##### *Return value*
+
+`string`: The decrypted plain text.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CTR');
+$cipher->descryptInit($key, $iv);
+$ct = "";
+while (($data = read_data_from_somewhere()) !== false) {
+    $ct .= $cipher->decryptUpdate($msg);
+}
+$ct .= $cipher->decryptFinish();
+```
+
 #### `Cipher::encrypt($data, $key, $iv = null)`
 
 #### `Cipher::encryptFinish()`
