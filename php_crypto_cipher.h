@@ -168,6 +168,7 @@ PHP_CRYPTO_METHOD(Cipher, getIVLength);
 PHP_CRYPTO_METHOD(Cipher, getMode);
 PHP_CRYPTO_METHOD(Cipher, getTag);
 PHP_CRYPTO_METHOD(Cipher, setTag);
+PHP_CRYPTO_METHOD(Cipher, setTagLength);
 PHP_CRYPTO_METHOD(Cipher, getAAD);
 PHP_CRYPTO_METHOD(Cipher, setAAD);
 
