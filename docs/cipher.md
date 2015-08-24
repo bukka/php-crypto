@@ -254,7 +254,7 @@ It can throw `CipherException` with code
 
 ```php
 $cipher = new \Crypto\Cipher('AES-128-GCM');
-echo $cipher->descrypt($msg, $key, $iv);
+echo $cipher->decrypt($msg, $key, $iv);
 ```
 
 #### `Cipher::decryptFinish()`
@@ -387,6 +387,50 @@ $ct .= $cipher->decryptFinish();
 ```
 
 #### `Cipher::encrypt($data, $key, $iv = null)`
+
+_**Description**_: Encrypts data using key and IV
+
+This method encrypts data (plain text) on the `Cipher`
+object. It uses a supplied key `$key` and an initial vector `$iv`
+for encryption. Internally it calls init, update and finish
+operations on cipher context. If any of them fails, a `CipherException`
+with an appropriate code is thrown.
+
+The key resp. IV parameters has to contain an exact number of bytes
+that is returned by `Cipher::getKeyLength` resp. `Cipher::getIVLength()`.
+If it's not the case, then a `CipherException` is thrown.
+
+##### *Parameters*
+
+*data* : `string` - plain text
+
+*key* : `string` - key
+
+*iv* : `string` - initial vector
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::UPDATE_FAILED` - updating of encription failed
+- `CipherException::FINISH_FAILED` - finalizing of encription failed
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
+- `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
+
+##### *Return value*
+
+`string`: The encrypted cipher text.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CTR');
+echo $cipher->encrypt($cipher_text, $key, $iv);
+```
+
 
 #### `Cipher::encryptFinish()`
 
