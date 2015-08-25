@@ -15,7 +15,7 @@ $data = str_repeat('a', 16);
 $cipher = new Crypto\Cipher('aes-256-gcm');
 
 try {
-    $cipher->getTag(16);
+	$cipher->getTag();
 }
 catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::TAG_GETTER_FORBIDDEN) {
@@ -25,7 +25,7 @@ catch (Crypto\CipherException $e) {
 
 // init first
 echo bin2hex($cipher->encrypt($data, $key, $iv)) . "\n";
-echo bin2hex($cipher->getTag(16)) . "\n";
+echo bin2hex($cipher->getTag()) . "\n";
 
 
 ?>

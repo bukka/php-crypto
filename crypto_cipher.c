@@ -183,10 +183,6 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_mode, 0)
 ZEND_ARG_INFO(0, mode)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_get_tag, 0)
-ZEND_ARG_INFO(0, tag_size)
-ZEND_END_ARG_INFO()
-
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_set_tag_len, 0)
 ZEND_ARG_INFO(0, tag_length)
 ZEND_END_ARG_INFO()
@@ -299,7 +295,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getTag,
-		arginfo_crypto_cipher_get_tag,
+		NULL,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -1341,25 +1337,22 @@ PHP_CRYPTO_METHOD(Cipher, getMode)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\Cipher::getTag(int $tag_size)
+/* {{{ proto string Crypto\Cipher::getTag()
 	Returns authentication tag */
 PHP_CRYPTO_METHOD(Cipher, getTag)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	const php_crypto_cipher_mode *mode;
 	PHPC_STR_DECLARE(tag);
-	phpc_long_t tag_len_long;
 	int tag_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &tag_len_long) == FAILURE) {
+	if (zend_parse_parameters_none() == FAILURE) {
 		return;
 	}
 
 	PHPC_THIS_FETCH(crypto_cipher);
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE ||
-			php_crypto_long_to_int(tag_len_long, &tag_len) == FAILURE ||
-			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
+	if (php_crypto_cipher_is_mode_authenticated_ex(mode TSRMLS_CC) == FAILURE) {
 		RETURN_FALSE;
 	}
 
@@ -1368,6 +1361,7 @@ PHP_CRYPTO_METHOD(Cipher, getTag)
 		RETURN_FALSE;
 	}
 
+	tag_len = PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS);
 	PHPC_STR_ALLOC(tag, tag_len);
 	PHPC_STR_VAL(tag)[tag_len] = 0;
 

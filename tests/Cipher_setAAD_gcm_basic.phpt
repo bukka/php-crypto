@@ -16,7 +16,7 @@ $aad = str_repeat('b', 16);
 $cipher = new Crypto\Cipher('aes-256-gcm');
 $cipher->setAAD($aad);
 $ct = $cipher->encrypt($data, $key, $iv);
-$tag = $cipher->getTag(16);
+$tag = $cipher->getTag();
 echo bin2hex($ct) . "\n";
 
 // decryption

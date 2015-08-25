@@ -16,7 +16,7 @@ $data =  pack("H*", 'c8d275f919e17d7fe69c2a1f58939dfe4d403791b5df1310');
 $cipher = new Crypto\Cipher('aes-192-ccm');
 
 try {
-    $cipher->getTag(16);
+	$cipher->getTag();
 }
 catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::TAG_GETTER_FORBIDDEN) {
@@ -26,7 +26,7 @@ catch (Crypto\CipherException $e) {
 
 // init first
 echo bin2hex($cipher->encrypt($data, $key, $nonce)) . "\n";
-echo bin2hex($cipher->getTag(16)) . "\n";
+echo bin2hex($cipher->getTag()) . "\n";
 
 
 ?>

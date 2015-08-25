@@ -448,8 +448,10 @@ echo $cipher->encrypt($cipher_text, $key, $iv);
 
 #### `Cipher::getMode()`
 
-#### `Cipher::getTag($tag_size)`
+#### `Cipher::getTag()`
 
 #### `Cipher::setAAD($aad)`
 
 #### `Cipher::setTag($tag)`
+
+#### `Cipher::setTagLength($tag_length)`

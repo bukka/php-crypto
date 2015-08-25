@@ -18,7 +18,7 @@ function gcm_encrypt($pt, $key, $iv, $aad) {
 	$cipher->setAAD($aad);
 	$ct = $cipher->encrypt($pt, $key, $iv);
 	echo "Ciphertext: " . bin2hex($ct) . PHP_EOL;
-	$tag = $cipher->getTag(16);
+	$tag = $cipher->getTag();
 	echo "Tag: " . bin2hex($tag) . PHP_EOL;
 	return array($ct, $tag);
 }

@@ -20,7 +20,6 @@
 ## Cipher
 - Limit algorithm name len
 - AEAD fixes
-  - add `Cipher::setTagLength` instead of length param in `Cipher::getTag`
   - disallow (throw exc when) setting tag length for CCM after init
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - make sure that CCM update is not called twice

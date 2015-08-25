@@ -18,7 +18,7 @@ $ct = pack("H*", '8a0f3d8229e48e7487fd95a28ad392c80b3681d4fbc7bbfd');
 $cipher = new Crypto\Cipher('aes-192-ccm');
 $cipher->setAAD($aad);
 $ct = $cipher->encrypt($pt, $key, $nonce);
-$tag = $cipher->getTag(16);
+$tag = $cipher->getTag();
 echo bin2hex($tag) . "\n";
 echo bin2hex($ct) . "\n";
 
