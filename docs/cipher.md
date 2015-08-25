@@ -261,7 +261,7 @@ echo $cipher->decrypt($msg, $key, $iv);
 
 _**Description**_: Finalizes a decription
 
-This method decrypts the outstanding incomplete block if there is
+This method decrypts an outstanding incomplete block if there is
 any such block in cipher context. It also closes the context so
 the update cannot be called again unless the object is again
 initialized. In addition it finishes the authentication for GCM mode.
@@ -279,12 +279,13 @@ This method has no parameters.
 
 It can throw `CipherException` with code
 
-- `CipherException::FINISH_FAILED` - finalizing of decription failed
+- `CipherException::FINISH_FAILED` - finalizing of decryption failed
 - `CipherException::FINISH_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
 
 ##### *Return value*
 
-`string`: The decrypted plain text from the last incomplete block or empty string.
+`string`: The decrypted data (plain text) from the last incomplete block
+or empty string.
 
 ##### *Examples*
 
@@ -433,6 +434,43 @@ echo $cipher->encrypt($cipher_text, $key, $iv);
 
 
 #### `Cipher::encryptFinish()`
+
+_**Description**_: Finalizes an encryption
+
+This method encrypts an outstanding incomplete block including padding
+if there is any such block in cipher context and/or padding is required.
+It also closes the context so the update cannot be called again unless
+the object is again initialized.
+
+If the operation fails (e.g. verification fails), then
+`CipherException` is thrown. The same exception with different code
+is thrown if the context has not been initialized for decryption
+before.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::FINISH_FAILED` - finalizing of encryption failed
+- `CipherException::FINISH_ENCRYPT_FORBIDDEN` - cipher has not been initialized for encryption
+
+##### *Return value*
+
+`string`: The encrypted data (cipher text) from the last incomplete block
+with padding or empty string.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CTR');
+$cipher->enscryptInit($key, $iv);
+$plain_text = $cipher->encryptUpdate($cipher_text);
+$plain_text .= $cipher->encryptFinish();
+```
 
 #### `Cipher::encryptInit($key, $iv = null)`
 
