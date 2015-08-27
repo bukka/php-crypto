@@ -1,6 +1,6 @@
 ## Cipher
 
-The `Cipher` class handles all encryption and decription including AEAD 
+The `Cipher` class handles all encryption and decryption including AEAD
 as well as provides various information about selecte cipher algorithm.
 
 ### Constants
@@ -14,7 +14,7 @@ currently en/decrypted one. It requires random IV to be set.
 
 The CCM (Counter with CBC-MAC) is an authenticated mode. It requires
 a length pre-initialization which means that a plain resp. cipher
-text must be known before encryption resp. decription. That makes
+text must be known before encryption resp. decryption. That makes
 it unsituable for streams or continuous cipher update.
 
 Encryption is done using CTR (Counter) mode which means that
@@ -240,8 +240,8 @@ It can throw `CipherException` with code
 
 - `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
 - `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
-- `CipherException::UPDATE_FAILED` - updating of decription failed
-- `CipherException::FINISH_FAILED` - finalizing of decription failed
+- `CipherException::UPDATE_FAILED` - updating of decryption failed
+- `CipherException::FINISH_FAILED` - finalizing of decryption failed
 - `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
@@ -259,7 +259,7 @@ echo $cipher->decrypt($msg, $key, $iv);
 
 #### `Cipher::decryptFinish()`
 
-_**Description**_: Finalizes a decription
+_**Description**_: Finalizes a decryption
 
 This method decrypts an outstanding incomplete block if there is
 any such block in cipher context. It also closes the context so
@@ -291,16 +291,16 @@ or empty string.
 
 ```php
 $cipher = new \Crypto\Cipher('AES-128-CTR');
-$cipher->descryptInit($key, $iv);
+$cipher->decryptInit($key, $iv);
 $ct = $cipher->decryptUpdate($msg);
 $ct .= $cipher->decryptFinish();
 ```
 
 #### `Cipher::decryptInit($key, $iv = null)`
 
-_**Description**_: Initializes cipher decription
+_**Description**_: Initializes cipher decryption
 
-This method initializes decription on the `Cipher` object.
+This method initializes decryption on the `Cipher` object.
 It uses a supplied key `$key` and an initial vector `$iv`. If
 the initialization fails, a `CipherException` with an appropriate
 code is thrown.
@@ -333,7 +333,7 @@ It can throw `CipherException` with code
 ```php
 $cipher = new \Crypto\Cipher('AES-128-CBC');
 try {
-    $cipher->descryptInit($key, $iv);
+    $cipher->decryptInit($key, $iv);
 } catch (\Crypto\CipherException $ex) {
     switch ($ex->getCode()) {
         case \Crypto\CipherException::KEY_LENGTH_INVALID:
@@ -351,13 +351,13 @@ try {
 
 #### `Cipher::decryptUpdate($data) `
 
-_**Description**_: Updates decription context with data and returns encrypted blocks.
+_**Description**_: Updates decryption context with data and returns encrypted blocks.
 
 This method decrypts encrypted data (cipher text) on the `Cipher` object.
 It updates an initialized context and all encrypted blocks are returned. If it is
 not initialized, the a `CipherException` is thrown.
 
-If the decription fails, a `CipherException` is thrown.
+If the decryption fails, a `CipherException` is thrown.
 
 ##### *Parameters*
 
@@ -367,7 +367,7 @@ If the decription fails, a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::UPDATE_FAILED` - updating of decription failed
+- `CipherException::UPDATE_FAILED` - updating of decryption failed
 - `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
 - `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
 
@@ -379,7 +379,7 @@ It can throw `CipherException` with code
 
 ```php
 $cipher = new \Crypto\Cipher('AES-128-CTR');
-$cipher->descryptInit($key, $iv);
+$cipher->decryptInit($key, $iv);
 $ct = "";
 while (($data = read_data_from_somewhere()) !== false) {
     $ct .= $cipher->decryptUpdate($msg);
@@ -415,8 +415,8 @@ It can throw `CipherException` with code
 
 - `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
 - `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
-- `CipherException::UPDATE_FAILED` - updating of encription failed
-- `CipherException::FINISH_FAILED` - finalizing of encription failed
+- `CipherException::UPDATE_FAILED` - updating of encryption failed
+- `CipherException::FINISH_FAILED` - finalizing of encryption failed
 - `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
@@ -467,12 +467,63 @@ with padding or empty string.
 
 ```php
 $cipher = new \Crypto\Cipher('AES-128-CTR');
-$cipher->enscryptInit($key, $iv);
+$cipher->encryptInit($key, $iv);
 $plain_text = $cipher->encryptUpdate($cipher_text);
 $plain_text .= $cipher->encryptFinish();
 ```
 
 #### `Cipher::encryptInit($key, $iv = null)`
+
+_**Description**_: Initializes cipher encryption
+
+This method initializes encryption on the `Cipher` object.
+It uses a supplied key `$key` and an initial vector `$iv`. If
+the initialization fails, a `CipherException` with an appropriate
+code is thrown.
+
+The key resp. IV parameters has to contain an exact number of bytes
+that is returned by `Cipher::getKeyLength` resp. `Cipher::getIVLength()`.
+If it's not the case, then a `CipherException` is thrown.
+
+##### *Parameters*
+
+*key* : `string` - key
+
+*iv* : `string` - initial vector
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
+- `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
+
+##### *Return value*
+
+`null`: Nothing is returned.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CBC');
+try {
+    $cipher->encryptInit($key, $iv);
+} catch (\Crypto\CipherException $ex) {
+    switch ($ex->getCode()) {
+        case \Crypto\CipherException::KEY_LENGTH_INVALID:
+            echo "You need to set a correct key length";
+            break;
+        case \Crypto\CipherException::IV_LENGTH_INVALID:
+            echo "You need to set a correct IV length";
+            break;
+        default:
+            echo $ex->getMessage();
+            break;
+    }
+}
+```
 
 #### `Cipher::encryptUpdate($data)`
 
