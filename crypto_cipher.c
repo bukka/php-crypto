@@ -94,6 +94,10 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 	"Tag setter failed"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
+	TAG_LENGTH_SETTER_FORBIDDEN,
+	"Tag length setter has to be called before encryption"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
 	TAG_LENGTH_LOW,
 	"Tag length can't be lower than 32 bits (4 characters)"
 )
@@ -1437,6 +1441,12 @@ PHP_CRYPTO_METHOD(Cipher, setTagLength)
 			PHP_CRYPTO_CIPHER_TAG(PHPC_THIS) ||
 			php_crypto_long_to_int(tag_len_long, &tag_len) == FAILURE ||
 			php_crypto_cipher_check_tag_len(tag_len TSRMLS_CC) == FAILURE) {
+		RETURN_FALSE;
+	}
+
+	if (PHPC_THIS->status != PHP_CRYPTO_CIPHER_STATUS_DECRYPT_INIT &&
+			PHPC_THIS->status != PHP_CRYPTO_CIPHER_STATUS_CLEAR) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_LENGTH_SETTER_FORBIDDEN));
 		RETURN_FALSE;
 	}
 

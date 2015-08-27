@@ -20,7 +20,7 @@
 ## Cipher
 - Limit algorithm name len
 - AEAD fixes
-  - disallow (throw exc when) setting tag length for CCM after init
+  - test setting tag length
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - make sure that CCM update is not called twice
   - rename `auth_enc` to `aead`
