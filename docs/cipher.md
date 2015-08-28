@@ -354,8 +354,8 @@ try {
 _**Description**_: Updates decryption context with data and returns encrypted blocks.
 
 This method decrypts encrypted data (cipher text) on the `Cipher` object.
-It updates an initialized context and all encrypted blocks are returned. If it is
-not initialized, the a `CipherException` is thrown.
+It updates an initialized context and all encrypted blocks are returned. If the context
+is not initialized using `Cipher::decryptInit`, then a `CipherException` is thrown.
 
 If the decryption fails, a `CipherException` is thrown.
 
@@ -380,11 +380,11 @@ It can throw `CipherException` with code
 ```php
 $cipher = new \Crypto\Cipher('AES-128-CTR');
 $cipher->decryptInit($key, $iv);
-$ct = "";
+$plain_text = "";
 while (($data = read_data_from_somewhere()) !== false) {
-    $ct .= $cipher->decryptUpdate($msg);
+    $plain_text .= $cipher->decryptUpdate($msg);
 }
-$ct .= $cipher->decryptFinish();
+$plain_text .= $cipher->decryptFinish();
 ```
 
 #### `Cipher::encrypt($data, $key, $iv = null)`
@@ -526,6 +526,42 @@ try {
 ```
 
 #### `Cipher::encryptUpdate($data)`
+
+_**Description**_: Updates encryption context with data and returns encrypted blocks.
+
+This method encrypts data (plain text) on the `Cipher` object. It updates
+an initialized context and all encrypted blocks are returned (if any). If the context
+is not initialized using `Cipher::encryptInit`, then a `CipherException` is thrown.
+
+If the decryption fails, a `CipherException` is thrown.
+
+##### *Parameters*
+
+*data* : `string` - plain text
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::UPDATE_FAILED` - updating of encryption failed
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for encryption
+
+##### *Return value*
+
+`string`: The encrypted cipher text.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('AES-128-CTR');
+$cipher->decryptInit($key, $iv);
+$cipher_text = "";
+while (($data = read_data_from_somewhere()) !== false) {
+    $cipher_text .= $cipher->encryptUpdate($msg);
+}
+$cipher_text .= $cipher->encryptFinish();
+```
 
 #### `Cipher::getAlgorithmName()`
 
