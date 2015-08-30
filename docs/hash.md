@@ -170,8 +170,8 @@ $digest = \Crypto\Hash::sha256('abc')->digest();
 
 _**Description**_: Returns a hash algorithm name.
 
-It is a getter for internal `Hash::$algorithm` reod only property
-which is set during the object construction.
+It is a getter for internal `Hash::$algorithm` read only property
+which is set during the object creation.
 
 ##### *Parameters*
 
