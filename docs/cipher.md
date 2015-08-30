@@ -565,6 +565,32 @@ $cipher_text .= $cipher->encryptFinish();
 
 #### `Cipher::getAlgorithmName()`
 
+_**Description**_: Returns a cipher algorithm name.
+
+It is a getter for internal `Cipher::$algorithm` read only property
+which is set during the object creation.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`string`: The name of the cipher algorithm and additional info
+like a mode (e.g. `AES-128-CTR`)
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-ctr');
+// this will output AES-128-CTR
+echo $cipher->getAlgorithmName();
+```
+
 #### `Cipher::getBlockSize()`
 
 #### `Cipher::getIVLength()`
