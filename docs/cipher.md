@@ -593,6 +593,30 @@ echo $cipher->getAlgorithmName();
 
 #### `Cipher::getBlockSize()`
 
+_**Description**_: Returns a cipher block size in bytes.
+
+This method returns a block size of the cipher algorithm.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The cipher block size in bytes.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-ctr');
+// this will output 16
+echo $cipher->getBlockSize();
+```
+
 #### `Cipher::getIVLength()`
 
 #### `Cipher::getKeyLength()`
