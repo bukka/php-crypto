@@ -831,7 +831,7 @@ static PHPC_OBJ_STRUCT_NAME(crypto_cipher) *php_crypto_cipher_init_ex(
 	/* mode with inlen init requires also pre-setting tag length */
 	if (mode->auth_inlen_init && enc) {
 		EVP_CIPHER_CTX_ctrl(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS), mode->auth_set_tag_flag,
-				PHP_CRYPTO_CIPHER_AUTH_TAG_LENGTH_DEFAULT, NULL);
+				PHP_CRYPTO_CIPHER_TAG_LEN(PHPC_THIS), NULL);
 	}
 
 	/* check initialization vector length */
