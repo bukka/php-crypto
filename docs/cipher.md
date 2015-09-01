@@ -619,6 +619,33 @@ echo $cipher->getBlockSize();
 
 #### `Cipher::getIVLength()`
 
+_**Description**_: Returns a cipher IV length in bytes.
+
+This method returns an initial vector length of the cipher algorithm.
+The IV length depends on the selected mode. This is also applicable
+on modes that are based on CTR mode which requires a nonce. The nonce
+length is returned in this case.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The cipher IV length in bytes.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-ctr');
+// this will output 16
+echo $cipher->getIVLength();
+```
+
 #### `Cipher::getKeyLength()`
 
 #### `Cipher::getMode()`
