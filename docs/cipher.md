@@ -648,6 +648,33 @@ echo $cipher->getIVLength();
 
 #### `Cipher::getKeyLength()`
 
+_**Description**_: Returns a cipher key length in bytes.
+
+This method returns a key length of the cipher algorithm. The key length
+depends on the cipher where some ciphers support more key lengths (e.g.
+AES) that can be specified in the algorithm name or as a parameter of
+the cipher constructor.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The cipher key length in bytes.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-192-ctr');
+// this will output 24
+echo $cipher->getIVLength();
+```
+
 #### `Cipher::getMode()`
 
 #### `Cipher::getTag()`
