@@ -672,7 +672,7 @@ This method does not throw any exception.
 ```php
 $cipher = new \Crypto\Cipher('aes-192-ctr');
 // this will output 24
-echo $cipher->getIVLength();
+echo $cipher->getKeyLength();
 ```
 
 #### `Cipher::getMode()`
