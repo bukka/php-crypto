@@ -1006,7 +1006,8 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	PHPC_STR_DECLARE(out);
-	int out_len, final_len;
+	const php_crypto_cipher_mode *mode;
+	int out_len, final_len = 0;
 
 	if (zend_parse_parameters_none() == FAILURE) {
 		return;
@@ -1026,8 +1027,11 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	out_len = EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_STR_ALLOC(out, out_len);
 
-	/* finalize encryption context */
-	if (!EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+	/* get mode info */
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
+
+	/* finalize cipher context */
+	if ((enc || !mode->auth_inlen_init) && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) PHPC_STR_VAL(out), &final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
 		PHPC_STR_RELEASE(out);
@@ -1087,8 +1091,8 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	/* get mode info */
 	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
 
-	/* finalize encryption context */
-	if (!mode->auth_inlen_init && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
+	/* finalize cipher context */
+	if ((enc || !mode->auth_inlen_init) && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) (PHPC_STR_VAL(out) + update_len), &final_len)) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
 		PHPC_STR_RELEASE(out);
