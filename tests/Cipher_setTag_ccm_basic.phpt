@@ -18,20 +18,31 @@ $cipher = new Crypto\Cipher('aes-192-ccm');
 $cipher->setTag('wrong tag');
 try {
 	echo $cipher->decrypt($data, $key, $nonce) . "\n";
-}
-catch (Crypto\CipherException $e) {
+} catch (Crypto\CipherException $e) {
 	if (Crypto\CipherException::FINISH_FAILED) {
-		echo "FAILED\n";
+		echo "WRONG TAG\n";
 	}
 }
 
+try {
+	$cipher = new Crypto\Cipher('aes-192-ccm');
+	$cipher->setTag($tag);
+	$cipher->decryptInit($key, $nonce);
+	$pt = $cipher->decryptUpdate(substr($data, 0, 10));
+	$pt .= $cipher->decryptUpdate(substr($data, 10));
+} catch (Crypto\CipherException $e) {
+	if (Crypto\CipherException::UPDATE_FAILED) {
+		echo "MULTI UPDATE\n";
+	}
+}
+
+// test single decrypt
 $cipher = new Crypto\Cipher('aes-192-ccm');
 $cipher->setTag($tag);
 echo bin2hex($cipher->decrypt($data, $key, $nonce)) . "\n";
 
-
 try {
-    $cipher->setTag($tag);
+	$cipher->setTag($tag);
 }
 catch (Crypto\CipherException $e) {
 	if ($e->getCode() == Crypto\CipherException::TAG_SETTER_FORBIDDEN) {
@@ -39,8 +50,18 @@ catch (Crypto\CipherException $e) {
 	}
 }
 
+// test ctx decrypt
+$cipher = new Crypto\Cipher('aes-192-ccm');
+$cipher->setTag($tag);
+$cipher->decryptInit($key, $nonce);
+$pt = $cipher->decryptUpdate($data);
+$pt .= $cipher->decryptFinish();
+echo bin2hex($pt) . "\n";
+
 ?>
 --EXPECT--
-FAILED
+WRONG TAG
+MULTI UPDATE
 c8d275f919e17d7fe69c2a1f58939dfe4d403791b5df1310
 FLOW
+c8d275f919e17d7fe69c2a1f58939dfe4d403791b5df1310
