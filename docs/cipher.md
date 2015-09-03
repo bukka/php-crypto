@@ -677,6 +677,34 @@ echo $cipher->getKeyLength();
 
 #### `Cipher::getMode()`
 
+_**Description**_: Returns a cipher mode constant value.
+
+This method returns a `Cipher` class constant value for the used mode.
+It's identified from the algorithm name passed to the constructor.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The cipher mode constant value.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-ctr');
+$mode = $cipher->getMode();
+// this will be true
+if ($mode === \Crypto\Cipher::MODE_CTR) {
+    echo "Mode is CTR";
+}
+```
+
 #### `Cipher::getTag()`
 
 #### `Cipher::setAAD($aad)`
