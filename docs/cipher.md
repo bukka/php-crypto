@@ -707,6 +707,40 @@ if ($mode === \Crypto\Cipher::MODE_CTR) {
 
 #### `Cipher::getTag()`
 
+_**Description**_: Returns an authentication tag.
+
+This method returns a message authentication tag. It can be used
+only for modes that supports that (GCM and CCM) and only after
+an encryption is finished. In any other case, `CipherException`
+is thrown.
+
+The returned tag length can be set by `Cipher::setTagLength` before
+encryption. If it's not set, then the defualt length is 16.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not an authenticated mode
+- `CipherException::TAG_GETTER_FORBIDDEN` - method is not called after finishing encryption
+- `CipherException::TAG_GETTER_FAILED` - getting tag failed
+
+##### *Return value*
+
+`string`: The authenticated tag.
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-gcm');
+$cipher_text = $cipher->encrypt($plain_text, $key, $iv);
+$tag = $cipher->getTag();
+```
+
 #### `Cipher::setAAD($aad)`
 
 #### `Cipher::setTag($tag)`
