@@ -19,14 +19,11 @@
 
 ## Cipher
 - Limit algorithm name len
-- AEAD fixes
-  - test setting tag length
+- Imrove AEAD
+  - add new error code when CCM is called twice
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
-  - make sure that CCM update is not called twice
   - rename `auth_enc` to `aead`
-- new errors for AEAD verification errors reporting
-  - it's CipherException::FINISH_FAILED or CipherException::UDPATE_FAILED (CCM) atm.
-  - is it possible to find out the reason of failing (try OpenSSL last error)
+  - double check a reason of failed tag verification (try OpenSSL last error)
 - Add method for setting padding mode
   - something like `setAutoPadding($auto_padding=true)`
   - using `EVP_CIPHER_CTX_set_padding`
@@ -95,6 +92,7 @@
 - Added MACException class subclassing HashException
 - Fixed HMAC and CMAC implementation and added key param to constructor
 - Fixed and tested CCM mode
+- Added new error code for failed tag verification (TAG_VERIFY_FAILED)
 - Add setTagLength Cipher method replacing length param in getTag
 - Removed Rand::egd
 - Created a complete API documentation
