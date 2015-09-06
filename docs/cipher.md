@@ -41,13 +41,13 @@ The GCM (Golias Counter Mode) is an authenticated mode.
 
 #### `Cipher::MODE_OFB`
 
-The OFB (Output FeedBack) mode makes a block cipher into 
+The OFB (Output FeedBack) mode makes a block cipher into
 a synchronous stream cipher
 
 #### `Cipher::MODE_XTS`
 
-The XTS (XEX-based tweaked codebook mode with ciphertext stealing) mode
-is a mode designed for hard disk storage.
+The XTS (XEX-based tweaked codebook mode with ciphertext stealing)
+mode is a mode designed for hard disk storage.
 
 
 ### Static Methods
@@ -56,10 +56,12 @@ is a mode designed for hard disk storage.
 
 _**Description**_: Creates a cipher using a static call syntax.
 
-The usage of `__callStatic` magic method allows simplified syntax for creating
-a `Cipher` object (e.g. `Cipher::aes(Crypto\Cipher::MODE_CBC, 128)`). The `$name`
-depicts the algorithm which is checked if it's found. If not then `CipherException`
-is thrown. Otherwise the new `Cipher` instance is returned.
+The usage of `__callStatic` magic method allows simplified syntax
+for creating a `Cipher` object
+(e.g. `Cipher::aes(Crypto\Cipher::MODE_CBC, 128)`). The `$name`
+depicts the algorithm which is checked if it's found. If not
+then `CipherException` is thrown. Otherwise the new `Cipher`
+instance is returned.
 
 ##### *Parameters*
 
@@ -76,7 +78,8 @@ and key size (if supported by algorithm)
 
 It can throw `CipherException` with code
 
-- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is
+not found
 
 ##### *Examples*
 
@@ -172,13 +175,14 @@ if (\Crypto\Cipher::hasMode(\Crypto\Cipher::MODE_CCM)) {
 
 _**Description**_: Creates a new cipher object
 
-The constructor allows creating an object using two ways. Either algorithm
-name is a string containing all details (algorithm, mode, key size) or
-it is just a name of the block algorithm (e.g. AES) followed by mode
-`Cipher` class constant and, if algorithm allows that, then key size.
-Internally the name is concatened to the first form so the result is
-the same. The final algorithm name is then checked if it is supported.
-If not, then the `CipherException` is thrown.
+The constructor allows creating an object using two ways. Either
+algorithm name is a string containing all details (algorithm, mode,
+key size) or it is just a name of the block algorithm (e.g. AES)
+followed by mode `Cipher` class constant and, if algorithm allows
+that, then key size. Internally the name is concatened to the first
+form so the result is the same. The final algorithm name is then
+checked if it is supported. If not, then the `CipherException`
+is thrown.
 
 ##### *Parameters*
 
@@ -192,7 +196,8 @@ If not, then the `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+- `CipherException::ALGORITHM_NOT_FOUND` - the algorithm (name) is
+not found
 
 ##### *Return value*
 
@@ -238,11 +243,14 @@ If it's not the case, then a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
-- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm
+failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context
+failed
 - `CipherException::UPDATE_FAILED` - updating of decryption failed
 - `CipherException::FINISH_FAILED` - finalizing of decryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -280,12 +288,13 @@ This method has no parameters.
 It can throw `CipherException` with code
 
 - `CipherException::FINISH_FAILED` - finalizing of decryption failed
-- `CipherException::FINISH_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
+- `CipherException::FINISH_DECRYPT_FORBIDDEN` - cipher has not been
+initialized for decryption
 
 ##### *Return value*
 
-`string`: The decrypted data (plain text) from the last incomplete block
-or empty string.
+`string`: The decrypted data (plain text) from the last incomplets
+block or empty string.
 
 ##### *Examples*
 
@@ -319,8 +328,10 @@ If it's not the case, then a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
-- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher
+algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher
+context failed
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -351,11 +362,13 @@ try {
 
 #### `Cipher::decryptUpdate($data) `
 
-_**Description**_: Updates decryption context with data and returns encrypted blocks.
+_**Description**_: Updates decryption context with data and returns
+encrypted blocks.
 
 This method decrypts encrypted data (cipher text) on the `Cipher` object.
-It updates an initialized context and all encrypted blocks are returned. If the context
-is not initialized using `Cipher::decryptInit`, then a `CipherException` is thrown.
+It updates an initialized context and all encrypted blocks are returned.
+If the context is not initialized using `Cipher::decryptInit`, then
+a `CipherException` is thrown.
 
 If the decryption fails, a `CipherException` is thrown.
 
@@ -368,8 +381,10 @@ If the decryption fails, a `CipherException` is thrown.
 It can throw `CipherException` with code
 
 - `CipherException::UPDATE_FAILED` - updating of decryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
-- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C INT_MAX
+- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been
+initialized for decryption
 
 ##### *Return value*
 
@@ -413,11 +428,14 @@ If it's not the case, then a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
-- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher
+algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher context
+failed
 - `CipherException::UPDATE_FAILED` - updating of encryption failed
 - `CipherException::FINISH_FAILED` - finalizing of encryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -456,7 +474,8 @@ This method has no parameters.
 It can throw `CipherException` with code
 
 - `CipherException::FINISH_FAILED` - finalizing of encryption failed
-- `CipherException::FINISH_ENCRYPT_FORBIDDEN` - cipher has not been initialized for encryption
+- `CipherException::FINISH_ENCRYPT_FORBIDDEN` - cipher has not been
+initialized for encryption
 
 ##### *Return value*
 
@@ -495,8 +514,10 @@ If it's not the case, then a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::INIT_ALG_FAILED` - initialization of cipher algorithm failed
-- `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
+- `CipherException::INIT_ALG_FAILED` - initialization of cipher
+algorithm failed
+- `CipherException::INIT_CTX_FAILED` - initialization of cipher
+context failed
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -527,11 +548,13 @@ try {
 
 #### `Cipher::encryptUpdate($data)`
 
-_**Description**_: Updates encryption context with data and returns encrypted blocks.
+_**Description**_: Updates encryption context with data and returns
+encrypted blocks.
 
 This method encrypts data (plain text) on the `Cipher` object. It updates
-an initialized context and all encrypted blocks are returned (if any). If the context
-is not initialized using `Cipher::encryptInit`, then a `CipherException` is thrown.
+an initialized context and all encrypted blocks are returned (if any). If
+the context is not initialized using `Cipher::encryptInit`, then
+a `CipherException` is thrown.
 
 If the decryption fails, a `CipherException` is thrown.
 
@@ -544,8 +567,10 @@ If the decryption fails, a `CipherException` is thrown.
 It can throw `CipherException` with code
 
 - `CipherException::UPDATE_FAILED` - updating of encryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
-- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for encryption
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C INT_MAX
+- `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been
+initialized for encryption
 
 ##### *Return value*
 
@@ -725,8 +750,10 @@ This method has no parameters.
 
 It can throw `CipherException` with code
 
-- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not an authenticated mode
-- `CipherException::TAG_GETTER_FORBIDDEN` - method is not called after finishing encryption
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not
+an authenticated mode
+- `CipherException::TAG_GETTER_FORBIDDEN` - method is not called after
+finishing encryption
 - `CipherException::TAG_GETTER_FAILED` - getting tag failed
 
 ##### *Return value*
@@ -758,9 +785,12 @@ other case, a `CipherException` is thrown.
 
 It can throw `CipherException` with code
 
-- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not an authenticated mode
-- `CipherException::AAD_SETTER_FORBIDDEN` - method is not called before encryption or decryption
-- `CipherException::AAD_LENGTH_HIGH` - if the AAD length exceeds C INT_MAX
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not
+an authenticated mode
+- `CipherException::AAD_SETTER_FORBIDDEN` - method is not called before
+encryption or decryption
+- `CipherException::AAD_LENGTH_HIGH` - if the AAD length exceeds
+C INT_MAX
 
 ##### *Return value*
 
