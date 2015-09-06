@@ -43,8 +43,8 @@ try {
 	echo $cipher->decrypt($ct, $key, $iv) . "\n";
 }
 catch (Crypto\CipherException $e) {
-	if ($e->getCode() == Crypto\CipherException::FINISH_FAILED) {
-		echo "CIPHER_FINISH_FAILED\n";
+	if ($e->getCode() == Crypto\CipherException::TAG_VERIFY_FAILED) {
+		echo "TAG_VERIFY_FAILED\n";
 	}
 }
 
@@ -55,4 +55,4 @@ catch (Crypto\CipherException $e) {
 622070d3bea6f720943d1198a7e6afa5
 aaaaaaaaaaaaaaaa
 CIPHER_AAD_SETTER_FLOW
-CIPHER_FINISH_FAILED
+TAG_VERIFY_FAILED

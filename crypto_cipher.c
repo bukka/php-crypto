@@ -106,6 +106,10 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 	"Tag length can't exceed 128 bits (16 characters)"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
+	TAG_VERIFY_FAILED,
+	"Tag verifycation failed"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
 	INIT_ALG_FAILED,
 	"Initialization of cipher algorithm failed"
 )
@@ -988,7 +992,15 @@ static inline void php_crypto_cipher_update(INTERNAL_FUNCTION_PARAMETERS, int en
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) PHPC_STR_VAL(out), &update_len,
 			(unsigned char *) data, data_len)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
+		/* get mode info */
+		const php_crypto_cipher_mode *mode = php_crypto_get_cipher_mode_ex(
+					PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
+
+		if (!enc && mode->auth_inlen_init) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_VERIFY_FAILED));
+		} else {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
+		}
 		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
@@ -1033,7 +1045,11 @@ static inline void php_crypto_cipher_finish(INTERNAL_FUNCTION_PARAMETERS, int en
 	/* finalize cipher context */
 	if ((enc || !mode->auth_inlen_init) && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) PHPC_STR_VAL(out), &final_len)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
+		if (!enc && mode->auth_enc) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_VERIFY_FAILED));
+		} else {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
+		}
 		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
@@ -1079,22 +1095,30 @@ static inline void php_crypto_cipher_crypt(INTERNAL_FUNCTION_PARAMETERS, int enc
 	out_len = data_len + EVP_CIPHER_block_size(PHP_CRYPTO_CIPHER_ALG(PHPC_THIS));
 	PHPC_STR_ALLOC(out, out_len);
 
+	/* get mode info */
+	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
+
 	/* update encryption context */
 	if (!EVP_CipherUpdate(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) PHPC_STR_VAL(out), &update_len,
 			(unsigned char *) data, data_len)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
+		if (!enc && mode->auth_inlen_init) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_VERIFY_FAILED));
+		} else {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, UPDATE_FAILED));
+		}
 		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}
 
-	/* get mode info */
-	mode = php_crypto_get_cipher_mode_ex(PHP_CRYPTO_CIPHER_MODE_VALUE(PHPC_THIS));
-
 	/* finalize cipher context */
 	if ((enc || !mode->auth_inlen_init) && !EVP_CipherFinal_ex(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
 			(unsigned char *) (PHPC_STR_VAL(out) + update_len), &final_len)) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
+		if (!enc && mode->auth_enc) {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, TAG_VERIFY_FAILED));
+		} else {
+			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Cipher, FINISH_FAILED));
+		}
 		PHPC_STR_RELEASE(out);
 		RETURN_FALSE;
 	}

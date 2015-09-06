@@ -46,8 +46,8 @@ try {
 	echo $cipher->decrypt($ct, $key, $nonce) . "\n";
 }
 catch (Crypto\CipherException $e) {
-	if ($e->getCode() == Crypto\CipherException::UPDATE_FAILED) {
-		echo "CIPHER_UPDATE_FAILED\n";
+	if ($e->getCode() == Crypto\CipherException::TAG_VERIFY_FAILED) {
+		echo "TAG_VERIFY_FAILED\n";
 	}
 }
 
@@ -59,4 +59,4 @@ catch (Crypto\CipherException $e) {
 8a0f3d8229e48e7487fd95a28ad392c80b3681d4fbc7bbfd
 c8d275f919e17d7fe69c2a1f58939dfe4d403791b5df1310
 CIPHER_AAD_SETTER_FLOW
-CIPHER_UPDATE_FAILED
+TAG_VERIFY_FAILED

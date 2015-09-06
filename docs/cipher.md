@@ -253,6 +253,8 @@ failed
 C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
+- `CipherException::TAG_VERIFY_FAILED` - tag verification failed
+(only for GCM or CCM mode)
 
 ##### *Return value*
 
@@ -290,6 +292,8 @@ It can throw `CipherException` with code
 - `CipherException::FINISH_FAILED` - finalizing of decryption failed
 - `CipherException::FINISH_DECRYPT_FORBIDDEN` - cipher has not been
 initialized for decryption
+- `CipherException::TAG_VERIFY_FAILED` - tag verification failed
+(only for GCM or CCM mode)
 
 ##### *Return value*
 
@@ -385,6 +389,8 @@ It can throw `CipherException` with code
 C INT_MAX
 - `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been
 initialized for decryption
+- `CipherException::TAG_VERIFY_FAILED` - tag verification failed
+(only for GCM or CCM mode)
 
 ##### *Return value*
 
