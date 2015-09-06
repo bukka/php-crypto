@@ -242,7 +242,7 @@ It can throw `CipherException` with code
 - `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
 - `CipherException::UPDATE_FAILED` - updating of decryption failed
 - `CipherException::FINISH_FAILED` - finalizing of decryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -368,7 +368,7 @@ If the decryption fails, a `CipherException` is thrown.
 It can throw `CipherException` with code
 
 - `CipherException::UPDATE_FAILED` - updating of decryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
 - `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for decryption
 
 ##### *Return value*
@@ -417,7 +417,7 @@ It can throw `CipherException` with code
 - `CipherException::INIT_CTX_FAILED` - initialization of cipher context failed
 - `CipherException::UPDATE_FAILED` - updating of encryption failed
 - `CipherException::FINISH_FAILED` - finalizing of encryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
 - `CipherException::KEY_LENGTH_INVALID` - the key length is invalid
 - `CipherException::IV_LENGTH_INVALID` - the IV length is invalid
 
@@ -435,7 +435,7 @@ echo $cipher->encrypt($cipher_text, $key, $iv);
 
 #### `Cipher::encryptFinish()`
 
-_**Description**_: Finalizes an encryption
+_**Description**_: Finalizes encryption
 
 This method encrypts an outstanding incomplete block including padding
 if there is any such block in cipher context and/or padding is required.
@@ -544,7 +544,7 @@ If the decryption fails, a `CipherException` is thrown.
 It can throw `CipherException` with code
 
 - `CipherException::UPDATE_FAILED` - updating of encryption failed
-- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceed C INT_MAX
+- `CipherException::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds C INT_MAX
 - `CipherException::UPDATE_DECRYPT_FORBIDDEN` - cipher has not been initialized for encryption
 
 ##### *Return value*
@@ -711,7 +711,7 @@ _**Description**_: Returns an authentication tag.
 
 This method returns a message authentication tag. It can be used
 only for modes that supports that (GCM and CCM) and only after
-an encryption is finished. In any other case, `CipherException`
+encryption is finished. In any other case, `CipherException`
 is thrown.
 
 The returned tag length can be set by `Cipher::setTagLength` before
@@ -742,6 +742,45 @@ $tag = $cipher->getTag();
 ```
 
 #### `Cipher::setAAD($aad)`
+
+_**Description**_: Sets an additional application data.
+
+This method sets an additional application data (AAD). It can be used
+only for authenticated modes (GCM and CCM) and only before encryption
+or decryption is updated (any data are encrypted or decrypted). In any
+other case, a `CipherException` is thrown.
+
+##### *Parameters*
+
+*aad* : `string` - additional application data
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not an authenticated mode
+- `CipherException::AAD_SETTER_FORBIDDEN` - method is not called before encryption or decryption
+- `CipherException::AAD_LENGTH_HIGH` - if the AAD length exceeds C INT_MAX
+
+##### *Return value*
+
+`bool`: true if the tag was set succesfully
+
+##### *Examples*
+
+```php
+// encrypt
+$cipher = new \Crypto\Cipher('aes-128-gcm');
+$cipher->setAAD($aad);
+$cipher_text = $cipher->encrypt($plain_text, $key, $iv);
+$tag = $cipher->getTag();
+
+// later you have to decrypt with the same AAD
+$cipher = new \Crypto\Cipher('aes-128-gcm');
+$cipher->setAAD($aad);
+$cipher->setTag($tag);
+$plain_text = $cipher->decrypt($cipher_text, $key, $iv);
+```
 
 #### `Cipher::setTag($tag)`
 
