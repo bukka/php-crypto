@@ -1455,7 +1455,6 @@ PHP_CRYPTO_METHOD(Cipher, setTagLength)
 {
 	PHPC_THIS_DECLARE(crypto_cipher);
 	const php_crypto_cipher_mode *mode;
-	PHPC_STR_DECLARE(tag);
 	phpc_long_t tag_len_long;
 	int tag_len;
 

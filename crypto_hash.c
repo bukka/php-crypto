@@ -264,21 +264,20 @@ PHPC_OBJ_HANDLER_CLONE(crypto_hash)
 		copy_success = HMAC_CTX_copy(
 				PHP_CRYPTO_HMAC_CTX(PHPC_THAT), PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
 #else
-		copy_success = 0;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->i_ctx,
-				&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->i_ctx))
-			goto copy_end;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->o_ctx,
-				&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->o_ctx))
-			goto copy_end;
-		if (!EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md_ctx,
-				&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md_ctx))
-			goto copy_end;
-		memcpy(PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key,
-				PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key, HMAC_MAX_MD_CBLOCK);
-		PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key_length = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key_length;
-		PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md;
-		copy_success = 1;
+		if (EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->i_ctx,
+					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->i_ctx) &&
+				EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->o_ctx,
+					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->o_ctx) &&
+				EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md_ctx,
+					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md_ctx)) {
+			memcpy(PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key,
+					PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key, HMAC_MAX_MD_CBLOCK);
+			PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key_length = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key_length;
+			PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md;
+			copy_success = 1;
+		} else {
+			copy_success = 0;
+		}
 #endif
 	}
 #ifdef PHP_CRYPTO_HAS_CMAC
@@ -291,7 +290,6 @@ PHPC_OBJ_HANDLER_CLONE(crypto_hash)
 		copy_success = 0;
 	}
 
-copy_end:
 	if (!copy_success) {
 		php_error(E_ERROR, "Cloning of Hash object failed");
 	}
@@ -503,7 +501,7 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 		PHPC_STR_ALLOC(hash, hash_hex_len);
 		php_crypto_hash_bin2hex(PHPC_STR_VAL(hash), hash_value, hash_len);
 	} else {
-		PHPC_STR_INIT(hash, hash_value, hash_len);
+		PHPC_STR_INIT(hash, (char *) hash_value, hash_len);
 	}
 
 	PHPC_STR_RETURN(hash);
@@ -735,7 +733,6 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 	char *algorithm, *algorithm_uc, *key;
 	phpc_str_size_t algorithm_len, key_len;
 	int key_len_int;
-	const EVP_MD *digest;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss",
 			&key, &key_len, &algorithm, &algorithm_len) == FAILURE) {
