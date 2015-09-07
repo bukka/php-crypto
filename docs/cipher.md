@@ -800,7 +800,7 @@ C INT_MAX
 
 ##### *Return value*
 
-`bool`: true if the tag was set succesfully
+`bool`: true if the AAD was set succesfully
 
 ##### *Examples*
 
@@ -819,5 +819,44 @@ $plain_text = $cipher->decrypt($cipher_text, $key, $iv);
 ```
 
 #### `Cipher::setTag($tag)`
+
+_**Description**_: Sets a message authentication tag.
+
+This method sets a message authentication tag. It can be used
+only for authenticated modes (GCM and CCM) and only before
+decryption is updated (any data are decrypted). In any other
+case, a `CipherException` is thrown.
+
+The tag length has to be between 4 and 16 bytes, otherwise
+a `CipherException` is thrown.
+
+##### *Parameters*
+
+*tag* : `string` - message authentication tag
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not
+an authenticated mode
+- `CipherException::TAG_SETTER_FORBIDDEN` - method is not called before
+encryption or decryption
+- `CipherException::TAG_LENGTH_LOW` - if tag length is less than
+4 bytes
+- `CipherException::TAG_LENGTH_HIGH` - if tag length is more than
+16 bytes
+
+##### *Return value*
+
+`bool`: true if the tag was set succesfully
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-gcm');
+$cipher->setTag($tag);
+$plain_text = $cipher->decrypt($cipher_text, $key, $iv);
+```
 
 #### `Cipher::setTagLength($tag_length)`
