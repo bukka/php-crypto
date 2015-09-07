@@ -24,6 +24,8 @@
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - rename `auth_enc` to `aead`
   - double check a reason of failed tag verification (try OpenSSL last error)
+- Add new Cipher class constants for tag max and min length
+  - Don't forget to update docs
 - Add method for setting padding mode
   - something like `setAutoPadding($auto_padding=true)`
   - using `EVP_CIPHER_CTX_set_padding`
@@ -68,6 +70,7 @@
   - At least 0.9.8 should be used
 
 ## General
+- Add Travis support
 - Create `php_crypto_strtoupper_dup` for algorithm name conversion
 - Consider shorter prefix than `php_crypto`
   - `pce` (Php Crypto Extension)
@@ -75,7 +78,9 @@
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
   - `pcr` (Php CRypto)
-- Test all overflow check on PHP 7 (skip PHP 5)
+- Improve overflow handling
+  - try inline the functions (make sure it works on Travis)
+  - test all overflow checks on PHP 7 (skip PHP 5) 32 and 64 bit
 - Add tests for algorithm name arg variable chenging
   - it used to uppercase a string in passed variable
   - it's been fixed but there are no test for that
