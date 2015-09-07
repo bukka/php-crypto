@@ -89,24 +89,10 @@ extern zend_module_entry crypto_module_entry;
 
 
 /* NUMERIC CONVERSIONS */
-
-/* {{{ php_crypto_str_size_to_int */
-php_crypto_always_inline int php_crypto_str_size_to_int(
-		phpc_str_size_t size_len, int *int_len)
-{
-	PHPC_SIZE_TO_INT_EX(size_len, *int_len, return FAILURE);
-	return SUCCESS;
-}
-/* }}} */
-
-/* {{{ php_crypto_long_to_int */
-php_crypto_always_inline int php_crypto_long_to_int(
-		phpc_long_t plv, int *lv)
-{
-	PHPC_LONG_TO_INT_EX(plv, *lv, return FAILURE);
-	return SUCCESS;
-}
-/* }}} */
+PHP_CRYPTO_API int php_crypto_str_size_to_int(
+		phpc_str_size_t size_len, int *int_len);
+PHP_CRYPTO_API int php_crypto_long_to_int(
+		phpc_long_t plv, int *lv);
 
 
 /* ERROR TYPES */

@@ -123,6 +123,24 @@ PHP_MINFO_FUNCTION(crypto)
 }
 /* }}} */
 
+/* {{{ php_crypto_str_size_to_int */
+PHP_CRYPTO_API int php_crypto_str_size_to_int(
+		phpc_str_size_t size_len, int *int_len)
+{
+	PHPC_SIZE_TO_INT_EX(size_len, *int_len, return FAILURE);
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ php_crypto_long_to_int */
+PHP_CRYPTO_API int php_crypto_long_to_int(
+		phpc_long_t plv, int *lv)
+{
+	PHPC_LONG_TO_INT_EX(plv, *lv, return FAILURE);
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ php_crypto_verror */
 PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_class_entry *exc_ce,
 		php_crypto_error_action action, int ignore_args TSRMLS_DC, const char *name, va_list args)
