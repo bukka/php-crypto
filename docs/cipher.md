@@ -841,7 +841,7 @@ It can throw `CipherException` with code
 - `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not
 an authenticated mode
 - `CipherException::TAG_SETTER_FORBIDDEN` - method is not called before
-encryption or decryption
+decryption
 - `CipherException::TAG_LENGTH_LOW` - if tag length is less than
 4 bytes
 - `CipherException::TAG_LENGTH_HIGH` - if tag length is more than
@@ -860,3 +860,50 @@ $plain_text = $cipher->decrypt($cipher_text, $key, $iv);
 ```
 
 #### `Cipher::setTagLength($tag_length)`
+
+_**Description**_: Sets a message authentication tag length.
+
+This method sets a length for an authentication tag that is
+later returned using `Cipher::getTag`. It can be used
+only for authenticated modes (GCM and CCM) and only before
+encryption is updated (any data are encrypted). In any other
+case, a `CipherException` is thrown.
+
+The tag length has to be between 4 and 16 bytes, otherwise
+a `CipherException` is thrown.
+
+The method is useful only if there is a requirement of
+different tag length than the default which is 16 bytes. The tag
+is just trimmed for GCM mode. However it's a completely different
+tag if it's used with CCM mode.
+
+##### *Parameters*
+
+*length* : `int` - message authentication tag length
+
+##### *Throws*
+
+It can throw `CipherException` with code
+
+- `CipherException::AUTHENTICATION_NOT_SUPPORTED` - mode is not
+an authenticated mode
+- `CipherException::TAG_SETTER_FORBIDDEN` - method is not called before
+encryption
+- `CipherException::TAG_LENGTH_LOW` - if tag length is less than
+4 bytes
+- `CipherException::TAG_LENGTH_HIGH` - if tag length is more than
+16 bytes
+
+##### *Return value*
+
+`bool`: true if the tag length was set succesfully
+
+##### *Examples*
+
+```php
+$cipher = new \Crypto\Cipher('aes-128-ccm');
+$cipher->setTagLength(12);
+$cipher_text = $cipher->encrypt($plain_text, $key, $nonce);
+// tag with lenth 12 bytes (characters)
+$tag = $cipher->getTag();
+```
