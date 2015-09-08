@@ -86,13 +86,14 @@ Each base class has an exception class that has the same name and
 classes are subclasses of the PHP `Exception` class. They define
 exception code as class constants. Each code also has a different message.
 
-The documentation is devided to sections where it's possible to find 
-a description of the functionality:
+The documentation is devided to sections where can be found documentation
+of all class methods, constants and other related details:
 
-- **[Hash](docs/hash.md)**
-- **[MAC](docs/mac.md)**
+- **[Cipher](docs/cipher.md)**
 - **[HMAC](docs/hmac.md)**
 - **[CMAC](docs/cmac.md)**
+- **[Hash](docs/hash.md)**
+- **[MAC](docs/mac.md)**
 - **[Streams](docs/streams.md)**
 
 ### PHP definition for the classes
