@@ -79,6 +79,10 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 	"The cipher context parameter 'key' is required"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
+	CIPHER_MODE_NOT_SUPPORTED,
+	"The %s mode is not supported in stream"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
 	CIPHER_KEY_TYPE_INVALID,
 	"The cipher key has to be a string"
 )
@@ -409,6 +413,10 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data,
 	}
 
 	mode = php_crypto_get_cipher_mode(cipher);
+	if (mode->auth_inlen_init) {
+		php_crypto_error_ex(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_MODE_NOT_SUPPORTED), mode->name);
+		return FAILURE;
+	}
 	if (mode->auth_enc) {
 		data->auth_enc = 1;
 	}
