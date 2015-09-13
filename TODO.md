@@ -56,7 +56,6 @@
 - Find out and document when the hash `digest` resp. `hexdigest` throws exc
 
 ## Rand
-- Drop egd
 - Add open_basedir check
   - `Rand::loadFile`
   - `Rand::writeFile`

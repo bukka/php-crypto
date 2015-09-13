@@ -64,12 +64,6 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_rand_write_file, 0)
 ZEND_ARG_INFO(0, filename)
 ZEND_END_ARG_INFO()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_rand_egd, 0, 0, 1)
-ZEND_ARG_INFO(0, path)
-ZEND_ARG_INFO(0, bytes)
-ZEND_ARG_INFO(0, seed)
-ZEND_END_ARG_INFO()
-
 static const zend_function_entry php_crypto_rand_object_methods[] = {
 	PHP_CRYPTO_ME(
 		Rand, generate,
@@ -94,11 +88,6 @@ static const zend_function_entry php_crypto_rand_object_methods[] = {
 	PHP_CRYPTO_ME(
 		Rand, writeFile,
 		arginfo_crypto_rand_write_file,
-		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
-	)
-	PHP_CRYPTO_ME(
-		Rand, egd,
-		arginfo_crypto_rand_egd,
 		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
 	)
 	PHPC_FE_END
@@ -260,41 +249,5 @@ PHP_CRYPTO_METHOD(Rand, writeFile)
 	} else {
 		RETURN_LONG((phpc_long_t) bytes_written);
 	}
-}
-/* }}} */
-
-/* {{{ proto static mixed Crypto\Rand::egd(string $path,
-			int $bytes = 255, bool $seed = true)
-	Queries the entropy gathering daemon EGD on socket path. It queries
-	$bytes bytes and if $seed is true, then the data are seeded, otherwise
-	the data are returned */
-PHP_CRYPTO_METHOD(Rand, egd)
-{
-	char *path;
-	phpc_str_size_t path_len;
-	phpc_long_t bytes_len = 255;
-	int bytes;
-	zend_bool seed;
-	PHPC_STR_DECLARE(buf);
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, PHPC_PATH_ZPP_FLAG"|lb",
-				&path, &path_len, &bytes_len, &seed) == FAILURE) {
-		return;
-	}
-
-	if (php_crypto_long_to_int(bytes_len, &bytes) == FAILURE) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, REQUESTED_BYTES_NUMBER_TOO_HIGH));
-		RETURN_NULL();
-	}
-
-	if (seed) {
-		RAND_query_egd_bytes(path, NULL, bytes);
-		RETURN_NULL();
-	}
-
-	PHPC_STR_ALLOC(buf, (phpc_str_size_t) bytes);
-	RAND_query_egd_bytes(path, (unsigned char *) PHPC_STR_VAL(buf), bytes);
-	PHPC_STR_VAL(buf)[bytes] = '\0';
-	PHPC_STR_RETURN(buf);
 }
 /* }}} */

@@ -39,7 +39,6 @@ PHP_CRYPTO_METHOD(Rand, seed);
 PHP_CRYPTO_METHOD(Rand, cleanup);
 PHP_CRYPTO_METHOD(Rand, loadFile);
 PHP_CRYPTO_METHOD(Rand, writeFile);
-PHP_CRYPTO_METHOD(Rand, egd);
 
 #endif	/* PHP_CRYPTO_RAND_H */
 
