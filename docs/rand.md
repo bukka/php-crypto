@@ -54,6 +54,36 @@ $iv = \Crypto\Rand::generate(16);
 
 #### `Rand::seed($buf, $entropy)`
 
+_**Description**_: Mixes supplied data into the PRNG state
+
+This method mixes data in `$buf` into the internal PRNG state. It
+means that it's not an actual seeding on its own but more adding
+an extra entropy. The estimated value of entropy can be supplied
+as the second parameter `$entropy`. If it's not specified, then
+length of the buffer is used.
+
+##### *Parameters*
+
+*buf* : `int` - a buffer to be mixed into the PRNG state
+*entropy* : `float` - estimated entropy of the data in `$buf`
+
+##### *Return value*
+
+`null`: Nothing is returned.
+
+##### *Throws*
+
+It can throw `RandException` with code
+
+- `RandException::SEED_LENGTH_TOO_HIGH` - if the length of
+the buffer is greater than C `INT_MAX`
+
+##### *Examples*
+
+```php
+\Crypto\Rand::seed($buf);
+```
+
 #### `Rand::cleanup()`
 
 #### `Rand::loadFile($filename, $max_bytes)`
