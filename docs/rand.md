@@ -86,6 +86,28 @@ the buffer is greater than C `INT_MAX`
 
 #### `Rand::cleanup()`
 
+_**Description**_: Erases the PRNG state
+
+This method globally erases the memory that is used by PRNG.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`null`: Nothing is returned.
+
+##### *Examples*
+
+```php
+\Crypto\Rand::cleanup();
+```
+
 #### `Rand::loadFile($filename, $max_bytes)`
 
 #### `Rand::writeFile($filename)`
