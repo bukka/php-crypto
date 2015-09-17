@@ -110,4 +110,33 @@ This method does not throw any exception.
 
 #### `Rand::loadFile($filename, $max_bytes)`
 
+_**Description**_: Reads data from file and mixes them to the PRNG
+state
+
+This method mixes data from the file in `$filename` into
+the internal PRNG state. It reads at most `$max_bytes` bytes.
+
+##### *Parameters*
+
+*filename* : `string` - file path of the file that is read
+*max_bytes* : `int` - maximal number of bytes that is read
+from file
+
+##### *Return value*
+
+`int`: The number of bytes read.
+
+##### *Throws*
+
+It can throw `RandException` with code
+
+- `RandException::REQUESTED_BYTES_NUMBER_TOO_HIGH` - if the supplied
+`$max_bytes` is greater than C `INT_MAX`
+
+##### *Examples*
+
+```php
+\Crypto\Rand::load($filename, 256);
+```
+
 #### `Rand::writeFile($filename)`
