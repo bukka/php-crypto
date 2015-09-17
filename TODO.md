@@ -56,9 +56,13 @@
 - Find out and document when the hash `digest` resp. `hexdigest` throws exc
 
 ## Rand
+- Check if file supplied in Rand::loadFile exists and is readable
+- Check if file supplied in Rand::loadFile can be written
 - Add open_basedir check
   - `Rand::loadFile`
   - `Rand::writeFile`
+- Sort out thread safety for Linux TS build
+  - Add locks using CRYPTO_set_locking_callback
 - Resolve a locking issue with OpenSSL Rand on Windows
   - maybe it could use php_win32_get_random_bytes
   - http://lxr.php.net/xref/PHP_5_6/win32/winutil.c#80
