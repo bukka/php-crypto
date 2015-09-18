@@ -94,6 +94,7 @@ of all class methods, constants and other related details:
 - **[CMAC](docs/cmac.md)**
 - **[Hash](docs/hash.md)**
 - **[MAC](docs/mac.md)**
+- **[Rand](docs/rand.md)**
 - **[Streams](docs/streams.md)**
 
 ### PHP definition for the classes
