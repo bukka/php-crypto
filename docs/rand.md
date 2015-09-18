@@ -136,7 +136,35 @@ It can throw `RandException` with code
 ##### *Examples*
 
 ```php
-\Crypto\Rand::load($filename, 256);
+\Crypto\Rand::loadFile($filename, 1024);
 ```
 
 #### `Rand::writeFile($filename)`
+
+_**Description**_: Writes random bytes to the file
+
+This method writes 1024 bytes the the file `$filename`. It
+can be used later to initial PRNG state by calling
+`Rand::load`.
+
+##### *Parameters*
+
+*filename* : `string` - file path of the file where
+random data are written.
+
+##### *Return value*
+
+`int`: The number of bytes read.
+
+##### *Throws*
+
+It can throw `RandException` with code
+
+- `RandException::REQUESTED_BYTES_NUMBER_TOO_HIGH` - if the written
+bytes were generated without appropriate seed.
+
+##### *Examples*
+
+```php
+\Crypto\Rand::writeFile($filename);
+```
