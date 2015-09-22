@@ -44,6 +44,32 @@ try {
 
 #### `Base64::encode($data)`
 
+_**Description**_: Encodes data to base64 encoding
+
+This static method encodes supplied data using base64 encoding. The data
+is written in lines of 80 characters. This format is typical for encoding
+crypto keys (e.g. PEM).
+
+##### *Parameters*
+
+*data* : `string` - data to encode
+
+##### *Throws*
+
+It can throw `Base64Exception` with code
+
+- `Base64Exception::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C `INT_MAX`
+
+##### *Return value*
+
+`string`: Base64 encoded data.
+
+##### *Examples*
+
+```php
+$base64_data = \Crypto\Base64::encode($data);
+```
 
 ### Instance Methods
 
