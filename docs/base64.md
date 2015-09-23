@@ -75,6 +75,28 @@ $base64_data = \Crypto\Base64::encode($data);
 
 #### `Base64::__construct()`
 
+_**Description**_: Creates a new Base64 object
+
+The constructor initializes `Base64` context for encoding or decoding.
+
+##### *Parameters*
+
+The constructor does not have any parameters.
+
+##### *Throws*
+
+The constructor does not throw any exception.
+
+##### *Return value*
+
+`Base64`: New instances of the `Base64` class.
+
+##### *Examples*
+
+```php
+$base64 = new \Crypto\Base64('sha256');
+```
+
 #### `Base64::decodeFinish()`
 
 #### `Base64::decodeUpdate($data)`
