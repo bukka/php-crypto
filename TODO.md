@@ -16,6 +16,11 @@
 - Memory testing
 - Why does decodeFinish always return empty string?
 - Find an input string that leads to the `Base64Exception` with code `DECODE_FAIL`
+- Throw an exception if EVP_DecodeFinal fails
+  - the test needs to be found and output should be checked
+- Try to add an options for not wrapped output
+  - maybe something similar that base64 BIO does
+
 
 ## Cipher
 - Limit algorithm name len
