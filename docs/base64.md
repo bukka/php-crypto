@@ -99,6 +99,37 @@ $base64 = new \Crypto\Base64('sha256');
 
 #### `Base64::decodeFinish()`
 
+_**Description**_: Finishes the base64 decoding
+
+This method finishes base64 decoding and returns resulted data
+if they are buffered (mostly it returns just empty string)
+
+##### *Parameters*
+
+This method does not have any parameters.
+
+##### *Throws*
+
+It can throw `Base64Exception` with code
+
+- `Base64Exception::ENCODE_FINISH_FORBIDDEN` - if the context
+has not been updated using `Base64::decodeUpdate`
+
+
+##### *Return value*
+
+`string`: Decoded string if there is something in the buffer, otherwise
+an empty string.
+
+##### *Examples*
+
+```php
+$base64 = new \Crypto\Base64('sha256');
+$decoded_data = $base64->decodeUpdate($base64_data);
+$decoded_data .= $base64->decodeFinish();
+```
+
+
 #### `Base64::decodeUpdate($data)`
 
 #### `Base64::encodeFinish()`
