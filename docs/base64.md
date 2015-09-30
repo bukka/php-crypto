@@ -94,7 +94,7 @@ The constructor does not throw any exception.
 ##### *Examples*
 
 ```php
-$base64 = new \Crypto\Base64('sha256');
+$base64 = new \Crypto\Base64();
 ```
 
 #### `Base64::decodeFinish()`
@@ -124,7 +124,7 @@ an empty string.
 ##### *Examples*
 
 ```php
-$base64 = new \Crypto\Base64('sha256');
+$base64 = new \Crypto\Base64();
 $decoded_data = $base64->decodeUpdate($base64_data);
 $decoded_data .= $base64->decodeFinish();
 ```
@@ -175,6 +175,32 @@ try {
 ```
 
 #### `Base64::encodeFinish()`
+
+_**Description**_: Finishes the base64 encoding
+
+This method finishes base64 encoding and returns base64 encoded data
+if they are any buffered or empty string otherwise.
+
+##### *Parameters*
+
+This method does not have any parameters.
+
+##### *Throws*
+
+This method doesn't throw any exception.
+
+##### *Return value*
+
+`string`: Encoded string if there is something in the buffer, otherwise
+an empty string.
+
+##### *Examples*
+
+```php
+$base64 = new \Crypto\Base64();
+$base64_data = $base64->encodeUpdate($data);
+$base64_data .= $base64->decodeFinish();
+```
 
 #### `Base64::encodeUpdate($data)`
 
