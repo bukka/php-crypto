@@ -204,3 +204,36 @@ $base64_data .= $base64->decodeFinish();
 
 #### `Base64::encodeUpdate($data)`
 
+_**Description**_: Updates the base64 encoding context
+
+This method updates base64 encoding context with suppplied data. It
+also returns the encoded data.
+
+The data is written in lines of 80 characters. This format is typical
+for encoding crypto keys (e.g. PEM).
+
+##### *Parameters*
+
+*data* : `string` - data to encode
+
+##### *Throws*
+
+It can throw `Base64Exception` with code
+
+- `Base64Exception::INPUT_DATA_LENGTH_HIGH` - if the data length exceeds
+C `INT_MAX`
+
+##### *Return value*
+
+`string`: Base64 encoded data.
+
+##### *Examples*
+
+```php
+$base64 = new \Crypto\Base64();
+$base64_data = '';
+while (($data = read_data_for_encoding()) !== null) {
+    $base64_data .= $base64->encodeUpdate($data);
+}
+$base64_data .= $base64->encodeFinish();
+```
