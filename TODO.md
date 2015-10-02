@@ -52,8 +52,6 @@
 - Test context for Hash, HMAC and CMAC resuming
   - it happens when calling `update` after `digest`
 - Add verification function for Hash
-- Consider using the same allocator
-  - CMAC uses `OpenSSL_malloc` allocator and HMAC and hash use `emalloc`
 - Add method for getting MD type (use `EVP_MD_type`)
 - Hash::update returns copy of object (check if data are not copied)
   - it would be better to return the same object and just add ref
@@ -86,6 +84,10 @@
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
   - `pcr` (Php CRypto)
+- Use OpenSSL memory function for all contexts
+  - Cipher should use `EVP_CIPHER_CTX_new` and `EVP_CIPHER_CTX_free`
+  - Hash should use `EVP_MD_CTX_create` and `EVP_MD_CTX_destroy`
+  - HMAC and Base64 should use `OpenSSL_malloc` and `OpenSSL_free`
 - Improve overflow handling
   - try inline the functions (make sure it works on Travis)
   - test all overflow checks on PHP 7 (skip PHP 5) 32 and 64 bit
