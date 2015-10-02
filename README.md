@@ -89,13 +89,15 @@ exception code as class constants. Each code also has a different message.
 The documentation is devided to sections where can be found documentation
 of all class methods, constants and other related details:
 
+- **[Base64](docs/base64.md)**
 - **[Cipher](docs/cipher.md)**
-- **[HMAC](docs/hmac.md)**
 - **[CMAC](docs/cmac.md)**
 - **[Hash](docs/hash.md)**
+- **[HMAC](docs/hmac.md)**
 - **[MAC](docs/mac.md)**
 - **[Rand](docs/rand.md)**
 - **[Streams](docs/streams.md)**
+
 
 ### PHP definition for the classes
 
