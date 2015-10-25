@@ -234,8 +234,11 @@ PHP_MINFO_FUNCTION(crypto);
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
 #define PHP_CRYPTO_HAS_CIPHER_CTX_COPY 1
 #define PHP_CRYPTO_HAS_HMAC_CTX_COPY 1
+#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
+	_rc = _method
 #endif
-
+#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
+	_rc = 1; _method
 #endif	/* PHP_CRYPTO_H */
 
 /*

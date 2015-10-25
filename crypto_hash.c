@@ -260,7 +260,7 @@ PHPC_OBJ_HANDLER_CLONE(crypto_hash)
 				PHP_CRYPTO_HASH_CTX(PHPC_THAT), PHP_CRYPTO_HASH_CTX(PHPC_THIS));
 		PHP_CRYPTO_HASH_ALG(PHPC_THAT) = PHP_CRYPTO_HASH_CTX(PHPC_THIS)->digest;
 	} else if (PHPC_THAT->type == PHP_CRYPTO_HASH_TYPE_HMAC) {
-#ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
+#ifdef PHP_CRYPTO_HAS_HMAC_CTX_COPY
 		copy_success = HMAC_CTX_copy(
 				PHP_CRYPTO_HMAC_CTX(PHPC_THAT), PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
 #else
@@ -384,17 +384,19 @@ static inline int php_crypto_hash_init(PHPC_THIS_DECLARE(crypto_hash) TSRMLS_DC)
 		/* update hash context */
 		switch (PHPC_THIS->type) {
 			case PHP_CRYPTO_HASH_TYPE_HMAC:
-				rc = HMAC_Init_ex(PHP_CRYPTO_HMAC_CTX(PHPC_THIS),
+				PHP_CRYPTO_HMAC_DO(rc, HMAC_Init_ex)(
+						PHP_CRYPTO_HMAC_CTX(PHPC_THIS),
 						PHPC_THIS->key, PHPC_THIS->key_len,
 						PHP_CRYPTO_HMAC_ALG(PHPC_THIS), NULL);
+
 				break;
-	#ifdef PHP_CRYPTO_HAS_CMAC
+#ifdef PHP_CRYPTO_HAS_CMAC
 			case PHP_CRYPTO_HASH_TYPE_CMAC:
 				rc = CMAC_Init(PHP_CRYPTO_CMAC_CTX(PHPC_THIS),
 						PHPC_THIS->key, PHPC_THIS->key_len,
 						PHP_CRYPTO_CMAC_ALG(PHPC_THIS), NULL);
 				break;
-	#endif
+#endif
 			default:
 				rc = 0;
 		}
@@ -428,7 +430,9 @@ static inline int php_crypto_hash_update(PHPC_THIS_DECLARE(crypto_hash),
 			rc = EVP_DigestUpdate(PHP_CRYPTO_HASH_CTX(PHPC_THIS), data, data_len);
 			break;
 		case PHP_CRYPTO_HASH_TYPE_HMAC:
-			rc = HMAC_Update(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), (unsigned char *) data, data_len);
+			PHP_CRYPTO_HMAC_DO(rc, HMAC_Update)(
+					PHP_CRYPTO_HMAC_CTX(PHPC_THIS),
+					(unsigned char *) data, data_len);
 			break;
 #ifdef PHP_CRYPTO_HAS_CMAC
 		case PHP_CRYPTO_HASH_TYPE_CMAC:
@@ -476,7 +480,8 @@ static inline void php_crypto_hash_digest(INTERNAL_FUNCTION_PARAMETERS, int enco
 			rc = EVP_DigestFinal(PHP_CRYPTO_HASH_CTX(PHPC_THIS), hash_value, &hash_len);
 			break;
 		case PHP_CRYPTO_HASH_TYPE_HMAC:
-			rc = HMAC_Final(PHP_CRYPTO_HMAC_CTX(PHPC_THIS), hash_value, &hash_len);
+			PHP_CRYPTO_HMAC_DO(rc, HMAC_Final)(
+					PHP_CRYPTO_HMAC_CTX(PHPC_THIS), hash_value, &hash_len);
 			break;
 #ifdef PHP_CRYPTO_HAS_CMAC
 		case PHP_CRYPTO_HASH_TYPE_CMAC:
