@@ -236,9 +236,11 @@ PHP_MINFO_FUNCTION(crypto);
 #define PHP_CRYPTO_HAS_HMAC_CTX_COPY 1
 #define PHP_CRYPTO_HMAC_DO(_rc, _method) \
 	_rc = _method
-#endif
+#else
 #define PHP_CRYPTO_HMAC_DO(_rc, _method) \
 	_rc = 1; _method
+#endif
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
