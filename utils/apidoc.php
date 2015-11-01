@@ -37,6 +37,26 @@ class Apidoc {
 				'description' => 'Exception class for hash errors',
 			),
 			array(
+				'name' => 'Crypto\MAC',
+				'parent' => 'Crypto\Hash',
+				'description' => 'Abstract class for MAC subclasses',
+			),
+			array(
+				'name' => 'Crypto\MACException',
+				'parent' => 'Crypto\HashException',
+				'description' => 'Exception class for MAC errors',
+			),
+			array(
+				'name' => 'Crypto\HMAC',
+				'parent' => 'Crypto\MAC',
+				'description' => 'Class providing HMAC functionality',
+			),
+			array(
+				'name' => 'Crypto\CMAC',
+				'parent' => 'Crypto\MAC',
+				'description' => 'Class providing CMAC functionality',
+			),
+			array(
 				'name' => 'Crypto\Base64',
 				'description' => 'Class for base64 encoding and docoding',
 			),
@@ -70,6 +90,9 @@ class Apidoc {
 					'file' => '/crypto_cipher.c',
 				),
 				'Crypto\HashException' => array(
+					'file' => '/crypto_hash.c',
+				),
+				'Crypto\MACException' => array(
 					'file' => '/crypto_hash.c',
 				),
 				'Crypto\Base64Exception' => array(
