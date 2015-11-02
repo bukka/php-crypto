@@ -730,7 +730,7 @@ PHP_CRYPTO_METHOD(Hash, getSize)
 	RETURN_LONG(hash_size);
 }
 
-/* {{{ proto int Crypto\MAC::__construct($algorithm, $key)
+/* {{{ proto Crypto\MAC::__construct(string $algorithm, string $key)
 	Create a MAC (used by MAC subclasses - HMAC and CMAC) */
 PHP_CRYPTO_METHOD(MAC, __construct)
 {
