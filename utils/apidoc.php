@@ -87,23 +87,31 @@ class Apidoc {
 		'constants' => array(
 			'exceptions' => array(
 				'Crypto\CipherException' => array(
+					'name' => 'Cipher',
 					'file' => '/crypto_cipher.c',
 				),
 				'Crypto\HashException' => array(
+					'name' => 'Hash',
 					'file' => '/crypto_hash.c',
 				),
 				'Crypto\MACException' => array(
+					'name' => 'MAC',
 					'file' => '/crypto_hash.c',
 				),
 				'Crypto\Base64Exception' => array(
+					'name' => 'Base64',
 					'file' => '/crypto_base64.c',
 				),
 				'Crypto\RandException' => array(
+					'name' => 'Rand',
 					'file' => '/crypto_rand.c',
 				),
 
 			),
-			'macro' => 'PHP_CRYPTO_ERROR_INFO_ENTRY',
+			'macros' array(
+				'begin' => 'PHP_CRYPTO_ERROR_INFO_BEGIN',
+				'entry' => 'PHP_CRYPTO_ERROR_INFO_ENTRY',
+			),
 		)
 	);
 
@@ -121,7 +129,7 @@ class Apidoc {
 	}
 
 	private function makeConstants() {
-		$macro = $this->conf['constants']['macro'];
+		$macros = $this->conf['constants']['macros'];
 		foreach ($this->conf['constants']['exceptions'] as $cname => $conf) {
 			$file = $this->getFile($conf['file']);
 			$value = 1;
@@ -130,7 +138,7 @@ class Apidoc {
 			foreach ($file as $line) {
 				switch ($state) {
 				case 0:
-					if ((strpos($line, $macro) !== false)) {
+					if ((strpos($line, $macros['entry']) !== false)) {
 						$state = 1;
 					}
 					break;
