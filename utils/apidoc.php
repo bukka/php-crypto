@@ -108,8 +108,9 @@ class Apidoc {
 				),
 
 			),
-			'macros' array(
+			'macros' => array(
 				'begin' => 'PHP_CRYPTO_ERROR_INFO_BEGIN',
+				'end'   => 'PHP_CRYPTO_ERROR_INFO_END',
 				'entry' => 'PHP_CRYPTO_ERROR_INFO_ENTRY',
 			),
 		)
@@ -132,14 +133,23 @@ class Apidoc {
 		$macros = $this->conf['constants']['macros'];
 		foreach ($this->conf['constants']['exceptions'] as $cname => $conf) {
 			$file = $this->getFile($conf['file']);
+			$begin = sprintf("%s(%s)", $macros['begin'], $conf['name']);
 			$value = 1;
-			$state = 0;
+			$state = -1;
 			$c = array();
 			foreach ($file as $line) {
 				switch ($state) {
+				case -1:
+					if ((strpos($line, $begin) !== false)) {
+						$state = 0;
+					}
+					break;
 				case 0:
 					if ((strpos($line, $macros['entry']) !== false)) {
 						$state = 1;
+					} elseif ((strpos($line, $macros['end']) !== false)) {
+						// ignore the rest of the file
+						$state = 100;
 					}
 					break;
 				case 1:
