@@ -43,6 +43,11 @@ $conf = array(
 		'pattern' => '*.php',
 	),
 	array(
+		'dir' => 'phpc',
+		'role' => 'src',
+		'pattern' => '*.h',
+	),
+	array(
 		'dir' => 'tests',
 		'role' => 'test',
 		'pattern' => '*.phpt',
