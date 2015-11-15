@@ -216,7 +216,7 @@ static inline int php_crypto_base64_decode_update(
 		EVP_ENCODE_CTX *ctx, char *out, int *outl,
 		const char *in, phpc_str_size_t in_len TSRMLS_DC)
 {
-	int inl;
+	int inl, rc;
 
 	/* check string length overflow */
 	if (php_crypto_str_size_to_int(in_len, &inl) == FAILURE) {
@@ -224,7 +224,7 @@ static inline int php_crypto_base64_decode_update(
 		return FAILURE;
 	}
 
-	int rc = EVP_DecodeUpdate(ctx,
+	rc = EVP_DecodeUpdate(ctx,
 			(unsigned char *) out, outl,
 			(const unsigned char *) in, inl);
 	if (rc < 0) {
