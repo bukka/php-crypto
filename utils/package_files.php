@@ -33,6 +33,11 @@ $conf = array(
 		'pattern' => 'crypto*.c',
 	),
 	array(
+		'dir' => 'docs',
+		'role' => 'doc',
+		'pattern' => '*',
+	),
+	array(
 		'dir' => 'examples',
 		'role' => 'doc',
 		'pattern' => '*.php',
