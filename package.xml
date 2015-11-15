@@ -18,7 +18,7 @@
  </lead>
  <date>2015-11-15</date>
  <version>
-  <release>0.2.0</release>
+  <release>0.2.1</release>
   <api>0.2.0</api>
  </version>
  <stability>
@@ -27,19 +27,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Support for PHP 7
- * Added Crypto stream BIO wrapper
- * Improved error handling
- * Added an integer overflow checking
- * Removed Algorithm class and AlogirithmException class
- * Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
- * Added MACException class subclassing HashException
- * Fixed HMAC and CMAC implementation and added key param to constructor
- * Fixed and tested CCM mode
- * Added new error code for failed tag verification (TAG_VERIFY_FAILED)
- * Add setTagLength Cipher method replacing length param in getTag
- * Removed Rand::egd
- * Created a complete API documentation
+ * Fixed C89 compatibility issue in Base64
  ]]></notes>
  <contents>
   <dir name="/">
@@ -183,6 +171,33 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2015-11-15</date>
+   <version>
+	<release>0.2.0</release>
+	<api>0.2.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Support for PHP 7
+   * Added Crypto stream BIO wrapper
+   * Improved error handling
+   * Added an integer overflow checking
+   * Removed Algorithm class and AlogirithmException class
+   * Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
+   * Added MACException class subclassing HashException
+   * Fixed HMAC and CMAC implementation and added key param to constructor
+   * Fixed and tested CCM mode
+   * Added new error code for failed tag verification (TAG_VERIFY_FAILED)
+   * Add setTagLength Cipher method replacing length param in getTag
+   * Removed Rand::egd
+   * Created a complete API documentation
+   ]]></notes>
+  </release>
   <release>
    <date>2014-01-04</date>
    <version>

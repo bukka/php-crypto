@@ -1,5 +1,8 @@
 # Release history
 
+## 0.2.1 (devel)
+- Fixed C89 compatibility issue in Base64
+
 ## 0.2.0 (devel)
 - Support for PHP 7
 - Crypto stream BIO wrapper
