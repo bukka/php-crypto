@@ -38,6 +38,7 @@ class Apidoc {
 			),
 			array(
 				'name' => 'Crypto\MAC',
+				'abstract' => true,
 				'parent' => 'Crypto\Hash',
 				'description' => 'Abstract class for MAC subclasses',
 			),
@@ -283,6 +284,9 @@ class Apidoc {
 		$this->out("<?php");
 		foreach ($this->s as $c) {
 			$cprefix = isset($c['prefix']) && strlen($c['prefix']) ? $c['prefix'] . ' ' : '';
+			if (isset($c['abstract']) && $c['abstract']) {
+				$cprefix = 'abstract ' . $cprefix;
+			}
 			$this->out('/**');
 			$this->out(' * %s', $c['description']);
 			$this->out(' */');
