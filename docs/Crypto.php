@@ -141,10 +141,9 @@ class Crypto\Cipher {
     
     /**
      * Returns authentication tag
-     * @param int $tag_size
      * @return string
      */
-    public function getTag($tag_size) {}
+    public function getTag() {}
     
     /**
      * Sets authentication tag
@@ -152,6 +151,13 @@ class Crypto\Cipher {
      * @return bool
      */
     public function setTag($tag) {}
+    
+    /**
+     * Set authentication tag length
+     * @param int $tag_length
+     * @return bool
+     */
+    public function setTagLength($tag_length) {}
     
     /**
      * Sets additional application data for authenticated encryption
@@ -243,69 +249,79 @@ class Crypto\CipherException extends Exception {
     const TAG_SETTER_FAILED = 15;
     
     /**
+     * Tag length setter has to be called before encryption
+     */
+    const TAG_LENGTH_SETTER_FORBIDDEN = 16;
+    
+    /**
      * Tag length can't be lower than 32 bits (4 characters)
      */
-    const TAG_LENGTH_LOW = 16;
+    const TAG_LENGTH_LOW = 17;
     
     /**
      * Tag length can't exceed 128 bits (16 characters)
      */
-    const TAG_LENGTH_HIGH = 17;
+    const TAG_LENGTH_HIGH = 18;
+    
+    /**
+     * Tag verifycation failed
+     */
+    const TAG_VERIFY_FAILED = 19;
     
     /**
      * Initialization of cipher algorithm failed
      */
-    const INIT_ALG_FAILED = 18;
+    const INIT_ALG_FAILED = 20;
     
     /**
      * Initialization of cipher context failed
      */
-    const INIT_CTX_FAILED = 19;
+    const INIT_CTX_FAILED = 21;
     
     /**
      * Cipher object is already used for decryption
      */
-    const INIT_ENCRYPT_FORBIDDEN = 20;
+    const INIT_ENCRYPT_FORBIDDEN = 22;
     
     /**
      * Cipher object is already used for encryption
      */
-    const INIT_DECRYPT_FORBIDDEN = 21;
+    const INIT_DECRYPT_FORBIDDEN = 23;
     
     /**
      * Updating of cipher failed
      */
-    const UPDATE_FAILED = 22;
+    const UPDATE_FAILED = 24;
     
     /**
      * Cipher object is not initialized for encryption
      */
-    const UPDATE_ENCRYPT_FORBIDDEN = 23;
+    const UPDATE_ENCRYPT_FORBIDDEN = 25;
     
     /**
      * Cipher object is not initialized for decryption
      */
-    const UPDATE_DECRYPT_FORBIDDEN = 24;
+    const UPDATE_DECRYPT_FORBIDDEN = 26;
     
     /**
      * Finalizing of cipher failed
      */
-    const FINISH_FAILED = 25;
+    const FINISH_FAILED = 27;
     
     /**
      * Cipher object is not initialized for encryption
      */
-    const FINISH_ENCRYPT_FORBIDDEN = 26;
+    const FINISH_ENCRYPT_FORBIDDEN = 28;
     
     /**
      * Cipher object is not initialized for decryption
      */
-    const FINISH_DECRYPT_FORBIDDEN = 27;
+    const FINISH_DECRYPT_FORBIDDEN = 29;
     
     /**
      * Input data length can't exceed max integer length
      */
-    const INPUT_DATA_LENGTH_HIGH = 28;
+    const INPUT_DATA_LENGTH_HIGH = 30;
     
 }
 
@@ -416,10 +432,52 @@ class Crypto\HashException extends Exception {
     const DIGEST_FAILED = 6;
     
     /**
-     * Hashed message length can't exceed max integer length
+     * Input data length can't exceed max integer length
      */
     const INPUT_DATA_LENGTH_HIGH = 7;
     
+}
+
+/**
+ * Abstract class for MAC subclasses
+ */
+abstract class Crypto\MAC extends Crypto\Hash {
+    /**
+     * Create a MAC (used by MAC subclasses - HMAC and CMAC)
+     * @param string $algorithm
+     * @param string $key
+     */
+    public function __construct($algorithm, $key) {}
+    
+}
+
+/**
+ * Exception class for MAC errors
+ */
+class Crypto\MACException extends Crypto\HashException {
+    
+    /**
+     * MAC algorithm '%s' not found
+     */
+    const ALGORITHM_NOT_FOUND = 1;
+    
+    /**
+     * The key length for MAC is invalid
+     */
+    const KEY_LENGTH_INVALID = 2;
+    
+}
+
+/**
+ * Class providing HMAC functionality
+ */
+class Crypto\HMAC extends Crypto\MAC {
+}
+
+/**
+ * Class providing CMAC functionality
+ */
+class Crypto\CMAC extends Crypto\MAC {
 }
 
 /**
@@ -552,16 +610,6 @@ class Crypto\Rand {
      * @return int
      */
     public static function writeFile($filename) {}
-    
-    /**
-     * Queries the entropy gathering daemon EGD on socket path. It queries $bytes bytes
-     * and if $seed is true, then the data are seeded, otherwise the data are returned
-     * @param string $path
-     * @param int $bytes
-     * @param bool $seed
-     * @return mixed
-     */
-    public static function egd($path, $bytes = 255, $seed = true) {}
     
 }
 
