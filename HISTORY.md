@@ -1,5 +1,20 @@
 # Release history
 
+## 0.2.0 (devel)
+- Support for PHP 7
+- Crypto stream BIO wrapper
+- Improved error handling
+- Added an integer overflow checking
+- Removed Algorithm class and AlogirithmException class
+- Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
+- Added MACException class subclassing HashException
+- Fixed HMAC and CMAC implementation and added key param to constructor
+- Fixed and tested CCM mode
+- Added new error code for failed tag verification (TAG_VERIFY_FAILED)
+- Add setTagLength Cipher method replacing length param in getTag
+- Removed Rand::egd
+- Created a complete API documentation
+
 ## 0.1.1 (devel)
 - Added linking of openssl shared lib to the config.m4
 - Fixed buffer overflow in Base64 encoding

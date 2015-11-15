@@ -16,10 +16,10 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2014-01-04</date>
+ <date>2015-11-15</date>
  <version>
-  <release>0.1.1</release>
-  <api>0.1.0</api>
+  <release>0.2.0</release>
+  <api>0.2.0</api>
  </version>
  <stability>
   <release>devel</release>
@@ -27,36 +27,67 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Added linking of openssl shared lib to the config.m4
- * Fixed buffer overflow in Base64 encoding
+ * Support for PHP 7
+ * Added Crypto stream BIO wrapper
+ * Improved error handling
+ * Added an integer overflow checking
+ * Removed Algorithm class and AlogirithmException class
+ * Introduced a MAC class as a subclass of Hash and parent of HMAC and CMAC
+ * Added MACException class subclassing HashException
+ * Fixed HMAC and CMAC implementation and added key param to constructor
+ * Fixed and tested CCM mode
+ * Added new error code for failed tag verification (TAG_VERIFY_FAILED)
+ * Add setTagLength Cipher method replacing length param in getTag
+ * Removed Rand::egd
+ * Created a complete API documentation
  ]]></notes>
  <contents>
   <dir name="/">
    <file role="doc" name="CREDITS"/>
    <file role="doc" name="LICENSE"/>
-   <file role="doc" name="README.md"/>
    <file role="doc" name="HISTORY.md"/>
+   <file role="doc" name="README.md"/>
    <file role="doc" name="TODO.md"/>
-   <file role="src" name="config.m4" />
-   <file role="src" name="config.w32" />
+   <file role="src" name="config.m4"/>
+   <file role="src" name="config.w32"/>
    <file role="src" name="php_crypto.h"/>
-   <file role="src" name="php_crypto_alg.h"/>
    <file role="src" name="php_crypto_base64.h"/>
+   <file role="src" name="php_crypto_cipher.h"/>
+   <file role="src" name="php_crypto_hash.h"/>
+   <file role="src" name="php_crypto_object.h"/>
    <file role="src" name="php_crypto_rand.h"/>
+   <file role="src" name="php_crypto_stream.h"/>
    <file role="src" name="crypto.c"/>
-   <file role="src" name="crypto_alg.c"/>
    <file role="src" name="crypto_base64.c"/>
+   <file role="src" name="crypto_cipher.c"/>
+   <file role="src" name="crypto_hash.c"/>
+   <file role="src" name="crypto_object.c"/>
    <file role="src" name="crypto_rand.c"/>
+   <file role="src" name="crypto_stream.c"/>
+   <dir name="docs">
+    <file role="doc" name="Crypto.php"/>
+    <file role="doc" name="base64.md"/>
+    <file role="doc" name="cipher.md"/>
+    <file role="doc" name="cmac.md"/>
+    <file role="doc" name="hash.md"/>
+    <file role="doc" name="hmac.md"/>
+    <file role="doc" name="mac.md"/>
+    <file role="doc" name="rand.md"/>
+    <file role="doc" name="streams.md"/>
+   </dir>
    <dir name="examples">
     <file role="doc" name="cipher.php"/>
     <file role="doc" name="gcm.php"/>
     <file role="doc" name="hash.php"/>
     <file role="doc" name="rand.php"/>
+    <file role="doc" name="stream_cipher_cbc.php"/>
+    <file role="doc" name="stream_cipher_gcm.php"/>
+   </dir>
+   <dir name="phpc">
+    <file role="src" name="phpc.h"/>
    </dir>
    <dir name="tests">
     <file role="test" name="001.phpt"/>
-    <file role="test" name="Algorithm___construct_basic.phpt"/>
-    <file role="test" name="Algorithm_getAlgorithmName_basic.phpt"/>
     <file role="test" name="Base64___clone_basic.phpt"/>
     <file role="test" name="Base64___construct_basic.phpt"/>
     <file role="test" name="Base64_decodeFinish_basic.phpt"/>
@@ -65,6 +96,13 @@
     <file role="test" name="Base64_encodeFinish_basic.phpt"/>
     <file role="test" name="Base64_encodeUpdate_basic.phpt"/>
     <file role="test" name="Base64_encode_basic.phpt"/>
+    <file role="test" name="CMAC___clone_basic.phpt"/>
+    <file role="test" name="CMAC___construct_basic.phpt"/>
+    <file role="test" name="CMAC_digest_basic.phpt"/>
+    <file role="test" name="CMAC_getBlockSize_basic.phpt"/>
+    <file role="test" name="CMAC_getSize_basic.phpt"/>
+    <file role="test" name="CMAC_hexdigest_basic.phpt"/>
+    <file role="test" name="CMAC_update_basic.phpt"/>
     <file role="test" name="Cipher___callStatic_basic.phpt"/>
     <file role="test" name="Cipher___clone_basic.phpt"/>
     <file role="test" name="Cipher___construct_basic.phpt"/>
@@ -76,20 +114,35 @@
     <file role="test" name="Cipher_encryptInit_basic.phpt"/>
     <file role="test" name="Cipher_encryptUpdate_basic.phpt"/>
     <file role="test" name="Cipher_encrypt_basic.phpt"/>
+    <file role="test" name="Cipher_getAlgorithmName_basic.phpt"/>
     <file role="test" name="Cipher_getAlgorithms_basic.phpt"/>
     <file role="test" name="Cipher_getBlockSize_basic.phpt"/>
     <file role="test" name="Cipher_getIVLength_basic.phpt"/>
     <file role="test" name="Cipher_getKeyLength_basic.phpt"/>
     <file role="test" name="Cipher_getMode_basic.phpt"/>
-    <file role="test" name="Cipher_getTag_basic.phpt"/>
+    <file role="test" name="Cipher_getTag_ccm_basic.phpt"/>
+    <file role="test" name="Cipher_getTag_gcm_basic.phpt"/>
     <file role="test" name="Cipher_hasAlgorithm_basic.phpt"/>
     <file role="test" name="Cipher_hasMode_basic.phpt"/>
-    <file role="test" name="Cipher_setAAD_basic.phpt"/>
-    <file role="test" name="Cipher_setTag_basic.phpt"/>
+    <file role="test" name="Cipher_setAAD_ccm_basic.phpt"/>
+    <file role="test" name="Cipher_setAAD_gcm_basic.phpt"/>
+    <file role="test" name="Cipher_setTagLength_ccm_basic.phpt"/>
+    <file role="test" name="Cipher_setTagLength_gcm_basic.phpt"/>
+    <file role="test" name="Cipher_setTag_ccm_basic.phpt"/>
+    <file role="test" name="Cipher_setTag_gcm_basic.phpt"/>
+    <file role="test" name="HMAC___clone_basic.phpt"/>
+    <file role="test" name="HMAC___construct_basic.phpt"/>
+    <file role="test" name="HMAC_digest_basic.phpt"/>
+    <file role="test" name="HMAC_getAlgorithmName_basic.phpt"/>
+    <file role="test" name="HMAC_getBlockSize_basic.phpt"/>
+    <file role="test" name="HMAC_getSize_basic.phpt"/>
+    <file role="test" name="HMAC_hexdigest_basic.phpt"/>
+    <file role="test" name="HMAC_update_basic.phpt"/>
     <file role="test" name="Hash___callStatic_basic.phpt"/>
     <file role="test" name="Hash___clone_basic.phpt"/>
     <file role="test" name="Hash___construct_basic.phpt"/>
     <file role="test" name="Hash_digest_basic.phpt"/>
+    <file role="test" name="Hash_getAlgorithmName_basic.phpt"/>
     <file role="test" name="Hash_getAlgorithms_basic.phpt"/>
     <file role="test" name="Hash_getBlockSize_basic.phpt"/>
     <file role="test" name="Hash_getSize_basic.phpt"/>
@@ -97,18 +150,30 @@
     <file role="test" name="Hash_hexdigest_basic.phpt"/>
     <file role="test" name="Hash_update_basic.phpt"/>
     <file role="test" name="Rand_cleanup_basic.phpt"/>
-    <file role="test" name="Rand_egd_basic.phpt"/>
     <file role="test" name="Rand_generate_basic.phpt"/>
     <file role="test" name="Rand_loadFile_basic.phpt"/>
     <file role="test" name="Rand_seed_basic.phpt"/>
     <file role="test" name="Rand_writeFile_basic.phpt"/>
+    <file role="test" name="stream_file_plain_open.phpt"/>
+    <file role="test" name="stream_file_plain_read.phpt"/>
+    <file role="test" name="stream_file_plain_seek.phpt"/>
+    <file role="test" name="stream_file_plain_write.phpt"/>
+    <file role="test" name="stream_filters_cipher_cbc_dec_read.phpt"/>
+    <file role="test" name="stream_filters_cipher_cbc_dec_write.phpt"/>
+    <file role="test" name="stream_filters_cipher_cbc_enc_read.phpt"/>
+    <file role="test" name="stream_filters_cipher_cbc_enc_write.phpt"/>
+    <file role="test" name="stream_filters_cipher_ccm_error.phpt"/>
+    <file role="test" name="stream_filters_cipher_gcm_dec_read.phpt"/>
+    <file role="test" name="stream_filters_cipher_gcm_dec_write.phpt"/>
+    <file role="test" name="stream_filters_cipher_gcm_enc_read.phpt"/>
+    <file role="test" name="stream_filters_cipher_gcm_enc_write.phpt"/>
    </dir>
   </dir>
  </contents>
  <dependencies>
   <required>
    <php>
-    <min>5.3.0</min>
+    <min>5.3.2</min>
    </php>
    <pearinstaller>
     <min>1.4.0a1</min>
@@ -118,6 +183,22 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2014-01-04</date>
+   <version>
+	<release>0.1.1</release>
+	<api>0.1.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Added linking of openssl shared lib to the config.m4
+   * Fixed buffer overflow in Base64 encoding
+   ]]></notes>
+  </release>
   <release>
     <date>2014-01-01</date>
 	<version>
