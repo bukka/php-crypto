@@ -104,6 +104,7 @@
     <file role="test" name="Cipher_encrypt_basic.phpt"/>
     <file role="test" name="Cipher_getAlgorithmName_basic.phpt"/>
     <file role="test" name="Cipher_getAlgorithms_basic.phpt"/>
+    <file role="test" name="Cipher_getAlgorithms_ccm.phpt"/>
     <file role="test" name="Cipher_getBlockSize_basic.phpt"/>
     <file role="test" name="Cipher_getIVLength_basic.phpt"/>
     <file role="test" name="Cipher_getKeyLength_basic.phpt"/>
