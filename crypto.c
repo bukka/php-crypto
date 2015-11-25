@@ -80,7 +80,7 @@ PHP_MINIT_FUNCTION(crypto)
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
 
-#if defined(EVP_CIPH_CCM_MODE) && OPENSSL_VERSION_NUMBER < 0x100020000
+#if PHP_CRYPTO_ADD_CCM_ALGOS
 	EVP_add_cipher(EVP_aes_128_ccm());
 	EVP_add_cipher(EVP_aes_192_ccm());
 	EVP_add_cipher(EVP_aes_256_ccm());

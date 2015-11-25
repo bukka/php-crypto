@@ -241,6 +241,10 @@ PHP_MINFO_FUNCTION(crypto);
 	_rc = 1; _method
 #endif
 
+#define PHP_CRYPTO_ADD_CCM_ALGOS \
+	!defined(OPENSSL_NO_AES) && defined(EVP_CIPH_CCM_MODE) \
+		&& OPENSSL_VERSION_NUMBER < 0x100020000
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
