@@ -26,3 +26,6 @@ modules/
 nbproject/
 run-tests.php
 *.net
+tmp-php.ini
+ltmain.sh.backup
+crypto-*.tgz
