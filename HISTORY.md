@@ -1,5 +1,8 @@
 # Release history
 
+## 0.2.2 (devel)
+- Fixed missing CCM cipher algorithms with OpenSSL 1.0.1
+
 ## 0.2.1 (devel)
 - Fixed C89 compatibility issue in Base64
 

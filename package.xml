@@ -16,9 +16,9 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2015-11-15</date>
+ <date>2015-11-25</date>
  <version>
-  <release>0.2.1</release>
+  <release>0.2.2</release>
   <api>0.2.0</api>
  </version>
  <stability>
@@ -27,7 +27,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Fixed C89 compatibility issue in Base64
+ * Fixed missing CCM cipher algorithms with OpenSSL 1.0.1
  ]]></notes>
  <contents>
   <dir name="/">
@@ -103,8 +103,8 @@
     <file role="test" name="Cipher_encryptUpdate_basic.phpt"/>
     <file role="test" name="Cipher_encrypt_basic.phpt"/>
     <file role="test" name="Cipher_getAlgorithmName_basic.phpt"/>
-    <file role="test" name="Cipher_getAlgorithms_basic.phpt"/>
-    <file role="test" name="Cipher_getAlgorithms_ccm.phpt"/>
+    <file role="test" name="Cipher_getAlgorithms_all_basic.phpt"/>
+    <file role="test" name="Cipher_getAlgorithms_ccm_basic.phpt"/>
     <file role="test" name="Cipher_getBlockSize_basic.phpt"/>
     <file role="test" name="Cipher_getIVLength_basic.phpt"/>
     <file role="test" name="Cipher_getKeyLength_basic.phpt"/>
@@ -172,6 +172,21 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2015-11-15</date>
+   <version>
+	<release>0.2.1</release>
+	<api>0.2.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Fixed C89 compatibility issue in Base64
+   ]]></notes>
+  </release>
   <release>
    <date>2015-11-15</date>
    <version>
