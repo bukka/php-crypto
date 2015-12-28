@@ -42,6 +42,7 @@
   - Use exception when cloning fails
 - Setting input and output stream based filters (hex, base64...)
 - Fix memleak for $cipher->encryptUpdate(...) . fceThrowingExc();
+  - It's just for PHP 5 (no memleak in 7)
 
 ## KDF
 - Add new class KDF for Key derivation function
@@ -76,14 +77,14 @@
   - At least 0.9.8 should be used
 
 ## General
-- Add Travis support
-- Create `php_crypto_strtoupper_dup` for algorithm name conversion
 - Consider shorter prefix than `php_crypto`
   - `pce` (Php Crypto Extension)
   - `pcw` (Php Crypto Wrapper)
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
   - `pcr` (Php CRypto)
+- Create `php_crypto_strtoupper_dup` for algorithm name conversion
+- Add Travis support
 - Use OpenSSL memory function for all contexts
   - Cipher should use `EVP_CIPHER_CTX_new` and `EVP_CIPHER_CTX_free`
   - Hash should use `EVP_MD_CTX_create` and `EVP_MD_CTX_destroy`
