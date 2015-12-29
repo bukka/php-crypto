@@ -83,7 +83,10 @@
   - `pcg` (Php CryptoGraphy)
   - `pct` (Php CrypTo or later maybe Php Crypto Tls)
   - `pcr` (Php CRypto)
-- Create `php_crypto_strtoupper_dup` for algorithm name conversion
+- Clear OpenSSL errors
+  - Separate OpenSSL emitted errors and PHP Crypto extenstion errors
+- Add file for utility functions
+  - Containing `{prefix}_strtoupper_dup` for algorithm name conversion
 - Add Travis support
 - Use OpenSSL memory function for all contexts
   - Cipher should use `EVP_CIPHER_CTX_new` and `EVP_CIPHER_CTX_free`
