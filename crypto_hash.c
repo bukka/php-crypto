@@ -29,7 +29,7 @@
 PHP_CRYPTO_EXCEPTION_DEFINE(Hash)
 PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
 PHP_CRYPTO_ERROR_INFO_ENTRY(
-	ALGORITHM_NOT_FOUND,
+	HASH_ALGORITHM_NOT_FOUND,
 	"Hash algorithm '%s' not found"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
@@ -134,7 +134,7 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 PHP_CRYPTO_EXCEPTION_DEFINE(MAC)
 PHP_CRYPTO_ERROR_INFO_BEGIN(MAC)
 PHP_CRYPTO_ERROR_INFO_ENTRY(
-	ALGORITHM_NOT_FOUND,
+	MAC_ALGORITHM_NOT_FOUND,
 	"MAC algorithm '%s' not found"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
@@ -609,7 +609,7 @@ PHP_CRYPTO_METHOD(Hash, __construct)
 
 	digest = EVP_get_digestbyname(algorithm);
 	if (!digest) {
-		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, ALGORITHM_NOT_FOUND), algorithm);
+		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(Hash, HASH_ALGORITHM_NOT_FOUND), algorithm);
 	} else {
 		PHP_CRYPTO_HASH_ALG(PHPC_THIS) = digest;
 	}
@@ -787,6 +787,6 @@ PHP_CRYPTO_METHOD(MAC, __construct)
 	return;
 
 php_crypto_mac_alg_not_found:
-	php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(MAC, ALGORITHM_NOT_FOUND), algorithm);
+	php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(MAC, MAC_ALGORITHM_NOT_FOUND), algorithm);
 	efree(algorithm_uc);
 }

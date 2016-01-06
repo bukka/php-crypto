@@ -11,7 +11,7 @@ try {
 	$hash = new Crypto\Hash('nnn');	
 }
 catch (Crypto\HashException $e) {
-	if ($e->getCode() === Crypto\HashException::ALGORITHM_NOT_FOUND) {
+	if ($e->getCode() === Crypto\HashException::HASH_ALGORITHM_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}
 }

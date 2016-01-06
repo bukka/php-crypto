@@ -28,7 +28,7 @@ try {
 	$cmac = new Crypto\CMAC($key, 'nnn');
 }
 catch (Crypto\MACException $e) {
-	if ($e->getCode() === Crypto\MACException::ALGORITHM_NOT_FOUND) {
+	if ($e->getCode() === Crypto\MACException::MAC_ALGORITHM_NOT_FOUND) {
 		echo "NOT FOUND\n";
 	}
 }
