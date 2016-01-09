@@ -7,11 +7,15 @@ The php-crypto is an objective wrapper for OpenSSL Crypto library.
 
 ### Linux
 
-Before starting with installation this extensions, the `OpenSSL` library
-has to be installed. It is defaultly installed on the most Linux distribution.
+Before starting with installation of this extensions, the `OpenSSL` library
+has to be installed. It is defaultly installed on the most Linux distributions.
+The minimal version of OpenSSL that is supported is 0.9.8 but it is recommended
+to have installed version 1.0.1+ to use all features. 
 
-Currently PHP needs to be compiled with OpenSSL extension (`--with-openssl`).
-This dependency will be removed in the future.
+Of course PHP has to be installed too. The minimal version that is supported is
+5.3 as the extension uses namespaces. Currently PHP also needs to be compiled
+with OpenSSL extension (`--with-openssl`). This dependency will be removed
+in the future.
 
 #### Fedora
 
