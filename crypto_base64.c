@@ -105,7 +105,7 @@ PHPC_OBJ_HANDLER_FREE(crypto_base64)
 {
 	PHPC_OBJ_HANDLER_FREE_INIT(crypto_base64);
 
-	efree(PHPC_THIS->ctx);
+	EVP_ENCODE_CTX_free(PHPC_THIS->ctx);
 
 	PHPC_OBJ_HANDLER_FREE_DESTROY();
 }
@@ -117,7 +117,7 @@ PHPC_OBJ_HANDLER_CREATE_EX(crypto_base64)
 	PHPC_OBJ_HANDLER_CREATE_EX_INIT(crypto_base64);
 
 	/* allocate encode context */
-	PHPC_THIS->ctx = (EVP_ENCODE_CTX *) emalloc(sizeof(EVP_ENCODE_CTX));
+	PHPC_THIS->ctx = EVP_ENCODE_CTX_new();
 
 	PHPC_OBJ_HANDLER_CREATE_EX_RETURN(crypto_base64);
 }
@@ -136,7 +136,7 @@ PHPC_OBJ_HANDLER_CLONE(crypto_base64)
 	PHPC_OBJ_HANDLER_CLONE_INIT(crypto_base64);
 
 	PHPC_THAT->status = PHPC_THIS->status;
-	memcpy(PHPC_THAT->ctx, PHPC_THIS->ctx, sizeof (EVP_ENCODE_CTX));
+	EVP_ENCODE_CTX_copy(PHPC_THAT->ctx, PHPC_THIS->ctx);
 
 	PHPC_OBJ_HANDLER_CLONE_RETURN();
 }
@@ -252,21 +252,24 @@ PHP_CRYPTO_METHOD(Base64, encode)
 	phpc_str_size_t in_len;
 	int real_len, final_len, update_len;
 	PHPC_STR_DECLARE(out);
-	EVP_ENCODE_CTX ctx;
+	EVP_ENCODE_CTX *ctx;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
 		return;
 	}
 
-	php_crypto_base64_encode_init(&ctx);
-	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, &ctx);
+	ctx = EVP_ENCODE_CTX_new();
+	php_crypto_base64_encode_init(ctx);
+	real_len = PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(in_len, ctx);
 	PHPC_STR_ALLOC(out, real_len);
 	if (php_crypto_base64_encode_update(
-			&ctx, PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) == FAILURE) {
+			ctx, PHPC_STR_VAL(out), &update_len, in, in_len TSRMLS_CC) == FAILURE) {
 		PHPC_STR_RELEASE(out);
+		EVP_ENCODE_CTX_free(ctx);
 		RETURN_NULL();
 	}
-	php_crypto_base64_encode_finish(&ctx, PHPC_STR_VAL(out) + update_len, &final_len);
+	php_crypto_base64_encode_finish(ctx, PHPC_STR_VAL(out) + update_len, &final_len);
+	EVP_ENCODE_CTX_free(ctx);
 	final_len += update_len;
 	if (real_len > final_len) {
 		PHPC_STR_REALLOC(out, final_len);
@@ -283,25 +286,28 @@ PHP_CRYPTO_METHOD(Base64, decode)
 	phpc_str_size_t in_len;
 	int real_len, update_len, final_len;
 	PHPC_STR_DECLARE(out);
-	EVP_ENCODE_CTX ctx;
+	EVP_ENCODE_CTX *ctx;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &in, &in_len) == FAILURE) {
 		return;
 	}
 
-	php_crypto_base64_decode_init(&ctx);
+	ctx = EVP_ENCODE_CTX_new();
+	php_crypto_base64_decode_init(ctx);
 	real_len = PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(in_len);
 	PHPC_STR_ALLOC(out, real_len);
 
-	if (php_crypto_base64_decode_update(&ctx, PHPC_STR_VAL(out),
+	if (php_crypto_base64_decode_update(ctx, PHPC_STR_VAL(out),
 			&update_len, in, in_len TSRMLS_CC) == FAILURE) {
+		EVP_ENCODE_CTX_free(ctx);
 		RETURN_FALSE;
 	}
-	php_crypto_base64_decode_finish(&ctx, PHPC_STR_VAL(out), &final_len);
+	php_crypto_base64_decode_finish(ctx, PHPC_STR_VAL(out), &final_len);
 	final_len += update_len;
 	if (real_len > final_len) {
 		PHPC_STR_REALLOC(out, final_len);
 	}
+	EVP_ENCODE_CTX_free(ctx);
 	PHPC_STR_VAL(out)[final_len] = '\0';
 	PHPC_STR_RETURN(out);
 }

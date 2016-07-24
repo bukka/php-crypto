@@ -129,6 +129,7 @@ ZEND_EXTERN_MODULE_GLOBALS(crypto)
 typedef struct {
 	BIO *bio;
 	zend_bool auth_enc;
+	zend_bool is_encrypting;
 } php_crypto_stream_data;
 
 /* {{{ php_crypto_stream_write */
@@ -158,7 +159,7 @@ static int php_crypto_stream_auth_get_first_bio(
 
 			return SUCCESS;
 		}
-		bio = bio->next_bio;
+		bio = BIO_next(bio);
 	}
 
 	return FAILURE;
@@ -267,7 +268,7 @@ static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count
 		EVP_CIPHER_CTX *cipher_ctx;
 		BIO *auth_bio;
 		if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
-			if (cipher_ctx->encrypt) {
+			if (data->is_encrypting) {
 				/* encryption - save auth tag */
 				php_crypto_stream_auth_save_tag(stream, cipher_ctx TSRMLS_CC);
 			} else {
@@ -302,7 +303,7 @@ static int php_crypto_stream_flush(php_stream *stream TSRMLS_DC)
 			EVP_CIPHER_CTX *cipher_ctx;
 			BIO *auth_bio;
 			if (php_crypto_stream_auth_get_first_bio(data->bio, &auth_bio, &cipher_ctx) == SUCCESS) {
-				if (cipher_ctx->encrypt) {
+				if (data->is_encrypting) {
 					/* encryption - save auth tag */
 					php_crypto_stream_auth_save_tag(stream, cipher_ctx TSRMLS_CC);
 				} else {
@@ -381,6 +382,7 @@ static int php_crypto_stream_set_cipher(php_crypto_stream_data *data,
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ACTION_INVALID));
 		return FAILURE;
 	}
+	data->is_encrypting = enc;
 
 	if (!PHPC_HASH_CSTR_FIND_IN_COND(PHPC_ARRVAL_P(ppv_cipher), "algorithm", ppv_alg)) {
 		php_crypto_error(PHP_CRYPTO_STREAM_ERROR_ARGS(CIPHER_ALGORITHM_NOT_SUPPLIED));

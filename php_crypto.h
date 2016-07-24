@@ -245,6 +245,63 @@ PHP_MINFO_FUNCTION(crypto);
 	!defined(OPENSSL_NO_AES) && defined(EVP_CIPH_CCM_MODE) \
 		&& OPENSSL_VERSION_NUMBER < 0x100020000
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+static inline HMAC_CTX *HMAC_CTX_new()
+{
+	HMAC_CTX *ctx = OpenSSL_malloc(sizeof(HMAC_CTX));
+	if (ctx) {
+		HMAC_CTX_init(ctx);
+	}
+
+	return ctx;
+}
+
+static inline void HMAC_CTX_free(HMAC_CTX *ctx)
+{
+	OpenSSL_free(ctx);
+}
+
+static inline EVP_ENCODE_CTX *EVP_ENCODE_CTX_new()
+{
+	EVP_ENCODE_CTX *ctx = OpenSSL_malloc(sizeof(EVP_ENCODE_CTX));
+
+	return ctx;
+}
+
+static inline void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
+{
+	OpenSSL_free(ctx);
+}
+
+static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
+{
+	memcpy(dctx, sctx, sizeof (EVP_ENCODE_CTX));
+
+	return 1;
+}
+
+static inline int EVP_ENCODE_CTX_length(EVP_ENCODE_CTX *ctx)
+{
+	return ctx->length;
+}
+
+#else
+
+static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
+{
+	/* temporary - do nothing before there is a real copy solution */
+	return 1;
+}
+
+static inline int EVP_ENCODE_CTX_length(EVP_ENCODE_CTX *ctx)
+{
+	/* temporary hack - works just for encoding */
+	return 48;
+}
+
+#endif
+
 #endif	/* PHP_CRYPTO_H */
 
 /*
