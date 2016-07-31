@@ -281,24 +281,13 @@ static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx
 	return 1;
 }
 
-static inline int EVP_ENCODE_CTX_length(EVP_ENCODE_CTX *ctx)
+static inline int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
 {
-	return ctx->length;
+	return ctx->num;
 }
 
-#else
-
-static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
-{
-	/* temporary - do nothing before there is a real copy solution */
-	return 1;
-}
-
-static inline int EVP_ENCODE_CTX_length(EVP_ENCODE_CTX *ctx)
-{
-	/* temporary hack - works just for encoding */
-	return 48;
-}
+#define EVP_ENCODE_LENGTH(l) (((l+2)/3*4)+(l/48+1)*2+80)
+#define EVP_DECODE_LENGTH(l) ((l+3)/4*3+80)
 
 #endif
 

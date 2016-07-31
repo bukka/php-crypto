@@ -36,11 +36,8 @@ PHPC_OBJ_STRUCT_BEGIN(crypto_base64)
 PHPC_OBJ_STRUCT_END()
 
 /* Base64 macros for endoding and decoding context size */
-#define PHP_CRYPTO_BASE64_DECODING_SIZE_MIN 49
-#define PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN 65
-#define PHP_CRYPTO_BASE64_ENCODING_SIZE_REAL(data_len, b64ctx) \
-	(((data_len) + 2) * 4 / 3 + data_len / EVP_ENCODE_CTX_length(b64ctx) + 1)
-#define PHP_CRYPTO_BASE64_DECODING_SIZE_REAL(data_len) (((data_len) + 2) * 3 / 4)
+#define PHP_CRYPTO_BASE64_DECODING_SIZE_MIN 50
+#define PHP_CRYPTO_BASE64_ENCODING_SIZE_MIN 66
 
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(Base64)
