@@ -247,9 +247,11 @@ PHP_MINFO_FUNCTION(crypto);
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 
+#include <openssl/hmac.h>
+
 static inline HMAC_CTX *HMAC_CTX_new()
 {
-	HMAC_CTX *ctx = OpenSSL_malloc(sizeof(HMAC_CTX));
+	HMAC_CTX *ctx = OPENSSL_malloc(sizeof(HMAC_CTX));
 	if (ctx) {
 		HMAC_CTX_init(ctx);
 	}
@@ -259,19 +261,19 @@ static inline HMAC_CTX *HMAC_CTX_new()
 
 static inline void HMAC_CTX_free(HMAC_CTX *ctx)
 {
-	OpenSSL_free(ctx);
+	OPENSSL_free(ctx);
 }
 
 static inline EVP_ENCODE_CTX *EVP_ENCODE_CTX_new()
 {
-	EVP_ENCODE_CTX *ctx = OpenSSL_malloc(sizeof(EVP_ENCODE_CTX));
+	EVP_ENCODE_CTX *ctx = OPENSSL_malloc(sizeof(EVP_ENCODE_CTX));
 
 	return ctx;
 }
 
 static inline void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
 {
-	OpenSSL_free(ctx);
+	OPENSSL_free(ctx);
 }
 
 static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
