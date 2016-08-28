@@ -233,12 +233,6 @@ PHP_MINFO_FUNCTION(crypto);
 #endif
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
 #define PHP_CRYPTO_HAS_CIPHER_CTX_COPY 1
-#define PHP_CRYPTO_HAS_HMAC_CTX_COPY 1
-#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
-	_rc = _method
-#else
-#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
-	_rc = 1; _method
 #endif
 
 #define PHP_CRYPTO_ADD_CCM_ALGOS \
@@ -246,23 +240,6 @@ PHP_MINFO_FUNCTION(crypto);
 		&& OPENSSL_VERSION_NUMBER < 0x100020000
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-#include <openssl/hmac.h>
-
-static inline HMAC_CTX *HMAC_CTX_new()
-{
-	HMAC_CTX *ctx = OPENSSL_malloc(sizeof(HMAC_CTX));
-	if (ctx) {
-		HMAC_CTX_init(ctx);
-	}
-
-	return ctx;
-}
-
-static inline void HMAC_CTX_free(HMAC_CTX *ctx)
-{
-	OPENSSL_free(ctx);
-}
 
 static inline EVP_ENCODE_CTX *EVP_ENCODE_CTX_new()
 {

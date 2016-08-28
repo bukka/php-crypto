@@ -25,6 +25,51 @@
 #include "ext/standard/php_string.h"
 
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
+	_rc = _method
+#else
+#define PHP_CRYPTO_HMAC_DO(_rc, _method) \
+	_rc = 1; _method
+
+int HMAC_CTX_copy(HMAC_CTX *dctx, HMAC_CTX *sctx)
+{
+	if (!EVP_MD_CTX_copy(&dctx->i_ctx, &sctx->i_ctx))
+		goto err;
+	if (!EVP_MD_CTX_copy(&dctx->o_ctx, &sctx->o_ctx))
+		goto err;
+	if (!EVP_MD_CTX_copy(&dctx->md_ctx, &sctx->md_ctx))
+		goto err;
+	memcpy(dctx->key, sctx->key, HMAC_MAX_MD_CBLOCK);
+	dctx->key_length = sctx->key_length;
+	dctx->md = sctx->md;
+	return 1;
+ err:
+	return 0;
+}
+
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+static HMAC_CTX *HMAC_CTX_new()
+{
+	HMAC_CTX *ctx = OPENSSL_malloc(sizeof(HMAC_CTX));
+	if (ctx) {
+		HMAC_CTX_init(ctx);
+	}
+
+	return ctx;
+}
+
+static inline void HMAC_CTX_free(HMAC_CTX *ctx)
+{
+	OPENSSL_free(ctx);
+}
+
+#endif
 
 PHP_CRYPTO_EXCEPTION_DEFINE(Hash)
 PHP_CRYPTO_ERROR_INFO_BEGIN(Hash)
@@ -255,25 +300,8 @@ PHPC_OBJ_HANDLER_CLONE(crypto_hash)
 				PHP_CRYPTO_HASH_CTX(PHPC_THAT), PHP_CRYPTO_HASH_CTX(PHPC_THIS));
 		PHP_CRYPTO_HASH_ALG(PHPC_THAT) = EVP_MD_CTX_md(PHP_CRYPTO_HASH_CTX(PHPC_THIS));
 	} else if (PHPC_THAT->type == PHP_CRYPTO_HASH_TYPE_HMAC) {
-#ifdef PHP_CRYPTO_HAS_HMAC_CTX_COPY
 		copy_success = HMAC_CTX_copy(
 				PHP_CRYPTO_HMAC_CTX(PHPC_THAT), PHP_CRYPTO_HMAC_CTX(PHPC_THIS));
-#else
-		if (EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->i_ctx,
-					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->i_ctx) &&
-				EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->o_ctx,
-					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->o_ctx) &&
-				EVP_MD_CTX_copy(&PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md_ctx,
-					&PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md_ctx)) {
-			memcpy(PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key,
-					PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key, HMAC_MAX_MD_CBLOCK);
-			PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->key_length = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->key_length;
-			PHP_CRYPTO_HMAC_CTX(PHPC_THAT)->md = PHP_CRYPTO_HMAC_CTX(PHPC_THIS)->md;
-			copy_success = 1;
-		} else {
-			copy_success = 0;
-		}
-#endif
 	}
 #ifdef PHP_CRYPTO_HAS_CMAC
 	else if (PHPC_THAT->type == PHP_CRYPTO_HASH_TYPE_CMAC) {
