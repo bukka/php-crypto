@@ -29,6 +29,7 @@
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - rename `auth_enc` to `aead`
   - double check a reason of failed tag verification (try OpenSSL last error)
+  - add support for new AEAD modes added in OpenSSL 1.1
 - Add new Cipher class constants for tag max and min length
   - Don't forget to update docs
 - Add method for setting padding mode
@@ -48,6 +49,8 @@
 - Add new class KDF for Key derivation function
   - EVP_BytesToKey
 - Add KDF subclass for PBKDF2
+- Add support for scrypt
+  - EVP_PBE_scrypt
 
 ## Hash
 - Test context for Hash, HMAC and CMAC resuming
@@ -88,10 +91,6 @@
 - Add file for utility functions
   - Containing `{prefix}_strtoupper_dup` for algorithm name conversion
 - Add Travis support
-- Use OpenSSL memory function for all contexts
-  - Cipher should use `EVP_CIPHER_CTX_new` and `EVP_CIPHER_CTX_free`
-  - Hash should use `EVP_MD_CTX_create` and `EVP_MD_CTX_destroy`
-  - HMAC and Base64 should use `OpenSSL_malloc` and `OpenSSL_free`
 - Improve overflow handling
   - try inline the functions (make sure it works on Travis)
   - test all overflow checks on PHP 7 (skip PHP 5) 32 and 64 bit
@@ -102,7 +101,7 @@
 # Plan for upcoming releases
 
 ## 0.3.0 (devel)
-- New API for KDF
+- New API for KDF and PBE
 - Added verification function for Hash
 - Added open_basedir check for Rand::loadFile and Rand::writeFile
 
