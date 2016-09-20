@@ -24,10 +24,12 @@
 
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(KDF)
+PHP_CRYPTO_EXCEPTION_EXPORT(PBKDF2)
 
 /* CLASSES */
 
-/* Class entry */
+/* Class entries */
+extern PHP_CRYPTO_API zend_class_entry *php_crypto_kdf_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_pbkdf2_ce;
 
 /* USER METHODS */
@@ -35,8 +37,18 @@ extern PHP_CRYPTO_API zend_class_entry *php_crypto_pbkdf2_ce;
 /* Module init for Crypto KDF */
 PHP_MINIT_FUNCTION(crypto_kdf);
 
-/* PBKDF2 method */
+/* KDF methods */
+PHP_CRYPTO_METHOD(KDF, __construct);
+PHP_CRYPTO_METHOD(KDF, getSalt);
+PHP_CRYPTO_METHOD(KDF, setSalt);
+
+/* PBKDF2 methods */
+PHP_CRYPTO_METHOD(PBKDF2, __construct);
 PHP_CRYPTO_METHOD(PBKDF2, derive);
+PHP_CRYPTO_METHOD(KDF, getIterations);
+PHP_CRYPTO_METHOD(KDF, setIterations);
+PHP_CRYPTO_METHOD(KDF, getHashAlgorithm);
+PHP_CRYPTO_METHOD(KDF, setHashAlgorithm);
 
 #endif	/* PHP_CRYPTO_KDF_H */
 
