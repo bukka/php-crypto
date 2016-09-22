@@ -15,3 +15,17 @@
   | Author: Jakub Zelenka <bukka@php.net>                                |
   +----------------------------------------------------------------------+
 */
+
+#include <openssl/evp.h>
+
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+
+#include "php.h"
+#include "php_crypto.h"
+#include "zend_exceptions.h"
+#include "php_crypto_kdf.h"
+
+
+
+
+#endif
