@@ -26,6 +26,7 @@ if test "$PHP_CRYPTO" != "no"; then
 	  crypto_object.c \
 	  crypto_cipher.c \
 	  crypto_hash.c \
+	  crypto_kdf.c \
       crypto_base64.c \
       crypto_stream.c \
       crypto_rand.c,
