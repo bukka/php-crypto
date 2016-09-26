@@ -109,3 +109,11 @@ static const zend_function_entry php_crypto_pbkdf2_object_methods[] = {
 };
 
 #endif
+
+PHP_CRYPTO_API zend_class_entry *php_crypto_kdf_ce;
+#ifdef PHP_CRYPTO_HAS_PKCS2
+PHP_CRYPTO_API zend_class_entry *php_crypto_pbkdf2_ce;
+#endif
+
+/* object handler */
+PHPC_OBJ_DEFINE_HANDLER_VAR(crypto_kdf);
