@@ -22,6 +22,32 @@
 #include "php.h"
 #include "php_crypto.h"
 
+/* PKCS2 feature test */
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#define PHP_CRYPTO_HAS_PKCS2 1
+#endif
+
+typedef enum {
+	PHP_CRYPTO_KDF_TYPE_NONE,
+	PHP_CRYPTO_KDF_TYPE_PBKDF2
+} php_crypto_kdf_type;
+
+PHPC_OBJ_STRUCT_BEGIN(crypto_kdf)
+	php_crypto_kdf_type type;
+	union {
+#ifdef PHP_CRYPTO_HAS_PKCS2
+		struct {
+			const EVP_MD *md;
+			int iter;
+		} pbkdf2;
+#endif
+		void *unknown;
+
+	} ctx;
+	char *salt;
+	int salt_len;
+PHPC_OBJ_STRUCT_END()
+
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(KDF)
 PHP_CRYPTO_EXCEPTION_EXPORT(PBKDF2)
