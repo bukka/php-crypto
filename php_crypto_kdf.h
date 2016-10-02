@@ -22,9 +22,9 @@
 #include "php.h"
 #include "php_crypto.h"
 
-/* PKCS2 feature test */
+/* PBKDF2 feature test */
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
-#define PHP_CRYPTO_HAS_PKCS2 1
+#define PHP_CRYPTO_HAS_PBKDF2 1
 #endif
 
 typedef enum {
@@ -35,18 +35,20 @@ typedef enum {
 PHPC_OBJ_STRUCT_BEGIN(crypto_kdf)
 	php_crypto_kdf_type type;
 	union {
-#ifdef PHP_CRYPTO_HAS_PKCS2
 		struct {
 			const EVP_MD *md;
 			int iter;
 		} pbkdf2;
-#endif
-		void *unknown;
-
 	} ctx;
 	char *salt;
 	int salt_len;
 PHPC_OBJ_STRUCT_END()
+
+
+#define PHP_CRYPTO_PBKDF2_CTX_MD(pobj) (pobj)->ctx.pbkdf2.md
+#define PHP_CRYPTO_PBKDF2_CTX_ITER(pobj) (pobj)->ctx.pbkdf2.iter
+
+#define PHP_CRYPTO_PBKDF2_ITER_DEFAULT 1000
 
 /* Exceptions */
 PHP_CRYPTO_EXCEPTION_EXPORT(KDF)
@@ -68,13 +70,15 @@ PHP_CRYPTO_METHOD(KDF, __construct);
 PHP_CRYPTO_METHOD(KDF, getSalt);
 PHP_CRYPTO_METHOD(KDF, setSalt);
 
+#ifdef PHP_CRYPTO_HAS_PBKDF2
 /* PBKDF2 methods */
 PHP_CRYPTO_METHOD(PBKDF2, __construct);
 PHP_CRYPTO_METHOD(PBKDF2, derive);
-PHP_CRYPTO_METHOD(KDF, getIterations);
-PHP_CRYPTO_METHOD(KDF, setIterations);
-PHP_CRYPTO_METHOD(KDF, getHashAlgorithm);
-PHP_CRYPTO_METHOD(KDF, setHashAlgorithm);
+PHP_CRYPTO_METHOD(PBKDF2, getIterations);
+PHP_CRYPTO_METHOD(PBKDF2, setIterations);
+PHP_CRYPTO_METHOD(PBKDF2, getHashAlgorithm);
+PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm);
+#endif
 
 #endif	/* PHP_CRYPTO_KDF_H */
 
