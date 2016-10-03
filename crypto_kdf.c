@@ -33,6 +33,10 @@ PHP_CRYPTO_ERROR_INFO_END()
 
 PHP_CRYPTO_EXCEPTION_DEFINE(PBKDF2)
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_kdf_new, 0, 0, 0)
+ZEND_ARG_INFO(0, salt)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_kdf_salt, 0)
 ZEND_ARG_INFO(0, salt)
 ZEND_END_ARG_INFO()
@@ -40,7 +44,7 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry php_crypto_kdf_object_methods[] = {
 	PHP_CRYPTO_ME(
 		KDF, __construct,
-		arginfo_crypto_kdf_salt,
+		arginfo_crypto_kdf_new,
 		ZEND_ACC_CTOR|ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -58,6 +62,12 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 
 #ifdef PHP_CRYPTO_HAS_PBKDF2
 
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_pbkdf2_new, 0, 0, 1)
+ZEND_ARG_INFO(0, hashAlgorithm)
+ZEND_ARG_INFO(0, salt)
+ZEND_ARG_INFO(0, iterations)
+ZEND_END_ARG_INFO()
+
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_pbkdf2_derive, 0)
 ZEND_ARG_INFO(0, password)
 ZEND_END_ARG_INFO()
@@ -73,7 +83,7 @@ ZEND_END_ARG_INFO()
 static const zend_function_entry php_crypto_pbkdf2_object_methods[] = {
 	PHP_CRYPTO_ME(
 		PBKDF2, __construct,
-		arginfo_crypto_kdf_salt,
+		arginfo_crypto_pbkdf2_new,
 		ZEND_ACC_CTOR|ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -209,7 +219,7 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 /* KDF methods */
 
-/* {{{ proto Crypto\KDF::__construct()
+/* {{{ proto Crypto\KDF::__construct(string $salt = NULL)
 	KDF constructor */
 PHP_CRYPTO_METHOD(KDF, __construct)
 {
@@ -233,9 +243,11 @@ PHP_CRYPTO_METHOD(KDF, setSalt)
 }
 /* }}} */
 
+#ifdef PHP_CRYPTO_HAS_PBKDF2
 /* PBKDF2 methods */
 
-/* {{{ proto Crypto\PBKDF2::__construct()
+/* {{{ proto Crypto\PBKDF2::__construct(string $hashAlgorithm,
+			string $salt = NULL, int $iterations = 1000)
 	KDF constructor */
 PHP_CRYPTO_METHOD(PBKDF2, __construct)
 {
@@ -282,4 +294,4 @@ PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm)
 
 }
 /* }}} */
-
+#endif
