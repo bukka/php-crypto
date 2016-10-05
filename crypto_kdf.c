@@ -223,7 +223,21 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 	KDF constructor */
 PHP_CRYPTO_METHOD(KDF, __construct)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	char *salt = NULL;
+	phpc_str_size_t salt_len;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s",
+			&salt, &salt_len) == FAILURE) {
+		return;
+	}
+
+	if (salt != NULL) {
+		PHPC_THIS->salt = emalloc(salt_len + 1);
+		memcpy(PHPC_THIS->salt, salt, 1);
+		PHPC_THIS->salt[salt_len] = '\0';
+		PHPC_THIS->salt_len = salt_len;
+	}
 }
 /* }}} */
 
