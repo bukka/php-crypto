@@ -231,6 +231,7 @@ PHP_CRYPTO_METHOD(KDF, __construct)
 			&salt, &salt_len) == FAILURE) {
 		return;
 	}
+	PHPC_THIS_FETCH(crypto_kdf);
 
 	if (salt != NULL) {
 		PHPC_THIS->salt = emalloc(salt_len + 1);
@@ -245,7 +246,18 @@ PHP_CRYPTO_METHOD(KDF, __construct)
 	Get salt */
 PHP_CRYPTO_METHOD(KDF, getSalt)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
 
+	if (zend_parse_parameters_none()) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	if (PHPC_THIS->salt == NULL) {
+		RETURN_NULL();
+	}
+
+	PHPC_CSTRL_RETURN(PHPC_THIS->salt, PHPC_THIS->salt_len);
 }
 /* }}} */
 
