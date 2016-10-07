@@ -26,6 +26,10 @@
 PHP_CRYPTO_EXCEPTION_DEFINE(KDF)
 PHP_CRYPTO_ERROR_INFO_BEGIN(KDF)
 PHP_CRYPTO_ERROR_INFO_ENTRY(
+	SALT_LENGTH_INVALID,
+	"The salt is too long"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
 	DERIVATION_FAILED,
 	"KDF derivation failed"
 )
@@ -219,6 +223,26 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 /* KDF methods */
 
+/* {{{ php_crypto_kdf_set_salt */
+static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
+		char *salt, phpc_str_size_t salt_len TSRMLS_DC)
+{
+	int salt_len_int;
+
+	if (php_crypto_str_size_to_int(salt_len, &salt_len_int) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, SALT_LENGTH_INVALID));
+		return FAILURE;
+	}
+
+	PHPC_THIS->salt = emalloc(salt_len + 1);
+	memcpy(PHPC_THIS->salt, salt, salt_len);
+	PHPC_THIS->salt[salt_len] = '\0';
+	PHPC_THIS->salt_len = salt_len_int;
+
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ proto Crypto\KDF::__construct(string $salt = NULL)
 	KDF constructor */
 PHP_CRYPTO_METHOD(KDF, __construct)
@@ -234,10 +258,7 @@ PHP_CRYPTO_METHOD(KDF, __construct)
 	PHPC_THIS_FETCH(crypto_kdf);
 
 	if (salt != NULL) {
-		PHPC_THIS->salt = emalloc(salt_len + 1);
-		memcpy(PHPC_THIS->salt, salt, 1);
-		PHPC_THIS->salt[salt_len] = '\0';
-		PHPC_THIS->salt_len = salt_len;
+		php_crypto_kdf_set_salt(PHPC_THIS, salt, salt_len TSRMLS_CC);
 	}
 }
 /* }}} */
@@ -258,14 +279,25 @@ PHP_CRYPTO_METHOD(KDF, getSalt)
 	}
 
 	PHPC_CSTRL_RETURN(PHPC_THIS->salt, PHPC_THIS->salt_len);
+	RETURN_NULL();
 }
 /* }}} */
 
-/* {{{ proto void Crypto\KDF::setSalt(string $salt)
+/* {{{ proto bool Crypto\KDF::setSalt(string $salt)
 	Get salt */
 PHP_CRYPTO_METHOD(KDF, setSalt)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	char *salt = NULL;
+	phpc_str_size_t salt_len;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+			&salt, &salt_len) == FAILURE) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_BOOL(php_crypto_kdf_set_salt(PHPC_THIS, salt, salt_len TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
 
