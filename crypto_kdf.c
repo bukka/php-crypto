@@ -36,6 +36,16 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 PHP_CRYPTO_ERROR_INFO_END()
 
 PHP_CRYPTO_EXCEPTION_DEFINE(PBKDF2)
+PHP_CRYPTO_ERROR_INFO_BEGIN(PBKDF2)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	HASH_ALGORITHM_NOT_FOUND,
+	"Hash algorithm '%s' not found"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	ITERATIONS_HIGH,
+	"Iterations count is too high"
+)
+PHP_CRYPTO_ERROR_INFO_END()
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_kdf_new, 0, 0, 0)
 ZEND_ARG_INFO(0, salt)
@@ -215,6 +225,7 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 	/* PBKDF2 Exception registration */
 	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, PBKDF2, KDF);
+	PHP_CRYPTO_ERROR_INFO_REGISTER(PBKDF2);
 #endif
 
 	return SUCCESS;
@@ -304,12 +315,59 @@ PHP_CRYPTO_METHOD(KDF, setSalt)
 #ifdef PHP_CRYPTO_HAS_PBKDF2
 /* PBKDF2 methods */
 
+/* {{{ php_crypto_pbkdf2_set_hash_algorithm */
+static int php_crypto_pbkdf2_set_hash_algorithm(PHPC_THIS_DECLARE(crypto_kdf),
+		char *hash_alg TSRMLS_DC)
+{
+	const EVP_MD *digest = EVP_get_digestbyname(hash_alg);
+
+	if (!digest) {
+		php_crypto_error_ex(PHP_CRYPTO_ERROR_ARGS(PBKDF2, HASH_ALGORITHM_NOT_FOUND), hash_alg);
+		return FAILURE;
+	}
+	PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS) = digest;
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ php_crypto_pbkdf2_set_iterations */
+static int php_crypto_pbkdf2_set_iterations(PHPC_THIS_DECLARE(crypto_kdf),
+		 phpc_long_t iterations TSRMLS_DC)
+{
+	int iterations_int;
+
+	if (php_crypto_long_to_int(iterations, &iterations_int) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(PBKDF2, ITERATIONS_HIGH));
+		return FAILURE;
+	}
+	PHP_CRYPTO_PBKDF2_CTX_ITER(PHPC_THIS) = iterations_int;
+
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ proto Crypto\PBKDF2::__construct(string $hashAlgorithm,
 			string $salt = NULL, int $iterations = 1000)
 	KDF constructor */
 PHP_CRYPTO_METHOD(PBKDF2, __construct)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	char *hash_alg, *salt = NULL;
+	phpc_str_size_t hash_alg_len, salt_len;
+	phpc_long_t iterations = PHP_CRYPTO_PBKDF2_ITER_DEFAULT;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sl",
+			&hash_alg, &hash_alg_len, &salt, &salt_len, &iterations) == FAILURE) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	php_crypto_pbkdf2_set_hash_algorithm(PHPC_THIS, hash_alg TSRMLS_CC);
+	if (salt != NULL) {
+		php_crypto_kdf_set_salt(PHPC_THIS, salt, salt_len TSRMLS_CC);
+	}
+	php_crypto_pbkdf2_set_iterations(PHPC_THIS, iterations TSRMLS_CC);
 }
 /* }}} */
 
