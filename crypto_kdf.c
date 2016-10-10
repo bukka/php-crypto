@@ -30,6 +30,10 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 	"The salt is too long"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
+	PASSWORD_LENGTH_INVALID,
+	"The password is too long"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
 	DERIVATION_FAILED,
 	"KDF derivation failed"
 )
@@ -371,11 +375,35 @@ PHP_CRYPTO_METHOD(PBKDF2, __construct)
 }
 /* }}} */
 
-/* {{{ proto Crypto\PBKDF2::deriver(string $password)
+/* {{{ proto string Crypto\PBKDF2::deriver(string $password)
 	Deriver hash for password */
 PHP_CRYPTO_METHOD(PBKDF2, derive)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	char *password, out[EVP_MAX_MD_SIZE + 1];
+	phpc_str_size_t password_len;
+	int password_len_int, hash_len;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
+			&password, &password_len) == FAILURE) {
+		return;
+	}
+
+	if (php_crypto_str_size_to_int(password_len, &password_len_int) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, PASSWORD_LENGTH_INVALID));
+		RETURN_NULL();
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	hash_len = EVP_MD_size(PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS));
+
+	if (!PKCS5_PBKDF2_HMAC(password, password_len_int, PHPC_THIS->salt, PHPC_THIS->salt_len,
+			PHP_CRYPTO_PBKDF2_CTX_ITER(PHPC_THIS), PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS), hash_len, out)) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, DERIVATION_FAILED));
+		RETURN_NULL();
+	}
+
+	PHPC_CSTRL_RETURN(out, hash_len);
 }
 /* }}} */
 
