@@ -411,7 +411,14 @@ PHP_CRYPTO_METHOD(PBKDF2, derive)
 	Get iterations */
 PHP_CRYPTO_METHOD(PBKDF2, getIterations)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
 
+	if (zend_parse_parameters_none()) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_LONG(PHP_CRYPTO_PBKDF2_CTX_ITER(PHPC_THIS));
 }
 /* }}} */
 
