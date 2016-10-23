@@ -294,7 +294,6 @@ PHP_CRYPTO_METHOD(KDF, getSalt)
 	}
 
 	PHPC_CSTRL_RETURN(PHPC_THIS->salt, PHPC_THIS->salt_len);
-	RETURN_NULL();
 }
 /* }}} */
 
@@ -422,11 +421,20 @@ PHP_CRYPTO_METHOD(PBKDF2, getIterations)
 }
 /* }}} */
 
-/* {{{ proto void Crypto\PBKDF2::setIterations(int $iterations)
+/* {{{ proto bool Crypto\PBKDF2::setIterations(int $iterations)
 	Set iterations */
 PHP_CRYPTO_METHOD(PBKDF2, setIterations)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	phpc_long_t iterations;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+			&iterations) == FAILURE) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_BOOL(php_crypto_pbkdf2_set_iterations(PHPC_THIS, iterations TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
 
@@ -434,15 +442,38 @@ PHP_CRYPTO_METHOD(PBKDF2, setIterations)
 	Get hash algorithm */
 PHP_CRYPTO_METHOD(PBKDF2, getHashAlgorithm)
 {
+	const EVP_MD *md;
+	PHPC_THIS_DECLARE(crypto_kdf);
 
+	if (zend_parse_parameters_none()) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	md = PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS);
+	if (md == NULL) {
+		RETURN_NULL();
+	}
+
+	PHPC_CSTR_RETURN(EVP_MD_name(md));
 }
 /* }}} */
 
-/* {{{ proto void Crypto\PBKDF2::setHashAlgorithm(string $hashAlgorithm)
+/* {{{ proto bool Crypto\PBKDF2::setHashAlgorithm(string $hashAlgorithm)
 	Set hash algorithm */
 PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm)
 {
+	PHPC_THIS_DECLARE(crypto_kdf);
+	char *hash_alg;
+	phpc_str_size_t hash_alg_len;
 
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sl",
+			&hash_alg, &hash_alg_len) == FAILURE) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_BOOL(php_crypto_pbkdf2_set_hash_algorithm(PHPC_THIS, hash_alg TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
 #endif
