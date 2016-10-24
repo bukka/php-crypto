@@ -224,7 +224,7 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 #ifdef PHP_CRYPTO_HAS_PBKDF2
 	/* PBKDF2 class */
-	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(PBKDF2), NULL);
+	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(PBKDF2), php_crypto_pbkdf2_object_methods);
 	php_crypto_pbkdf2_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_kdf_ce, NULL);
 
 	/* PBKDF2 Exception registration */
