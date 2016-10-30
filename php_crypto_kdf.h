@@ -42,6 +42,7 @@ PHPC_OBJ_STRUCT_BEGIN(crypto_kdf)
 	} ctx;
 	char *salt;
 	int salt_len;
+	int key_len;
 PHPC_OBJ_STRUCT_END()
 
 
@@ -67,6 +68,8 @@ PHP_MINIT_FUNCTION(crypto_kdf);
 
 /* KDF methods */
 PHP_CRYPTO_METHOD(KDF, __construct);
+PHP_CRYPTO_METHOD(KDF, getLength);
+PHP_CRYPTO_METHOD(KDF, setLength);
 PHP_CRYPTO_METHOD(KDF, getSalt);
 PHP_CRYPTO_METHOD(KDF, setSalt);
 

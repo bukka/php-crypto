@@ -4,11 +4,11 @@ Crypto\KDF::__construct basic usage.
 <?php
 // sub classing
 class SubKDF extends Crypto\KDF {
-    function __construct($salt) {
-	    parent::__construct($salt);
+    function __construct($length, $salt) {
+	    parent::__construct($length, $salt);
 	}
 }
-$subkdf = new SubKDF('salt');
+$subkdf = new SubKDF(32, 'salt');
 var_dump($subkdf);
 ?>
 --EXPECTF--

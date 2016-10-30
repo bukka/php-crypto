@@ -26,7 +26,15 @@
 PHP_CRYPTO_EXCEPTION_DEFINE(KDF)
 PHP_CRYPTO_ERROR_INFO_BEGIN(KDF)
 PHP_CRYPTO_ERROR_INFO_ENTRY(
-	SALT_LENGTH_INVALID,
+	KEY_LENGTH_LOW,
+	"The key lenght is too low"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	KEY_LENGTH_HIGH,
+	"The key lenght is too high"
+)
+PHP_CRYPTO_ERROR_INFO_ENTRY(
+	SALT_LENGTH_HIGH,
 	"The salt is too long"
 )
 PHP_CRYPTO_ERROR_INFO_ENTRY(
@@ -51,8 +59,13 @@ PHP_CRYPTO_ERROR_INFO_ENTRY(
 )
 PHP_CRYPTO_ERROR_INFO_END()
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_kdf_new, 0, 0, 0)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_kdf_new, 0, 0, 1)
+ZEND_ARG_INFO(0, length)
 ZEND_ARG_INFO(0, salt)
+ZEND_END_ARG_INFO()
+
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_kdf_length, 0)
+ZEND_ARG_INFO(0, length)
 ZEND_END_ARG_INFO()
 
 ZEND_BEGIN_ARG_INFO(arginfo_crypto_kdf_salt, 0)
@@ -64,6 +77,16 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 		KDF, __construct,
 		arginfo_crypto_kdf_new,
 		ZEND_ACC_CTOR|ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		KDF, getLength,
+		NULL,
+		ZEND_ACC_PUBLIC
+	)
+	PHP_CRYPTO_ME(
+		KDF, setLength,
+		arginfo_crypto_kdf_length,
+		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		KDF, getSalt,
@@ -167,6 +190,7 @@ PHPC_OBJ_HANDLER_CREATE_EX(crypto_kdf)
 		PHPC_THIS->type = PHP_CRYPTO_KDF_TYPE_NONE;
 	}
 
+	PHPC_THIS->key_len = 0;
 	PHPC_THIS->salt = NULL;
 	PHPC_THIS->salt_len = 0;
 
@@ -188,6 +212,7 @@ PHPC_OBJ_HANDLER_CLONE(crypto_kdf)
 	PHPC_OBJ_HANDLER_CLONE_INIT(crypto_kdf);
 
 	PHPC_THAT->type = PHPC_THIS->type;
+	PHPC_THAT->key_len = PHPC_THIS->key_len;
 	if (PHPC_THIS->salt) {
 		PHPC_THAT->salt = emalloc(PHPC_THIS->salt_len + 1);
 		memcpy(PHPC_THAT->salt, PHPC_THIS->salt, PHPC_THIS->salt_len + 1);
@@ -238,6 +263,27 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 /* KDF methods */
 
+/* {{{ php_crypto_kdf_set_key_len */
+static int php_crypto_kdf_set_key_len(PHPC_THIS_DECLARE(crypto_kdf),
+		phpc_str_size_t key_len TSRMLS_DC)
+{
+	int key_len_int;
+
+	if (key_len <= 0) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, KEY_LENGTH_LOW));
+		return FAILURE;
+	}
+	if (php_crypto_long_to_int(key_len, &key_len_int) == FAILURE) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, KEY_LENGTH_HIGH));
+		return FAILURE;
+	}
+
+	PHPC_THIS->key_len = key_len_int;
+
+	return SUCCESS;
+}
+/* }}} */
+
 /* {{{ php_crypto_kdf_set_salt */
 static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
 		char *salt, phpc_str_size_t salt_len TSRMLS_DC)
@@ -245,7 +291,7 @@ static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
 	int salt_len_int;
 
 	if (php_crypto_str_size_to_int(salt_len, &salt_len_int) == FAILURE) {
-		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, SALT_LENGTH_INVALID));
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, SALT_LENGTH_HIGH));
 		return FAILURE;
 	}
 
@@ -258,23 +304,57 @@ static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
 }
 /* }}} */
 
+
 /* {{{ proto Crypto\KDF::__construct(string $salt = NULL)
 	KDF constructor */
 PHP_CRYPTO_METHOD(KDF, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
 	char *salt = NULL;
-	phpc_str_size_t salt_len;
+	phpc_str_size_t key_len, salt_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|s",
-			&salt, &salt_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s",
+			&key_len, &salt, &salt_len) == FAILURE) {
 		return;
 	}
 	PHPC_THIS_FETCH(crypto_kdf);
 
+	php_crypto_kdf_set_key_len(PHPC_THIS, key_len TSRMLS_CC);
 	if (salt != NULL) {
 		php_crypto_kdf_set_salt(PHPC_THIS, salt, salt_len TSRMLS_CC);
 	}
+}
+/* }}} */
+
+/* {{{ proto int Crypto\KDF::getLength()
+	Get key length */
+PHP_CRYPTO_METHOD(KDF, getLength)
+{
+	PHPC_THIS_DECLARE(crypto_kdf);
+
+	if (zend_parse_parameters_none()) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_LONG(PHPC_THIS->key_len);
+}
+/* }}} */
+
+/* {{{ proto bool Crypto\KDF::setLength(int $length)
+	Set key length */
+PHP_CRYPTO_METHOD(KDF, setLength)
+{
+	PHPC_THIS_DECLARE(crypto_kdf);
+	phpc_str_size_t key_len;
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
+			&key_len) == FAILURE) {
+		return;
+	}
+	PHPC_THIS_FETCH(crypto_kdf);
+
+	RETURN_BOOL(php_crypto_kdf_set_key_len(PHPC_THIS, key_len TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
 
@@ -298,7 +378,7 @@ PHP_CRYPTO_METHOD(KDF, getSalt)
 /* }}} */
 
 /* {{{ proto bool Crypto\KDF::setSalt(string $salt)
-	Get salt */
+	Set salt */
 PHP_CRYPTO_METHOD(KDF, setSalt)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
@@ -357,16 +437,17 @@ PHP_CRYPTO_METHOD(PBKDF2, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
 	char *hash_alg, *salt = NULL;
-	phpc_str_size_t hash_alg_len, salt_len;
+	phpc_str_size_t key_len, hash_alg_len, salt_len;
 	phpc_long_t iterations = PHP_CRYPTO_PBKDF2_ITER_DEFAULT;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sl",
-			&hash_alg, &hash_alg_len, &salt, &salt_len, &iterations) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl|sl",
+			&hash_alg, &hash_alg_len, &key_len, &salt, &salt_len, &iterations) == FAILURE) {
 		return;
 	}
 	PHPC_THIS_FETCH(crypto_kdf);
 
 	php_crypto_pbkdf2_set_hash_algorithm(PHPC_THIS, hash_alg TSRMLS_CC);
+	php_crypto_kdf_set_key_len(PHPC_THIS, key_len TSRMLS_CC);
 	if (salt != NULL) {
 		php_crypto_kdf_set_salt(PHPC_THIS, salt, salt_len TSRMLS_CC);
 	}
@@ -379,7 +460,8 @@ PHP_CRYPTO_METHOD(PBKDF2, __construct)
 PHP_CRYPTO_METHOD(PBKDF2, derive)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
-	char *password, out[EVP_MAX_MD_SIZE + 1];
+	PHPC_STR_DECLARE(key);
+	char *password;
 	phpc_str_size_t password_len;
 	int password_len_int, hash_len;
 
@@ -393,16 +475,16 @@ PHP_CRYPTO_METHOD(PBKDF2, derive)
 		RETURN_NULL();
 	}
 	PHPC_THIS_FETCH(crypto_kdf);
-
-	hash_len = EVP_MD_size(PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS));
+	PHPC_STR_ALLOC(key, PHPC_THIS->key_len);
 
 	if (!PKCS5_PBKDF2_HMAC(password, password_len_int, PHPC_THIS->salt, PHPC_THIS->salt_len,
-			PHP_CRYPTO_PBKDF2_CTX_ITER(PHPC_THIS), PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS), hash_len, out)) {
+			PHP_CRYPTO_PBKDF2_CTX_ITER(PHPC_THIS), PHP_CRYPTO_PBKDF2_CTX_MD(PHPC_THIS),
+			PHPC_THIS->key_len, PHPC_STR_VAL(key))) {
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, DERIVATION_FAILED));
 		RETURN_NULL();
 	}
 
-	PHPC_CSTRL_RETURN(out, hash_len);
+	PHPC_STR_RETURN(key);
 }
 /* }}} */
 

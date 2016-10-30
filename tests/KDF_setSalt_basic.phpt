@@ -5,7 +5,7 @@ Crypto\KDF::setSalt basic usage.
 // sub classing
 class SubKDF extends Crypto\KDF {
     function __construct() {
-	    parent::__construct();
+	    parent::__construct(32);
 	}
 }
 $subkdf = new SubKDF();

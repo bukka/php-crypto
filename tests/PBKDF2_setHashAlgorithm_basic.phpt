@@ -2,7 +2,7 @@
 Crypto\PBKDF2::setHashAlgorithm basic usage.
 --FILE--
 <?php
-$pbkdf2 = new Crypto\PBKDF2('sha256');
+$pbkdf2 = new Crypto\PBKDF2('sha256', 32);
 $pbkdf2->setHashAlgorithm('sha512');
 echo $pbkdf2->getHashAlgorithm() . "\n";
 
