@@ -295,7 +295,12 @@ static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
 		return FAILURE;
 	}
 
-	PHPC_THIS->salt = emalloc(salt_len + 1);
+	if (PHPC_THIS->salt == NULL) {
+		PHPC_THIS->salt = emalloc(salt_len + 1);
+	} else if (PHPC_THIS->salt_len != salt_len) {
+		PHPC_THIS->salt = erealloc(PHPC_THIS->salt, salt_len + 1);
+	}
+
 	memcpy(PHPC_THIS->salt, salt, salt_len);
 	PHPC_THIS->salt[salt_len] = '\0';
 	PHPC_THIS->salt_len = salt_len_int;
