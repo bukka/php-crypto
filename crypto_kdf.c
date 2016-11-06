@@ -488,6 +488,7 @@ PHP_CRYPTO_METHOD(PBKDF2, derive)
 		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(KDF, DERIVATION_FAILED));
 		RETURN_NULL();
 	}
+	PHPC_STR_VAL(key)[PHPC_THIS->key_len] = '\0';
 
 	PHPC_STR_RETURN(key);
 }
