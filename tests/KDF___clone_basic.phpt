@@ -1,5 +1,5 @@
 --TEST--
-Crypto\HMAC::__clone basic usage.
+Crypto\KDF::__clone basic usage.
 --FILE--
 <?php
 function print_kdf($kdf) {
