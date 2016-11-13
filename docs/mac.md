@@ -16,7 +16,7 @@ supplied algorithm.
 
 ##### *Parameters*
 
-*key* : `key` - the key string
+*key* : `string` - the key string
 *algorithm* : `string` - the algorithm name
 
 ##### *Return value*
