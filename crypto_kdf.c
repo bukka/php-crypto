@@ -310,7 +310,7 @@ static int php_crypto_kdf_set_salt(PHPC_THIS_DECLARE(crypto_kdf),
 /* }}} */
 
 
-/* {{{ proto Crypto\KDF::__construct(string $salt = NULL)
+/* {{{ proto Crypto\KDF::__construct(int $length, string $salt = NULL)
 	KDF constructor */
 PHP_CRYPTO_METHOD(KDF, __construct)
 {
