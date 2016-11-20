@@ -32,3 +32,26 @@ It can throw `KDFException` with code
 - `MACException::SALT_LENGTH_HIGH` - if the data length exceeds
 C INT_MAX
 
+#### `KDF::derive($password)`
+
+_**Description**_: An abstract method to derive the key from the password.
+
+The `derive` abstract method has to be used in all subclasses to derive
+the key from the supplied password. If the derivation fails, it must
+throw `KDFException`.
+
+##### *Parameters*
+
+*password* : `string` - the password
+
+##### *Return value*
+
+`string`: Derived key.
+
+##### *Throws*
+
+The implementing method can throw `KDFException` with code
+
+- `MACException::DERIVATION_FAILED` - the derivation failed
+- `MACException::PASSWORD_LENGTH_INVALID` - if the password length
+exceeds C INT_MAX
