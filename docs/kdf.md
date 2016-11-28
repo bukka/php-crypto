@@ -55,3 +55,22 @@ The implementing method can throw `KDFException` with code
 - `MACException::DERIVATION_FAILED` - the derivation failed
 - `MACException::PASSWORD_LENGTH_INVALID` - if the password length
 exceeds C INT_MAX
+
+#### `KDF::getLength()`
+
+_**Description**_: Returns a length of the derived key.
+
+This method returns a lenght of the key that will be or was derived
+by the `KDF::derive`.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The lenght of the derived key.
