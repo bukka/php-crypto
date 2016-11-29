@@ -74,3 +74,22 @@ This method does not throw any exception.
 ##### *Return value*
 
 `int`: The lenght of the derived key.
+
+#### `KDF::getSalt()`
+
+_**Description**_: Returns salt for key derivation.
+
+This method returns salt string that will be used when deriving a key
+using `KDF::derive`.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`string`: The salt.
