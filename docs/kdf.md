@@ -93,3 +93,25 @@ This method does not throw any exception.
 ##### *Return value*
 
 `string`: The salt.
+
+#### `KDF::setLength($length)`
+
+_**Description**_: Sets a length for the derived key.
+
+This method sets a length that will be the string length of the derived key.
+
+##### *Parameters*
+
+*length* : `int` - key length
+
+##### *Throws*
+
+It can throw `KDFException` with code
+
+- `KDFException::KEY_LENGTH_LOW` - if key length is less than 0
+- `KDFException::KEY_LENGTH_HIGH` - if key length is more than C INT_MAX
+value
+
+##### *Return value*
+
+`bool`: true if the key length was set succesfully
