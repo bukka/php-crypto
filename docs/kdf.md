@@ -77,7 +77,7 @@ This method does not throw any exception.
 
 #### `KDF::getSalt()`
 
-_**Description**_: Returns salt for key derivation.
+_**Description**_: Returns salt for the key derivation.
 
 This method returns salt string that will be used when deriving a key
 using `KDF::derive`.
@@ -115,3 +115,23 @@ value
 ##### *Return value*
 
 `bool`: true if the key length was set succesfully
+
+#### `KDF::setSalt($salt)`
+
+_**Description**_: Sets salt for the key derivation.
+
+This method sets salt that will be used when deriving key using `KDF::derive`.
+
+##### *Parameters*
+
+*salt* : `string` - salt for the key derivation
+
+##### *Throws*
+
+It can throw `KDFException` with code
+
+- `KDFException::SALT_LENGTH_HIGH` - if the salt length is more than C INT_MAX
+
+##### *Return value*
+
+`bool`: true if the salt was set succesfully
