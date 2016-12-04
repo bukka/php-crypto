@@ -1,11 +1,11 @@
 ## HMAC
 
-The `HMAC` class provides functions for creating  a keyed-hash message 
+The `HMAC` class provides functions for creating a keyed-hash message
 authentication code (HMAC) message digest from a supplied key and
 block of data. It allows to choose a message digest algorithm.
 
 The `HMAC` class extends `MAC` class which extends [`Hash`](hash.md) class. It
-means that with exception of a constructor all methods are inherited
+means that with an exception of the constructor all methods are inherited
 from [`Hash`](hash.md) class.
 
 ### Instance Methods
