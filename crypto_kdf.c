@@ -103,8 +103,9 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 
 #ifdef PHP_CRYPTO_HAS_PBKDF2
 
-ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_pbkdf2_new, 0, 0, 1)
+ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_pbkdf2_new, 0, 0, 2)
 ZEND_ARG_INFO(0, hashAlgorithm)
+ZEND_ARG_INFO(0, length)
 ZEND_ARG_INFO(0, salt)
 ZEND_ARG_INFO(0, iterations)
 ZEND_END_ARG_INFO()
@@ -435,7 +436,7 @@ static int php_crypto_pbkdf2_set_iterations(PHPC_THIS_DECLARE(crypto_kdf),
 }
 /* }}} */
 
-/* {{{ proto Crypto\PBKDF2::__construct(string $hashAlgorithm,
+/* {{{ proto Crypto\PBKDF2::__construct(string $hashAlgorithm, int $length,
 			string $salt = NULL, int $iterations = 1000)
 	KDF constructor */
 PHP_CRYPTO_METHOD(PBKDF2, __construct)
