@@ -25,7 +25,7 @@ The key length is compared with block size:
 
 ##### *Parameters*
 
-*key* : `key` - the key string
+*key* : `string` - the key string
 *algorithm* : `string` - the algorithm name (e.g. `sha256`, `sha512`, `md5`)
 
 ##### *Return value*

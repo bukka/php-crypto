@@ -27,9 +27,9 @@ or length is over the max limits.
 
 It can throw `KDFException` with code
 
-- `MACException::KEY_LENGTH_LOW` - the supplied key length is too low
-- `MACException::KEY_LENGTH_HIGH` - the supplied key length is too high
-- `MACException::SALT_LENGTH_HIGH` - if the data length exceeds
+- `KDFException::KEY_LENGTH_LOW` - the supplied key length is too low
+- `KDFException::KEY_LENGTH_HIGH` - the supplied key length is too high
+- `KDFException::SALT_LENGTH_HIGH` - if the data length exceeds
 C INT_MAX
 
 #### `KDF::derive($password)`
@@ -52,8 +52,8 @@ throw `KDFException`.
 
 The implementing method can throw `KDFException` with code
 
-- `MACException::DERIVATION_FAILED` - the derivation failed
-- `MACException::PASSWORD_LENGTH_INVALID` - if the password length
+- `KDFException::DERIVATION_FAILED` - the derivation failed
+- `KDFException::PASSWORD_LENGTH_INVALID` - if the password length
 exceeds C INT_MAX
 
 #### `KDF::getLength()`
