@@ -4,7 +4,8 @@ The `PBKDF2` class provides functions for creating a password based key derivati
 function 2 using multiple iteration of `HMAC`.
 
 The `PBKDF2` class extends [`KDF`](kdf.md) class. It means that it inherits methods
-for setting / getting length and salt.
+for derivation and setting / getting length and salt. All these methods are
+documented in [`KDF`](kdf.md).
 
 ### Instance Methods
 
@@ -54,4 +55,33 @@ try {
 catch (\Crypto\KDFException $e) {
     echo $e->getMessage();
 }
+```
+
+#### `PBKDF2::getHashAlgorithm()`
+
+_**Description**_: Returns hash algorithm name.
+
+This method returns a hash algorithm name. The algorithm will be used
+for HMAC when deriving a key using `PBKDF2::derive`.
+
+The name is usually in upper case even if it was supplied as lower case.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`string`: The hash algorithm.
+
+##### *Examples*
+
+```php
+$pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16));
+// this will output SHA256
+echo $pbkdf2->getHashAlgorithm();
 ```
