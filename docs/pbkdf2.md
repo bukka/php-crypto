@@ -9,7 +9,7 @@ documented in [`KDF`](kdf.md).
 
 ### Instance Methods
 
-#### `PBKDF2::__construct($hashAlgorithm, $length, $salt = NULL, $iter = 1000)`
+#### `PBKDF2::__construct($hashAlgorithm, $length, $salt = NULL, $iterations = 1000)`
 
 _**Description**_: Creates a new `PBKDF2` class if supplied algorithm is supported.
 
@@ -84,4 +84,30 @@ This method does not throw any exception.
 $pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16));
 // this will output SHA256
 echo $pbkdf2->getHashAlgorithm();
+```
+
+#### `PBKDF2::getIterations()`
+
+_**Description**_: Returns the number of iterations.
+
+This method returns the number of iterations for deriving key.
+
+##### *Parameters*
+
+This method has no parameters.
+
+##### *Throws*
+
+This method does not throw any exception.
+
+##### *Return value*
+
+`int`: The number of iterations.
+
+##### *Examples*
+
+```php
+$pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16), 1200);
+// returns 1200
+echo $pbkdf2->getIterations();
 ```
