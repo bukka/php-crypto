@@ -132,12 +132,42 @@ is invalid
 
 ##### *Return value*
 
-`bool`: true if the salt was set succesfully
+`bool`: true if the hash algorithm was set succesfully
+
+##### *Examples*
+
+```php
+$pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16));
+// if we want to change hash algorithm to SHA512
+$pbkdf2->setHashAlgorithm('sha512');
+```
+
+#### `PBKDF2::setIterations($iterations)`
+
+_**Description**_: Sets the number of iterations.
+
+This method sets the number of iterations for key derivation which will be
+used in `PBKDF2::derive`. Any number less than 1 is treated as a single
+iteration.
+
+##### *Parameters*
+
+*iterations* : `int` - the number of iterations
+
+##### *Throws*
+
+It can throw `PBKDF2Exception` with code
+
+- `PBKDF2Exception::ITERATIONS_HIGH` - the supplied iterations count is too high
+
+##### *Return value*
+
+`bool`: true if the number of iterations was set succesfully
 
 ##### *Examples*
 
 ```php
 $pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16), 1200);
-// if we want to change hash algorithm to SHA512
-$pbkdf2->setHashAlgorithm('sha512');
+// if we want to change number of iterations to 1000
+$pbkdf2->setIterations(1000);
 ```
