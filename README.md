@@ -99,6 +99,8 @@ of all class methods, constants and other related details:
 - **[Hash](docs/hash.md)**
 - **[HMAC](docs/hmac.md)**
 - **[MAC](docs/mac.md)**
+- **[KDF](docs/kdf.md)**
+- **[PBKDF2](docs/pbkdf2.md)**
 - **[Rand](docs/rand.md)**
 - **[Streams](docs/streams.md)**
 
