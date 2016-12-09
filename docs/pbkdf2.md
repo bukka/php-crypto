@@ -36,7 +36,7 @@ It can throw `KDFException` with code
 - `KDFException::KEY_LENGTH_HIGH` - the supplied key length is too high
 - `KDFException::SALT_LENGTH_HIGH` - if the data length exceeds
 C INT_MAX
-- `PBKDF2Exception::HASH_ALGORITHM_NOT_FOUND` - the supplied has algorithm
+- `PBKDF2Exception::HASH_ALGORITHM_NOT_FOUND` - the supplied hash algorithm
 is invalid
 - `PBKDF2Exception::ITERATIONS_HIGH` - the supplied iterations count is too high
 
@@ -110,4 +110,34 @@ This method does not throw any exception.
 $pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16), 1200);
 // returns 1200
 echo $pbkdf2->getIterations();
+```
+
+#### `PBKDF2::setHashAlgorithm($hashAlgorithm)`
+
+_**Description**_: Sets hash algorithm name.
+
+This method sets a hash algorithm by its name. It will be then used
+by HMAC when deriving key using `PBKDF2::derive`.
+
+##### *Parameters*
+
+*hashAlgorithm* : `string` - the hash algorithm name
+
+##### *Throws*
+
+It can throw `PBKDF2Exception` with code
+
+- `PBKDF2Exception::HASH_ALGORITHM_NOT_FOUND` - the supplied hash algorithm
+is invalid
+
+##### *Return value*
+
+`bool`: true if the salt was set succesfully
+
+##### *Examples*
+
+```php
+$pbkdf2 = new \Crypto\PBKDF2('sha256', 32, \Crypto\Rand::generate(16), 1200);
+// if we want to change hash algorithm to SHA512
+$pbkdf2->setHashAlgorithm('sha512');
 ```
