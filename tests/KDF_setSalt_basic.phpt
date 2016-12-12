@@ -7,6 +7,9 @@ class SubKDF extends Crypto\KDF {
     function __construct() {
 	    parent::__construct(32);
 	}
+	function derive($password) {
+		return sha1($password);
+	}
 }
 $subkdf = new SubKDF();
 var_dump($subkdf->getSalt());
