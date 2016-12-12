@@ -465,7 +465,7 @@ PHP_CRYPTO_METHOD(PBKDF2, __construct)
 }
 /* }}} */
 
-/* {{{ proto string Crypto\PBKDF2::deriver(string $password)
+/* {{{ proto string Crypto\PBKDF2::derive(string $password)
 	Deriver hash for password */
 PHP_CRYPTO_METHOD(PBKDF2, derive)
 {

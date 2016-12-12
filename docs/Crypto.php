@@ -404,7 +404,7 @@ class Crypto\HashException extends Exception {
     /**
      * Hash algorithm '%s' not found
      */
-    const ALGORITHM_NOT_FOUND = 1;
+    const HASH_ALGORITHM_NOT_FOUND = 1;
     
     /**
      * Hash static method '%s' not found
@@ -459,7 +459,7 @@ class Crypto\MACException extends Crypto\HashException {
     /**
      * MAC algorithm '%s' not found
      */
-    const ALGORITHM_NOT_FOUND = 1;
+    const MAC_ALGORITHM_NOT_FOUND = 1;
     
     /**
      * The key length for MAC is invalid
@@ -478,6 +478,142 @@ class Crypto\HMAC extends Crypto\MAC {
  * Class providing CMAC functionality
  */
 class Crypto\CMAC extends Crypto\MAC {
+}
+
+/**
+ * Abstract class for KDF subclasses
+ */
+abstract class Crypto\KDF {
+    /**
+     * KDF constructor
+     * @param int $length
+     * @param string $salt
+     */
+    public function __construct($length, $salt = NULL) {}
+    
+    /**
+     * Get key length
+     * @return int
+     */
+    public function getLength() {}
+    
+    /**
+     * Set key length
+     * @param int $length
+     * @return bool
+     */
+    public function setLength($length) {}
+    
+    /**
+     * Get salt
+     * @return string
+     */
+    public function getSalt() {}
+    
+    /**
+     * Set salt
+     * @param string $salt
+     * @return bool
+     */
+    public function setSalt($salt) {}
+    
+}
+
+/**
+ * Exception class for KDF errors
+ */
+class Crypto\KDFException {
+    
+    /**
+     * The key lenght is too low
+     */
+    const KEY_LENGTH_LOW = 1;
+    
+    /**
+     * The key lenght is too high
+     */
+    const KEY_LENGTH_HIGH = 2;
+    
+    /**
+     * The salt is too long
+     */
+    const SALT_LENGTH_HIGH = 3;
+    
+    /**
+     * The password is too long
+     */
+    const PASSWORD_LENGTH_INVALID = 4;
+    
+    /**
+     * KDF derivation failed
+     */
+    const DERIVATION_FAILED = 5;
+    
+}
+
+/**
+ * Class providing PBKDF2 functionality
+ */
+class Crypto\PBKDF2 extends Crypto\KDF {
+    /**
+     * KDF constructor
+     * @param string $hashAlgorithm
+     * @param int $length
+     * @param string $salt
+     * @param int $iterations
+     */
+    public function __construct($hashAlgorithm, $length, $salt = NULL, $iterations = 1000) {}
+    
+    /**
+     * Deriver hash for password
+     * @param string $password
+     * @return string
+     */
+    public function derive($password) {}
+    
+    /**
+     * Get iterations
+     * @return int
+     */
+    public function getIterations() {}
+    
+    /**
+     * Set iterations
+     * @param int $iterations
+     * @return bool
+     */
+    public function setIterations($iterations) {}
+    
+    /**
+     * Get hash algorithm
+     * @return string
+     */
+    public function getHashAlgorithm() {}
+    
+    /**
+     * Set hash algorithm
+     * @param string $hashAlgorithm
+     * @return bool
+     */
+    public function setHashAlgorithm($hashAlgorithm) {}
+    
+}
+
+/**
+ * Exception class for PBKDF2 errors
+ */
+class Crypto\PBKDF2Exception extends Crypto\KDFException {
+    
+    /**
+     * Hash algorithm '%s' not found
+     */
+    const HASH_ALGORITHM_NOT_FOUND = 1;
+    
+    /**
+     * Iterations count is too high
+     */
+    const ITERATIONS_HIGH = 2;
+    
 }
 
 /**

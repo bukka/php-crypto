@@ -58,6 +58,25 @@ class Apidoc {
 				'description' => 'Class providing CMAC functionality',
 			),
 			array(
+				'name' => 'Crypto\KDF',
+				'abstract' => true,
+				'description' => 'Abstract class for KDF subclasses',
+			),
+			array(
+				'name' => 'Crypto\KDFException',
+				'description' => 'Exception class for KDF errors',
+			),
+			array(
+				'name' => 'Crypto\PBKDF2',
+				'parent' => 'Crypto\KDF',
+				'description' => 'Class providing PBKDF2 functionality',
+			),
+			array(
+				'name' => 'Crypto\PBKDF2Exception',
+				'parent' => 'Crypto\KDFException',
+				'description' => 'Exception class for PBKDF2 errors',
+			),
+			array(
 				'name' => 'Crypto\Base64',
 				'description' => 'Class for base64 encoding and docoding',
 			),
@@ -80,6 +99,7 @@ class Apidoc {
 			'files' => array(
 				'/crypto_cipher.c',
 				'/crypto_hash.c',
+				'/crypto_kdf.c',
 				'/crypto_base64.c',
 				'/crypto_rand.c'
 			),
@@ -98,6 +118,14 @@ class Apidoc {
 				'Crypto\MACException' => array(
 					'name' => 'MAC',
 					'file' => '/crypto_hash.c',
+				),
+				'Crypto\KDFException' => array(
+					'name' => 'KDF',
+					'file' => '/crypto_kdf.c',
+				),
+				'Crypto\PBKDF2Exception' => array(
+					'name' => 'PBKDF2',
+					'file' => '/crypto_kdf.c',
 				),
 				'Crypto\Base64Exception' => array(
 					'name' => 'Base64',
