@@ -1,5 +1,7 @@
 --TEST--
 Crypto\PBKDF2::__clone basic usage.
+--SKIPIF--
+<?php if (!class_exists('Crypto\PBKDF2')) die("Skip: PBKDF2 is not supported (update OpenSSL version)"); ?>
 --FILE--
 <?php
 function print_pbkdf2($kdf) {
