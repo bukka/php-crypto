@@ -16,10 +16,10 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2015-11-25</date>
+ <date>2016-12-14</date>
  <version>
-  <release>0.2.2</release>
-  <api>0.2.0</api>
+  <release>0.3.0</release>
+  <api>0.3.0</api>
  </version>
  <stability>
   <release>devel</release>
@@ -27,13 +27,18 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Fixed missing CCM cipher algorithms with OpenSSL 1.0.1
+ * Fixed compilation with OpenSSL 1.1 and PHP 7.1
+ * Added KDF abstract class to be a parent for all key derivation function classes
+ * Added PBKDF2 class extending KDF class and implementing PBKDF2
+ * Renamed HashException code ALGORITHM_NOT_FOUND to HASH_ALGORITHM_NOT_FOUND
+ * Renamed MACException code ALGORITHM_NOT_FOUND to MAC_ALGORITHM_NOT_FOUND
  ]]></notes>
  <contents>
   <dir name="/">
    <file role="doc" name="CREDITS"/>
    <file role="doc" name="LICENSE"/>
    <file role="doc" name="HISTORY.md"/>
+   <file role="doc" name="NEWS.md"/>
    <file role="doc" name="README.md"/>
    <file role="doc" name="TODO.md"/>
    <file role="src" name="config.m4"/>
@@ -42,6 +47,7 @@
    <file role="src" name="php_crypto_base64.h"/>
    <file role="src" name="php_crypto_cipher.h"/>
    <file role="src" name="php_crypto_hash.h"/>
+   <file role="src" name="php_crypto_kdf.h"/>
    <file role="src" name="php_crypto_object.h"/>
    <file role="src" name="php_crypto_rand.h"/>
    <file role="src" name="php_crypto_stream.h"/>
@@ -49,6 +55,7 @@
    <file role="src" name="crypto_base64.c"/>
    <file role="src" name="crypto_cipher.c"/>
    <file role="src" name="crypto_hash.c"/>
+   <file role="src" name="crypto_kdf.c"/>
    <file role="src" name="crypto_object.c"/>
    <file role="src" name="crypto_rand.c"/>
    <file role="src" name="crypto_stream.c"/>
@@ -59,7 +66,9 @@
     <file role="doc" name="cmac.md"/>
     <file role="doc" name="hash.md"/>
     <file role="doc" name="hmac.md"/>
+    <file role="doc" name="kdf.md"/>
     <file role="doc" name="mac.md"/>
+    <file role="doc" name="pbkdf2.md"/>
     <file role="doc" name="rand.md"/>
     <file role="doc" name="streams.md"/>
    </dir>
@@ -108,7 +117,6 @@
     <file role="test" name="Cipher_getBlockSize_basic.phpt"/>
     <file role="test" name="Cipher_getIVLength_basic.phpt"/>
     <file role="test" name="Cipher_getKeyLength_basic.phpt"/>
-    <file role="test" name="Cipher_getMode_basic.phpt"/>
     <file role="test" name="Cipher_getTag_ccm_basic.phpt"/>
     <file role="test" name="Cipher_getTag_gcm_basic.phpt"/>
     <file role="test" name="Cipher_hasAlgorithm_basic.phpt"/>
@@ -138,6 +146,19 @@
     <file role="test" name="Hash_hasAlgorithm_basic.phpt"/>
     <file role="test" name="Hash_hexdigest_basic.phpt"/>
     <file role="test" name="Hash_update_basic.phpt"/>
+    <file role="test" name="KDF___clone_basic.phpt"/>
+    <file role="test" name="KDF___construct_basic.phpt"/>
+    <file role="test" name="KDF_getLength_basic.phpt"/>
+    <file role="test" name="KDF_getSalt_basic.phpt"/>
+    <file role="test" name="KDF_setLength_basic.phpt"/>
+    <file role="test" name="KDF_setSalt_basic.phpt"/>
+    <file role="test" name="PBKDF2___clone_basic.phpt"/>
+    <file role="test" name="PBKDF2___construct_basic.phpt"/>
+    <file role="test" name="PBKDF2_derive_basic.phpt"/>
+    <file role="test" name="PBKDF2_getHashAlgorithm_basic.phpt"/>
+    <file role="test" name="PBKDF2_getIterations_basic.phpt"/>
+    <file role="test" name="PBKDF2_setHashAlgorithm_basic.phpt"/>
+    <file role="test" name="PBKDF2_setIterations_basic.phpt"/>
     <file role="test" name="Rand_cleanup_basic.phpt"/>
     <file role="test" name="Rand_generate_basic.phpt"/>
     <file role="test" name="Rand_loadFile_basic.phpt"/>
@@ -172,6 +193,21 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2015-11-25</date>
+   <version>
+	<release>0.2.2</release>
+	<api>0.2.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Fixed missing CCM cipher algorithms with OpenSSL 1.0.1
+   ]]></notes>
+  </release>
   <release>
    <date>2015-11-15</date>
    <version>
