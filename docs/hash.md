@@ -28,7 +28,7 @@ the new `Hash` instance is returned.
 
 It can throw `HashException` with code
 
-- `HashException::ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
+- `HashException::HASH_ALGORITHM_NOT_FOUND` - the algorithm (name) is not found
 
 ##### *Examples*
 
@@ -112,7 +112,7 @@ The constructor first checks if the algorithm is found. If not, then
 
 It can throw `HashException` with code
 
-- `HashException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
+- `HashException::HASH_ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
 
 ##### *Examples*
 

@@ -27,6 +27,6 @@ supplied algorithm.
 
 It can throw `MACException` with code
 
-- `MACException::ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
+- `MACException::HASH_ALGORITHM_NOT_FOUND` - the supplied algorithm is not found
 - `MACException::KEY_LENGTH_INVALID` - the supplied key length is incorrect
 
