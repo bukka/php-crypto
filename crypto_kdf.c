@@ -356,7 +356,7 @@ PHP_CRYPTO_METHOD(KDF, getLength)
 PHP_CRYPTO_METHOD(KDF, setLength)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
-	phpc_str_size_t key_len;
+	phpc_long_t key_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
 			&key_len) == FAILURE) {
