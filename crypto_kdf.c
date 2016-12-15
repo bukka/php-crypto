@@ -321,7 +321,8 @@ PHP_CRYPTO_METHOD(KDF, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
 	char *salt = NULL;
-	phpc_str_size_t key_len, salt_len;
+	phpc_str_size_t salt_len;
+	phpc_long_t key_len;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|s",
 			&key_len, &salt, &salt_len) == FAILURE) {
@@ -447,8 +448,8 @@ PHP_CRYPTO_METHOD(PBKDF2, __construct)
 {
 	PHPC_THIS_DECLARE(crypto_kdf);
 	char *hash_alg, *salt = NULL;
-	phpc_str_size_t key_len, hash_alg_len, salt_len;
-	phpc_long_t iterations = PHP_CRYPTO_PBKDF2_ITER_DEFAULT;
+	phpc_str_size_t hash_alg_len, salt_len;
+	phpc_long_t key_len, iterations = PHP_CRYPTO_PBKDF2_ITER_DEFAULT;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sl|sl",
 			&hash_alg, &hash_alg_len, &key_len, &salt, &salt_len, &iterations) == FAILURE) {
@@ -560,7 +561,7 @@ PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm)
 	char *hash_alg;
 	phpc_str_size_t hash_alg_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|sl",
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s",
 			&hash_alg, &hash_alg_len) == FAILURE) {
 		return;
 	}
