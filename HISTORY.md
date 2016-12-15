@@ -1,5 +1,8 @@
 # Release history
 
+## 0.3.1 (devel)
+- Fixed segfault on PHP 5 in setting KDF key length and PBKDF2 iterations
+
 ## 0.3.0 (devel)
 - Fixed compilation with OpenSSL 1.1 and PHP 7.1
 - Added KDF abstract class to be a parent for all key derivation function classes

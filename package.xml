@@ -16,9 +16,9 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2016-12-14</date>
+ <date>2016-12-15</date>
  <version>
-  <release>0.3.0</release>
+  <release>0.3.1</release>
   <api>0.3.0</api>
  </version>
  <stability>
@@ -27,11 +27,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Fixed compilation with OpenSSL 1.1 and PHP 7.1
- * Added KDF abstract class to be a parent for all key derivation function classes
- * Added PBKDF2 class extending KDF class and implementing PBKDF2
- * Renamed HashException code ALGORITHM_NOT_FOUND to HASH_ALGORITHM_NOT_FOUND
- * Renamed MACException code ALGORITHM_NOT_FOUND to MAC_ALGORITHM_NOT_FOUND
+ * Fixed segfault on PHP 5 in setting KDF key length and PBKDF2 iterations
  ]]></notes>
  <contents>
   <dir name="/">
@@ -193,6 +189,25 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2016-12-14</date>
+   <version>
+	<release>0.3.0</release>
+	<api>0.3.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Fixed compilation with OpenSSL 1.1 and PHP 7.1
+   * Added KDF abstract class to be a parent for all key derivation function classes
+   * Added PBKDF2 class extending KDF class and implementing PBKDF2
+   * Renamed HashException code ALGORITHM_NOT_FOUND to HASH_ALGORITHM_NOT_FOUND
+   * Renamed MACException code ALGORITHM_NOT_FOUND to MAC_ALGORITHM_NOT_FOUND
+   ]]></notes>
+  </release>
   <release>
    <date>2015-11-25</date>
    <version>
