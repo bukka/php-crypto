@@ -270,7 +270,7 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 
 /* {{{ php_crypto_kdf_set_key_len */
 static int php_crypto_kdf_set_key_len(PHPC_THIS_DECLARE(crypto_kdf),
-		phpc_str_size_t key_len TSRMLS_DC)
+		phpc_long_t key_len TSRMLS_DC)
 {
 	int key_len_int;
 
