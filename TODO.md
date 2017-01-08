@@ -46,11 +46,9 @@
   - It's just for PHP 5 (no memleak in 7)
 
 ## KDF
-- Add new class KDF for Key derivation function
-  - EVP_BytesToKey
-- Add KDF subclass for PBKDF2
-- Add support for scrypt
+- Add support for scrypt (OpenSSL 1.1 only)
   - EVP_PBE_scrypt
+- Add support HKDF
 
 ## Hash
 - Test context for Hash, HMAC and CMAC resuming
@@ -77,7 +75,7 @@
 ## Build
 - Remove build dependency on openssl ext
 - Version check for minimum version
-  - At least 0.9.8 should be used
+  - At least 1.0.1 should be used
 
 ## General
 - Consider shorter prefix than `php_crypto`
@@ -100,8 +98,8 @@
 
 # Plan for upcoming releases
 
-## 0.3.0 (devel)
-- New API for KDF and PBE
+## 0.4.0 (devel)
 - Added verification function for Hash
 - Added open_basedir check for Rand::loadFile and Rand::writeFile
+- Drop support for OpenSSL 0.9.8
 
