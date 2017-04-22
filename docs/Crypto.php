@@ -264,7 +264,7 @@ class Crypto\CipherException extends Exception {
     const TAG_LENGTH_HIGH = 18;
     
     /**
-     * Tag verifycation failed
+     * Tag verification failed
      */
     const TAG_VERIFY_FAILED = 19;
     
