@@ -23,8 +23,10 @@
 
 
 ## Cipher
+- Decryption might also fail due to incorrect padding
+  - the error should be differentiated by the last error message
 - Limit algorithm name len
-- Imrove AEAD
+- Improve AEAD
   - add new error code when CCM is called twice
   - use new flag for pre-setting tag (instead of re-using `auth_inlen_init`)
   - rename `auth_enc` to `aead`
