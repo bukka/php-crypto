@@ -644,7 +644,7 @@ class Crypto\Base64 {
      * to the encoding context
      * @param string $data
      */
-    public function encode($data) {}
+    public function encodeUpdate($data) {}
     
     /**
      * Encodes characters that left in the encoding context
@@ -656,7 +656,7 @@ class Crypto\Base64 {
      * to the encoding context
      * @param string $data
      */
-    public function decode($data) {}
+    public function decodeUpdate($data) {}
     
     /**
      * Decodes characters that left in the encoding context
