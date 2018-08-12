@@ -1,8 +1,11 @@
 <?php
+
+namespace Crypto;
+
 /**
  * Class providing cipher algorithms
  */
-class Crypto\Cipher {
+class Cipher {
     const MODE_ECB = 1;
     const MODE_CBC = 2;
     const MODE_CFB = 3;
@@ -171,7 +174,7 @@ class Crypto\Cipher {
 /**
  * Exception class for cipher errors
  */
-class Crypto\CipherException extends Exception {
+class CipherException extends \Exception {
     
     /**
      * Cipher '%s' algorithm not found
@@ -328,7 +331,7 @@ class Crypto\CipherException extends Exception {
 /**
  * Class providing hash algorithms
  */
-class Crypto\Hash {
+class Hash {
     /**
      * Returns hash algorithms
      * @param bool $aliases
@@ -399,7 +402,7 @@ class Crypto\Hash {
 /**
  * Exception class for hash errors
  */
-class Crypto\HashException extends Exception {
+class HashException extends \Exception {
     
     /**
      * Hash algorithm '%s' not found
@@ -441,7 +444,7 @@ class Crypto\HashException extends Exception {
 /**
  * Abstract class for MAC subclasses
  */
-abstract class Crypto\MAC extends Crypto\Hash {
+abstract class MAC extends Hash {
     /**
      * Create a MAC (used by MAC subclasses - HMAC and CMAC)
      * @param string $algorithm
@@ -454,7 +457,7 @@ abstract class Crypto\MAC extends Crypto\Hash {
 /**
  * Exception class for MAC errors
  */
-class Crypto\MACException extends Crypto\HashException {
+class MACException extends HashException {
     
     /**
      * MAC algorithm '%s' not found
@@ -471,19 +474,19 @@ class Crypto\MACException extends Crypto\HashException {
 /**
  * Class providing HMAC functionality
  */
-class Crypto\HMAC extends Crypto\MAC {
+class HMAC extends MAC {
 }
 
 /**
  * Class providing CMAC functionality
  */
-class Crypto\CMAC extends Crypto\MAC {
+class CMAC extends MAC {
 }
 
 /**
  * Abstract class for KDF subclasses
  */
-abstract class Crypto\KDF {
+abstract class KDF {
     /**
      * KDF constructor
      * @param int $length
@@ -522,7 +525,7 @@ abstract class Crypto\KDF {
 /**
  * Exception class for KDF errors
  */
-class Crypto\KDFException {
+class KDFException {
     
     /**
      * The key lenght is too low
@@ -554,7 +557,7 @@ class Crypto\KDFException {
 /**
  * Class providing PBKDF2 functionality
  */
-class Crypto\PBKDF2 extends Crypto\KDF {
+class PBKDF2 extends KDF {
     /**
      * KDF constructor
      * @param string $hashAlgorithm
@@ -602,7 +605,7 @@ class Crypto\PBKDF2 extends Crypto\KDF {
 /**
  * Exception class for PBKDF2 errors
  */
-class Crypto\PBKDF2Exception extends Crypto\KDFException {
+class PBKDF2Exception extends KDFException {
     
     /**
      * Hash algorithm '%s' not found
@@ -619,7 +622,7 @@ class Crypto\PBKDF2Exception extends Crypto\KDFException {
 /**
  * Class for base64 encoding and docoding
  */
-class Crypto\Base64 {
+class Base64 {
     /**
      * Encodes string $data to base64 encoding
      * @param string $data
@@ -668,7 +671,7 @@ class Crypto\Base64 {
 /**
  * Exception class for base64 errors
  */
-class Crypto\Base64Exception extends Exception {
+class Base64Exception extends \Exception {
     
     /**
      * The object is already used for decoding
@@ -705,7 +708,7 @@ class Crypto\Base64Exception extends Exception {
 /**
  * Class for generating random numbers
  */
-class Crypto\Rand {
+class Rand {
     /**
      * Generates pseudo random bytes
      * @param int $num
@@ -752,7 +755,7 @@ class Crypto\Rand {
 /**
  * Exception class for rand errors
  */
-class Crypto\RandException extends Exception {
+class RandException extends \Exception {
     
     /**
      * The PRNG state is not yet unpredictable
