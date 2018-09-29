@@ -16,6 +16,7 @@ config.nice
 config.status
 config.cache
 configure
+configure.ac
 configure.in
 install-sh
 libtool
@@ -29,3 +30,9 @@ run-tests.php
 tmp-php.ini
 ltmain.sh.backup
 crypto-*.tgz
+tests/*.diff
+tests/*.exp
+tests/*.log
+tests/*.out
+tests/*.php
+tests/*.sh
