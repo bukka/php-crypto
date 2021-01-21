@@ -544,6 +544,8 @@ static php_stream *php_crypto_stream_opener(php_stream_wrapper *wrapper,
 	if (self->bio == NULL) {
 		goto opener_error_on_bio_init;
 	}
+	self->auth_enc = 0;
+	self->is_encrypting = 0;
 
 	if (PHPC_STREAM_CONTEXT_GET_OPTION_IN_COND(context,
 			PHP_CRYPTO_STREAM_WRAPPER_NAME, "filters", ppv_filter)) {
