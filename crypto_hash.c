@@ -371,7 +371,7 @@ static inline void php_crypto_hash_set_algorithm_name(zval *object,
 		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
 	php_strtoupper(algorithm, algorithm_len);
-	zend_update_property_stringl(php_crypto_hash_ce, object,
+	zend_update_property_stringl(php_crypto_hash_ce, PHPC_OBJ_FOR_PROP(object),
 			"algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
 }
 /* }}} */
