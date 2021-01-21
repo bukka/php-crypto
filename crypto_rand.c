@@ -64,6 +64,9 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_rand_write_file, 0)
 ZEND_ARG_INFO(0, filename)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_rand_no_args, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry php_crypto_rand_object_methods[] = {
 	PHP_CRYPTO_ME(
 		Rand, generate,
@@ -77,7 +80,7 @@ static const zend_function_entry php_crypto_rand_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Rand, cleanup,
-		NULL,
+		arginfo_crypto_rand_no_args,
 		ZEND_ACC_STATIC|ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(

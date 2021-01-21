@@ -209,6 +209,8 @@ ZEND_ARG_INFO(0, key)
 ZEND_ARG_INFO(0, iv)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_cipher_no_args, 0)
+ZEND_END_ARG_INFO()
 
 static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	PHP_CRYPTO_ME(
@@ -238,7 +240,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getAlgorithmName,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -253,7 +255,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, encryptFinish,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -273,7 +275,7 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, decryptFinish,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -283,27 +285,27 @@ static const zend_function_entry php_crypto_cipher_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getBlockSize,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getKeyLength,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getIVLength,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getMode,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Cipher, getTag,
-		NULL,
+		arginfo_crypto_cipher_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(

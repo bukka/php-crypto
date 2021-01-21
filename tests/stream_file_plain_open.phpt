@@ -21,6 +21,6 @@ if (file_exists($filename))
 ?>
 --EXPECTF--
 
-Warning: fopen(crypto.file://%s): failed to open stream: operation failed in %s on line %d
+Warning: fopen(crypto.file://%s): %cailed to open stream: operation failed in %s on line %d
 resource(%d) of type (stream)
 bool(true)

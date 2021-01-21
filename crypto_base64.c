@@ -86,6 +86,9 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_base64_data, 0)
 ZEND_ARG_INFO(0, data)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_base64_no_args, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry php_crypto_base64_object_methods[] = {
 	PHP_CRYPTO_ME(
 		Base64, encode,
@@ -99,7 +102,7 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Base64, __construct,
-		NULL,
+		arginfo_crypto_base64_no_args,
 		ZEND_ACC_CTOR|ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -109,7 +112,7 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Base64, encodeFinish,
-		NULL,
+		arginfo_crypto_base64_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -119,7 +122,7 @@ static const zend_function_entry php_crypto_base64_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Base64, decodeFinish,
-		NULL,
+		arginfo_crypto_base64_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHPC_FE_END

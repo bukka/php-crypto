@@ -76,6 +76,9 @@ ZEND_BEGIN_ARG_INFO(arginfo_crypto_kdf_salt, 0)
 ZEND_ARG_INFO(0, salt)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_kdf_no_args, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry php_crypto_kdf_object_methods[] = {
 	PHP_CRYPTO_ME(
 		KDF, __construct,
@@ -88,7 +91,7 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		KDF, getLength,
-		NULL,
+		arginfo_crypto_kdf_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -98,7 +101,7 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		KDF, getSalt,
-		NULL,
+		arginfo_crypto_kdf_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -139,7 +142,7 @@ static const zend_function_entry php_crypto_pbkdf2_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		PBKDF2, getIterations,
-		NULL,
+		arginfo_crypto_kdf_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
@@ -149,7 +152,7 @@ static const zend_function_entry php_crypto_pbkdf2_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		PBKDF2, getHashAlgorithm,
-		NULL,
+		arginfo_crypto_kdf_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
