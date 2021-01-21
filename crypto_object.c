@@ -35,7 +35,7 @@ static void php_crypto_object_do_all(const OBJ_NAME *name, void *arg)
 {
 	php_crypto_object_do_all_param *pp = (php_crypto_object_do_all_param *) arg;
 	if ((pp->aliases || name->alias == 0) &&
-			(!pp->prefix || !strncmp(name->name, pp->prefix, pp->prefix_len))) {
+			(!pp->prefix || !strncasecmp(name->name, pp->prefix, pp->prefix_len))) {
 		PHPC_ARRAY_ADD_NEXT_INDEX_CSTR(pp->return_value, (char *) name->name);
 	}
 }
