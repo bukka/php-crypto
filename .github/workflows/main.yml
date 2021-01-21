@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: PHP ${{ matrix.php }}, ZTS=${{ matrix.zts }}
+    runs-on: ubuntu-20.04
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        php:
+          - 7.1.33
+          - 7.2.34
+          - 7.3.26
+          - 7.4.14
+        zts: [on, off]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Restore PHP build cache
+        id: php-build-cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ github.workspace }}/php
+          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}
+
+      - name: Clone php-build/php-build
+        if: steps.php-build-cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v2
+        with:
+          repository: php-build/php-build
+          path: ${{ github.workspace }}/php-build
+
+      - name: Compile PHP
+        if: steps.php-build-cache.outputs.cache-hit != 'true'
+        run: |
+          cd ${{ github.workspace }}/php-build
+          ./install-dependencies.sh
+          PHP_BUILD_ZTS_ENABLE=${{ matrix.zts }} ./bin/php-build ${{ matrix.php }} ${{ github.workspace}}/php
+
+      - name: Install extension
+        run: |
+          cd ${{ github.workspace }}
+          ${{ github.workspace }}/php/bin/phpize
+          ./configure --with-php-config=${{ github.workspace }}/php/bin/php-config
+          make -j8 install
+          echo "extension=crypto.so" > ${{ github.workspace }}/php/etc/conf.d/crypto.ini
+
+      - name: Run PHPT tests
+        run: |
+          cd ${{ github.workspace }}
+          REPORT_EXIT_STATUS=1 NO_INTERACTION=1 TEST_PHP_ARGS='--show-diff' make test
