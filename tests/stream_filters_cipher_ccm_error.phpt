@@ -46,5 +46,5 @@ if (file_exists($filename))
 --EXPECTF--
 Warning: fopen(): The CCM mode is not supported in stream in %s on line %d
 
-Warning: %s failed to open stream: operation failed in %s on line %d
+Warning: %s %cailed to open stream: operation failed in %s on line %d
 NOT SUPPORTED

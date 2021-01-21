@@ -122,6 +122,9 @@ ZEND_ARG_INFO(0, name)
 ZEND_ARG_INFO(0, arguments)
 ZEND_END_ARG_INFO()
 
+ZEND_BEGIN_ARG_INFO(arginfo_crypto_hash_no_args, 0)
+ZEND_END_ARG_INFO()
+
 static const zend_function_entry php_crypto_hash_object_methods[] = {
 	PHP_CRYPTO_ME(
 		Hash, getAlgorithms,
@@ -150,27 +153,27 @@ static const zend_function_entry php_crypto_hash_object_methods[] = {
 	)
 	PHP_CRYPTO_ME(
 		Hash, getAlgorithmName,
-		NULL,
+		arginfo_crypto_hash_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Hash, digest,
-		NULL,
+		arginfo_crypto_hash_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Hash, hexdigest,
-		NULL,
+		arginfo_crypto_hash_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Hash, getSize,
-		NULL,
+		arginfo_crypto_hash_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHP_CRYPTO_ME(
 		Hash, getBlockSize,
-		NULL,
+		arginfo_crypto_hash_no_args,
 		ZEND_ACC_PUBLIC
 	)
 	PHPC_FE_END
