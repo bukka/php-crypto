@@ -16,8 +16,9 @@ jobs:
         php:
           - 7.1.33
           - 7.2.34
-          - 7.3.26
-          - 7.4.14
+          - 7.3.27
+          - 7.4.15
+          - 8.0.2
         zts: [on, off]
     steps:
       - uses: actions/checkout@v2
