@@ -8,15 +8,16 @@ if (!Crypto\Cipher::hasMode(Crypto\Cipher::MODE_CCM))
 --FILE--
 <?php
 $algos = Crypto\cipher::getAlgorithms();
+$count = 0;
 foreach ($algos as $algo) {
 	if (substr($algo, -3) == 'ccm') {
-		echo "$algo\n";
+		$count++;
 	}
+}
+if($count === 0){
+	echo "ERROR: no algorithms found\n";
 }
 ?>
 Done
 --EXPECT--
-aes-128-ccm
-aes-192-ccm
-aes-256-ccm
 Done
