@@ -14,6 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         php:
+          #these require older OpenSSL versions (the ubuntu 20.04 image has 1.1.1)
+          #- 5.3.29
+          #- 5.4.45
+          #- 5.5.38
+          - 5.6.40
+          - 7.0.33
           - 7.1.33
           - 7.2.34
           - 7.3.27
@@ -30,7 +36,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/php
-          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}
+          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}-minimal
 
       - name: Clone php-build/php-build
         if: steps.php-build-cache.outputs.cache-hit != 'true'
@@ -44,6 +50,13 @@ jobs:
         run: |
           cd ${{ github.workspace }}/php-build
           ./install-dependencies.sh
+          echo \
+              --disable-all \
+              --disable-debug \
+              --enable-cli \
+              --with-openssl \
+              --with-zlib \
+              --with-zlib-dir=/usr > ./share/php-build/default_configure_options
           PHP_BUILD_ZTS_ENABLE=${{ matrix.zts }} ./bin/php-build ${{ matrix.php }} ${{ github.workspace}}/php
 
       - name: Install extension
