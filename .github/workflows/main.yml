@@ -36,7 +36,11 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/php
-          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}-minimal
+          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}-minimal-
+
+      - name: "Install cached PHP's dependencies"
+        if: steps.php-build-cache.outputs.cache-hit == 'true'
+        run: ${{ github.workspace }}/php/install-dependencies.sh
 
       - name: Clone php-build/php-build
         if: steps.php-build-cache.outputs.cache-hit != 'true'
@@ -58,6 +62,7 @@ jobs:
               --with-zlib \
               --with-zlib-dir=/usr > ./share/php-build/default_configure_options
           PHP_BUILD_ZTS_ENABLE=${{ matrix.zts }} ./bin/php-build ${{ matrix.php }} ${{ github.workspace}}/php
+          cp ./install-dependencies.sh ${{ github.workspace }}/php
 
       - name: Install extension
         run: |
