@@ -142,16 +142,20 @@ PHP_CRYPTO_METHOD(Rand, generate)
 
 	PHPC_STR_ALLOC(buf, num);
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	if (must_be_strong) {
+#endif
 		if (!RAND_bytes((unsigned char *) PHPC_STR_VAL(buf), num)) {
 			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, GENERATE_PREDICTABLE));
 			PHPC_STR_RELEASE(buf);
 			RETURN_FALSE;
 		}
 		strong_result = 1;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
 	} else {
 		strong_result = RAND_pseudo_bytes((unsigned char *) PHPC_STR_VAL(buf), num);
 	}
+#endif
 	if (zstrong_result) {
 		ZVAL_BOOL(zstrong_result, strong_result);
 	}
