@@ -16,9 +16,9 @@
   <email>bukka@php.net</email>
   <active>yes</active>
  </lead>
- <date>2016-12-15</date>
+ <date>2021-03-07</date>
  <version>
-  <release>0.3.1</release>
+  <release>0.3.2</release>
   <api>0.3.0</api>
  </version>
  <stability>
@@ -27,7 +27,7 @@
  </stability>
  <license uri="http://www.php.net/license">PHP 3.01</license>
  <notes><![CDATA[
- * Fixed segfault on PHP 5 in setting KDF key length and PBKDF2 iterations
+ * Fixed compatibility with PHP 8
  ]]></notes>
  <contents>
   <dir name="/">
@@ -189,6 +189,21 @@
  <providesextension>crypto</providesextension>
  <extsrcrelease/>
  <changelog>
+  <release>
+   <date>2016-12-15</date>
+   <version>
+	<release>0.3.1</release>
+	<api>0.3.0</api>
+   </version>
+   <stability>
+	<release>devel</release>
+	<api>devel</api>
+   </stability>
+   <license uri="http://www.php.net/license">PHP 3.01</license>
+   <notes><![CDATA[
+   * Fixed segfault on PHP 5 in setting KDF key length and PBKDF2 iterations
+   ]]></notes>
+  </release>
   <release>
    <date>2016-12-14</date>
    <version>

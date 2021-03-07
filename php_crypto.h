@@ -48,7 +48,7 @@ extern zend_module_entry crypto_module_entry;
 #include "phpc/phpc.h"
 
 /* Crypto version */
-#define PHP_CRYPTO_VERSION "0.3.1"
+#define PHP_CRYPTO_VERSION "0.3.2"
 
 
 /* NAMESPACE */
