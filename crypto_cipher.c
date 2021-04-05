@@ -446,28 +446,9 @@ PHPC_OBJ_HANDLER_CLONE(crypto_cipher)
 				PHP_CRYPTO_CIPHER_AAD_LEN(PHPC_THIS);
 	}
 
-#ifdef PHP_CRYPTO_HAS_CIPHER_CTX_COPY
 	copy_success = EVP_CIPHER_CTX_copy(
 			PHP_CRYPTO_CIPHER_CTX(PHPC_THAT),
 			PHP_CRYPTO_CIPHER_CTX(PHPC_THIS));
-#else
-	memcpy(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT),
-			PHP_CRYPTO_CIPHER_CTX(PHPC_THIS),
-			sizeof *(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)));
-
-	copy_success = 1;
-	if (PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher_data &&
-			PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size) {
-		PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data = OPENSSL_malloc(
-				PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size);
-		if (!PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data) {
-			copy_success = 0;
-		}
-		memcpy(PHP_CRYPTO_CIPHER_CTX(PHPC_THAT)->cipher_data,
-				PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher_data,
-				PHP_CRYPTO_CIPHER_CTX(PHPC_THIS)->cipher->ctx_size);
-	}
-#endif
 
 	PHP_CRYPTO_CIPHER_ALG(PHPC_THAT) = EVP_CIPHER_CTX_cipher(PHP_CRYPTO_CIPHER_CTX(PHPC_THIS));
 

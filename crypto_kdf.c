@@ -112,8 +112,6 @@ static const zend_function_entry php_crypto_kdf_object_methods[] = {
 	PHPC_FE_END
 };
 
-#ifdef PHP_CRYPTO_HAS_PBKDF2
-
 ZEND_BEGIN_ARG_INFO_EX(arginfo_crypto_pbkdf2_new, 0, 0, 2)
 ZEND_ARG_INFO(0, hashAlgorithm)
 ZEND_ARG_INFO(0, length)
@@ -162,8 +160,6 @@ static const zend_function_entry php_crypto_pbkdf2_object_methods[] = {
 	)
 	PHPC_FE_END
 };
-
-#endif
 
 PHP_CRYPTO_API zend_class_entry *php_crypto_kdf_ce;
 PHP_CRYPTO_API zend_class_entry *php_crypto_pbkdf2_ce;
@@ -255,7 +251,6 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 	PHP_CRYPTO_EXCEPTION_REGISTER(ce, KDF);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(KDF);
 
-#ifdef PHP_CRYPTO_HAS_PBKDF2
 	/* PBKDF2 class */
 	INIT_CLASS_ENTRY(ce, PHP_CRYPTO_CLASS_NAME(PBKDF2), php_crypto_pbkdf2_object_methods);
 	php_crypto_pbkdf2_ce = PHPC_CLASS_REGISTER_EX(ce, php_crypto_kdf_ce, NULL);
@@ -263,7 +258,6 @@ PHP_MINIT_FUNCTION(crypto_kdf)
 	/* PBKDF2 Exception registration */
 	PHP_CRYPTO_EXCEPTION_REGISTER_EX(ce, PBKDF2, KDF);
 	PHP_CRYPTO_ERROR_INFO_REGISTER(PBKDF2);
-#endif
 
 	return SUCCESS;
 }
@@ -362,8 +356,7 @@ PHP_CRYPTO_METHOD(KDF, setLength)
 	PHPC_THIS_DECLARE(crypto_kdf);
 	phpc_long_t key_len;
 
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l",
-			&key_len) == FAILURE) {
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l", &key_len) == FAILURE) {
 		return;
 	}
 	PHPC_THIS_FETCH(crypto_kdf);
@@ -409,7 +402,6 @@ PHP_CRYPTO_METHOD(KDF, setSalt)
 }
 /* }}} */
 
-#ifdef PHP_CRYPTO_HAS_PBKDF2
 /* PBKDF2 methods */
 
 /* {{{ php_crypto_pbkdf2_set_hash_algorithm */
@@ -573,4 +565,3 @@ PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm)
 	RETURN_BOOL(php_crypto_pbkdf2_set_hash_algorithm(PHPC_THIS, hash_alg TSRMLS_CC) == SUCCESS);
 }
 /* }}} */
-#endif

@@ -23,37 +23,6 @@
 
 #include <openssl/evp.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-static inline EVP_ENCODE_CTX *EVP_ENCODE_CTX_new()
-{
-	EVP_ENCODE_CTX *ctx = OPENSSL_malloc(sizeof(EVP_ENCODE_CTX));
-
-	return ctx;
-}
-
-static inline void EVP_ENCODE_CTX_free(EVP_ENCODE_CTX *ctx)
-{
-	OPENSSL_free(ctx);
-}
-
-static inline int EVP_ENCODE_CTX_copy(EVP_ENCODE_CTX *dctx, EVP_ENCODE_CTX *sctx)
-{
-	memcpy(dctx, sctx, sizeof (EVP_ENCODE_CTX));
-
-	return 1;
-}
-
-static inline int EVP_ENCODE_CTX_num(EVP_ENCODE_CTX *ctx)
-{
-	return ctx->num;
-}
-
-#define EVP_ENCODE_LENGTH(l) (((l+2)/3*4)+(l/48+1)*2+80)
-#define EVP_DECODE_LENGTH(l) ((l+3)/4*3+80)
-
-#endif
-
 PHP_CRYPTO_EXCEPTION_DEFINE(Base64)
 PHP_CRYPTO_ERROR_INFO_BEGIN(Base64)
 PHP_CRYPTO_ERROR_INFO_ENTRY(

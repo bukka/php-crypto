@@ -22,11 +22,6 @@
 #include "php.h"
 #include "php_crypto.h"
 
-/* PBKDF2 feature test */
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-#define PHP_CRYPTO_HAS_PBKDF2 1
-#endif
-
 typedef enum {
 	PHP_CRYPTO_KDF_TYPE_NONE,
 	PHP_CRYPTO_KDF_TYPE_PBKDF2
@@ -73,7 +68,6 @@ PHP_CRYPTO_METHOD(KDF, setLength);
 PHP_CRYPTO_METHOD(KDF, getSalt);
 PHP_CRYPTO_METHOD(KDF, setSalt);
 
-#ifdef PHP_CRYPTO_HAS_PBKDF2
 /* PBKDF2 methods */
 PHP_CRYPTO_METHOD(PBKDF2, __construct);
 PHP_CRYPTO_METHOD(PBKDF2, derive);
@@ -81,7 +75,6 @@ PHP_CRYPTO_METHOD(PBKDF2, getIterations);
 PHP_CRYPTO_METHOD(PBKDF2, setIterations);
 PHP_CRYPTO_METHOD(PBKDF2, getHashAlgorithm);
 PHP_CRYPTO_METHOD(PBKDF2, setHashAlgorithm);
-#endif
 
 #endif	/* PHP_CRYPTO_KDF_H */
 

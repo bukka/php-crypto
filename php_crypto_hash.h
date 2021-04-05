@@ -24,9 +24,7 @@
 
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
-#ifdef PHP_CRYPTO_HAS_CMAC
 #include <openssl/cmac.h>
-#endif
 
 typedef enum {
 	PHP_CRYPTO_HASH_TYPE_NONE,
@@ -45,26 +43,20 @@ PHPC_OBJ_STRUCT_BEGIN(crypto_hash)
 	php_crypto_hash_status status;
 	union {
 		const EVP_MD *md;
-#ifdef PHP_CRYPTO_HAS_CMAC
 		const EVP_CIPHER *cipher;
-#endif
 	} alg;
 	union {
 		EVP_MD_CTX *md;
 		HMAC_CTX *hmac;
-#ifdef PHP_CRYPTO_HAS_CMAC
 		CMAC_CTX *cmac;
-#endif
 	} ctx;
 	char *key;
 	int key_len;
 PHPC_OBJ_STRUCT_END()
 
 /* Hash or MAC object accessors */
-#ifdef PHP_CRYPTO_HAS_CMAC
 #define PHP_CRYPTO_CMAC_CTX(pobj) (pobj)->ctx.cmac
 #define PHP_CRYPTO_CMAC_ALG(pobj) (pobj)->alg.cipher
-#endif
 #define PHP_CRYPTO_HASH_CTX(pobj) (pobj)->ctx.md
 #define PHP_CRYPTO_HASH_ALG(pobj) (pobj)->alg.md
 #define PHP_CRYPTO_HMAC_CTX(pobj) (pobj)->ctx.hmac
@@ -82,9 +74,7 @@ PHP_CRYPTO_ERROR_INFO_EXPORT(MAC)
 /* Class entries */
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hash_ce;
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_hmac_ce;
-#ifdef PHP_CRYPTO_HAS_CMAC
 extern PHP_CRYPTO_API zend_class_entry *php_crypto_cmac_ce;
-#endif
 
 /* USER METHODS */
 

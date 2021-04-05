@@ -212,33 +212,6 @@ PHP_MSHUTDOWN_FUNCTION(crypto);
 PHP_MINFO_FUNCTION(crypto);
 
 
-/* COMPATIBILITY */
-
-#define PHP_CRYPTO_COPY_ERROR_MESSAGE \
-	(PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION == 5 && PHP_RELEASE_VERSION >= 5) \
-	|| (PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION >= 6) \
-	|| (PHP_MAJOR_VERSION > 5)
-
-#if PHP_CRYPTO_COPY_ERROR_MESSAGE
-#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
-	(const_msg)
-#else
-#define PHP_CRYPTO_GET_ERROR_MESSAGE(const_msg, tmp_msg) \
-	(tmp_msg = estrdup(const_msg))
-#endif
-
-/* OpenSSL features test */
-#if OPENSSL_VERSION_NUMBER >= 0x10001000L
-#define PHP_CRYPTO_HAS_CMAC 1
-#endif
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
-#define PHP_CRYPTO_HAS_CIPHER_CTX_COPY 1
-#endif
-
-#define PHP_CRYPTO_ADD_CCM_ALGOS \
-	!defined(OPENSSL_NO_AES) && defined(EVP_CIPH_CCM_MODE) \
-		&& OPENSSL_VERSION_NUMBER < 0x100020000
-
 #endif	/* PHP_CRYPTO_H */
 
 /*

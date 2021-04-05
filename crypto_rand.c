@@ -127,7 +127,7 @@ PHP_CRYPTO_METHOD(Rand, generate)
 	int num;
 	PHPC_STR_DECLARE(buf);
 	zval *zstrong_result = NULL;
-	zend_bool strong_result, must_be_strong = 1;
+	zend_bool must_be_strong = 1;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "l|bz/",
 				&num_long, &must_be_strong, &zstrong_result) == FAILURE) {
@@ -142,22 +142,13 @@ PHP_CRYPTO_METHOD(Rand, generate)
 
 	PHPC_STR_ALLOC(buf, num);
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	if (must_be_strong) {
-#endif
-		if (!RAND_bytes((unsigned char *) PHPC_STR_VAL(buf), num)) {
-			php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, GENERATE_PREDICTABLE));
-			PHPC_STR_RELEASE(buf);
-			RETURN_FALSE;
-		}
-		strong_result = 1;
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-	} else {
-		strong_result = RAND_pseudo_bytes((unsigned char *) PHPC_STR_VAL(buf), num);
+	if (!RAND_bytes((unsigned char *) PHPC_STR_VAL(buf), num)) {
+		php_crypto_error(PHP_CRYPTO_ERROR_ARGS(Rand, GENERATE_PREDICTABLE));
+		PHPC_STR_RELEASE(buf);
+		RETURN_FALSE;
 	}
-#endif
 	if (zstrong_result) {
-		ZVAL_BOOL(zstrong_result, strong_result);
+		ZVAL_BOOL(zstrong_result, 1);
 	}
 	PHPC_STR_VAL(buf)[num] = '\0';
 	PHPC_STR_RETURN(buf);
