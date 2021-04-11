@@ -48,7 +48,7 @@
   - It's just for PHP 5 (no memleak in 7)
 
 ## KDF
-- Add support for scrypt (OpenSSL 1.1 only)
+- Add support for scrypt
   - EVP_PBE_scrypt
 - Add support HKDF
 
@@ -80,17 +80,12 @@
   - At least 1.0.1 should be used
 
 ## General
-- Consider shorter prefix than `php_crypto`
-  - `pce` (Php Crypto Extension)
-  - `pcw` (Php Crypto Wrapper)
-  - `pcg` (Php CryptoGraphy)
-  - `pct` (Php CrypTo or later maybe Php Crypto Tls)
-  - `pcr` (Php CRypto)
+- Add generic API deprecation support
 - Clear OpenSSL errors
   - Separate OpenSSL emitted errors and PHP Crypto extenstion errors
 - Add file for utility functions
   - Containing `{prefix}_strtoupper_dup` for algorithm name conversion
-- Add Travis support
+- Improve GitHub CI version to run on older PHP version if they will be kept
 - Improve overflow handling
   - try inline the functions (make sure it works on Travis)
   - test all overflow checks on PHP 7 (skip PHP 5) 32 and 64 bit
@@ -103,5 +98,4 @@
 ## 0.4.0 (devel)
 - Added verification function for Hash
 - Added open_basedir check for Rand::loadFile and Rand::writeFile
-- Drop support for OpenSSL 0.9.8
 
