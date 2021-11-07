@@ -14,10 +14,6 @@ jobs:
       fail-fast: false
       matrix:
         php:
-          #these require older OpenSSL versions (the ubuntu 20.04 image has 1.1.1)
-          #- 5.3.29
-          #- 5.4.45
-          #- 5.5.38
           - 5.6.40
           - 7.0.33
           - 7.1.33
