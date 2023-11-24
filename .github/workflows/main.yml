@@ -55,6 +55,7 @@ jobs:
       - name: Compile PHP
         if: steps.php-build-cache.outputs.cache-hit != 'true'
         working-directory: php-src-php-${{ matrix.php }}
+        run: |
           ./buildconf --force
           ./configure \
               --disable-all \
