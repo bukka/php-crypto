@@ -74,7 +74,6 @@ jobs:
           ${{ github.workspace }}/php/bin/phpize
           ./configure --with-php-config=${{ github.workspace }}/php/bin/php-config
           make -j8 install
-          echo "extension=crypto.so" > ${{ github.workspace }}/php/etc/conf.d/crypto.ini
 
       - name: Run PHPT tests
         run: |
