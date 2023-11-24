@@ -26,7 +26,7 @@ jobs:
           - 8.3.0
         zts: [enable, disable]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           submodules: true
 
