@@ -63,7 +63,7 @@ jobs:
               --enable-cli \
               --with-openssl \
               --with-zlib \
-              --with-zlib-dir=/usr
+              --with-zlib-dir=/usr \
               --${{ matrix.zts }}-zts \
               --prefix="${{ github.workspace }}/php"
           make -j ${{ steps.cpu-cores.outputs.count }} install
