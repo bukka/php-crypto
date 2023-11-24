@@ -24,44 +24,48 @@ jobs:
           - 8.1.26
           - 8.2.13
           - 8.3.0
-        zts: [on, off]
+        zts: [enable, disable]
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: true
 
       - name: Restore PHP build cache
+        uses: actions/cache@v3
         id: php-build-cache
-        uses: actions/cache@v2
         with:
           path: ${{ github.workspace }}/php
-          key: php-build-${{ matrix.php }}-zts-${{ matrix.zts }}-minimal-
+          key: php-${{ matrix.php }}-zts-${{ matrix.zts }}
 
-      - name: "Install cached PHP's dependencies"
-        if: steps.php-build-cache.outputs.cache-hit == 'true'
-        run: ${{ github.workspace }}/php/install-dependencies.sh
-
-      - name: Clone php-build/php-build
+      - name: Install PHP build dependencies
         if: steps.php-build-cache.outputs.cache-hit != 'true'
-        uses: actions/checkout@v2
-        with:
-          repository: php-build/php-build
-          path: ${{ github.workspace }}/php-build
+        run: |
+          sudo apt-get update && sudo apt-get install \
+            re2c
+
+      - name: Get number of CPU cores
+        if: steps.php-build-cache.outputs.cache-hit != 'true'
+        uses: SimenB/github-actions-cpu-cores@v1
+        id: cpu-cores
+
+      - name: Download PHP
+        if: steps.php-build-cache.outputs.cache-hit != 'true'
+        run: curl -L https://github.com/php/php-src/archive/refs/tags/php-${{ matrix.php }}.tar.gz | tar -xz
 
       - name: Compile PHP
         if: steps.php-build-cache.outputs.cache-hit != 'true'
-        run: |
-          cd ${{ github.workspace }}/php-build
-          ./install-dependencies.sh
-          echo \
+        working-directory: php-src-php-${{ matrix.php }}
+          ./buildconf --force
+          ./configure \
               --disable-all \
               --disable-debug \
               --enable-cli \
               --with-openssl \
               --with-zlib \
-              --with-zlib-dir=/usr > ./share/php-build/default_configure_options
-          PHP_BUILD_ZTS_ENABLE=${{ matrix.zts }} ./bin/php-build ${{ matrix.php }} ${{ github.workspace}}/php
-          cp ./install-dependencies.sh ${{ github.workspace }}/php
+              --with-zlib-dir=/usr
+              --${{ matrix.zts }}-zts \
+              --prefix="${{ github.workspace }}/php"
+          make -j ${{ steps.cpu-cores.outputs.count }} install
 
       - name: Install extension
         run: |
