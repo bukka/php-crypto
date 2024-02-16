@@ -133,13 +133,21 @@ typedef struct {
 } php_crypto_stream_data;
 
 /* {{{ php_crypto_stream_write */
+#if PHP_VERSION_ID < 70400
 static size_t php_crypto_stream_write(php_stream *stream,
+#else
+static ssize_t php_crypto_stream_write(php_stream *stream,
+#endif
 		const char *buf, size_t count TSRMLS_DC)
 {
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	int bytes_written = BIO_write(data->bio, buf, count > INT_MAX ? INT_MAX : count);
 
+#if PHP_VERSION_ID < 70400
 	return bytes_written <= 0 ? 0 : (size_t) bytes_written;
+#else
+	return bytes_written;
+#endif
 }
 /* }}} */
 
@@ -256,7 +264,11 @@ static void php_crypto_stream_auth_save_result(php_stream *stream, int ok)
 /* }}} */
 
 /* {{{ php_crypto_stream_read */
+#if PHP_VERSION_ID < 70400
 static size_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
+#else
+static ssize_t php_crypto_stream_read(php_stream *stream, char *buf, size_t count TSRMLS_DC)
+#endif
 {
 	php_crypto_stream_data *data = (php_crypto_stream_data *) stream->abstract;
 	int bytes_read = BIO_read(data->bio, buf, count > INT_MAX ? INT_MAX : count);
