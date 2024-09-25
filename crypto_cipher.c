@@ -497,7 +497,11 @@ PHP_MINIT_FUNCTION(crypto_cipher)
 static inline void php_crypto_cipher_set_algorithm_name(zval *object,
 		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
+#if PHP_VERSION_ID < 80400
 	php_strtoupper(algorithm, algorithm_len);
+#else
+	zend_str_toupper(algorithm, algorithm_len);
+#endif
 	zend_update_property_stringl(php_crypto_cipher_ce, PHPC_OBJ_FOR_PROP(object),
 			"algorithm", sizeof("algorithm")-1, algorithm, algorithm_len TSRMLS_CC);
 }
@@ -513,10 +517,18 @@ PHP_CRYPTO_API const EVP_CIPHER *php_crypto_get_cipher_algorithm(
 		return NULL;
 	}
 
+#if PHP_VERSION_ID < 80400
 	php_strtoupper(algorithm, algorithm_len);
+#else
+	zend_str_toupper(algorithm, algorithm_len);
+#endif
 	cipher = EVP_get_cipherbyname(algorithm);
 	if (!cipher) {
+#if PHP_VERSION_ID < 80400
 		php_strtolower(algorithm, algorithm_len);
+#else
+		zend_str_tolower(algorithm, algorithm_len);
+#endif
 		cipher = EVP_get_cipherbyname(algorithm);
 	}
 	return cipher;
