@@ -319,7 +319,7 @@ PHP_MINIT_FUNCTION(crypto_hash)
 static inline void php_crypto_hash_set_algorithm_name(zval *object,
 		char *algorithm, phpc_str_size_t algorithm_len TSRMLS_DC)
 {
-#if PHP_VERSION_ID < 80400
+#if PHP_VERSION_ID < 80200
 	php_strtoupper(algorithm, algorithm_len);
 #else
 	zend_str_toupper(algorithm, algorithm_len);
