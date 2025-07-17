@@ -76,7 +76,11 @@ PHP_MINIT_FUNCTION(crypto)
 	zend_class_entry ce;
 
 	/* Register base exception */
+#if PHP_VERSION_ID < 70000
 	PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, Crypto, zend_exception_get_default(TSRMLS_C));
+#else
+	PHP_CRYPTO_EXCEPTION_REGISTER_CE(ce, Crypto, zend_ce_exception);
+#endif
 
 	/* Init OpenSSL algorithms */
 	OpenSSL_add_all_algorithms();
