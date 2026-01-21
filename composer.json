@@ -1,0 +1,12 @@
+{
+    "name": "bukka/php-crypto",
+    "type": "php-ext",
+    "license": "PHP-3.01",
+    "description": "Objective PHP binding of OpenSSL Crypto library",
+    "require": {
+        "php": ">= 5.6.0"
+    },
+    "php-ext": {
+        "extension-name": "crypto"
+    }
+}
