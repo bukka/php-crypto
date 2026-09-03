@@ -42,9 +42,13 @@ extern zend_module_entry crypto_module_entry;
 #endif
 
 #include "php.h"
+#include <stddef.h>
 #include <openssl/evp.h>
 
 /* PHP Compatibility layer */
+#ifndef XtOffsetOf
+#define XtOffsetOf(_type, _field) offsetof(_type, _field)
+#endif
 #include "phpc/phpc.h"
 
 /* Crypto version */
