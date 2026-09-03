@@ -49,6 +49,13 @@ extern zend_module_entry crypto_module_entry;
 #ifndef XtOffsetOf
 #define XtOffsetOf(_type, _field) offsetof(_type, _field)
 #endif
+
+/* zval_dtor() was removed in PHP 8.6. */
+#if PHP_VERSION_ID >= 80600
+#define PHP_CRYPTO_ZVAL_DTOR(_zval) zval_ptr_dtor_nogc(_zval)
+#else
+#define PHP_CRYPTO_ZVAL_DTOR(_zval) zval_dtor(_zval)
+#endif
 #include "phpc/phpc.h"
 
 /* Crypto version */
