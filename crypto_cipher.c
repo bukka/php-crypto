@@ -569,7 +569,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 			convert_to_string(&z_key_size);
 			phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL(z_key_size), Z_STRLEN(z_key_size));
 			phpc_smart_cstr_appendc(&alg_buf, '-');
-			zval_dtor(&z_key_size);
+			PHP_CRYPTO_ZVAL_DTOR(&z_key_size);
 		}
 	}
 
@@ -594,7 +594,7 @@ static const EVP_CIPHER *php_crypto_get_cipher_algorithm_from_params_ex(
 		zval_copy_ctor(&z_mode);
 		convert_to_string(&z_mode);
 		phpc_smart_cstr_appendl(&alg_buf, Z_STRVAL(z_mode), Z_STRLEN(z_mode));
-		zval_dtor(&z_mode);
+		PHP_CRYPTO_ZVAL_DTOR(&z_mode);
 	}
 
 	phpc_smart_cstr_0(&alg_buf);

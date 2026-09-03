@@ -19,8 +19,8 @@ $filename = (dirname( __FILE__) . "/stream_file_plain_open.tmp");
 if (file_exists($filename))
 	unlink($filename);
 ?>
---EXPECTF--
+--EXPECTREGEX--
 
-Warning: fopen(crypto.file://%s): %cailed to open stream: operation failed in %s on line %d
-resource(%d) of type (stream)
-bool(true)
+Warning: fopen\((?:crypto\.file:\/\/.*)?\): [Ff]ailed to open stream: operation failed in .* on line \d+
+resource\(\d+\) of type \(stream\)
+bool\(true\)

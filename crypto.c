@@ -182,7 +182,11 @@ PHP_CRYPTO_API void php_crypto_verror(const php_crypto_error_info *info, zend_cl
 	}
 	switch (action) {
 		case PHP_CRYPTO_ERROR_ACTION_ERROR:
+		#if PHP_VERSION_ID >= 80600
+			php_verror(NULL, ei->level, ei->msg, args);
+		#else
 			php_verror(NULL, "", ei->level, ei->msg, args TSRMLS_CC);
+		#endif
 			break;
 		case PHP_CRYPTO_ERROR_ACTION_EXCEPTION:
 			if (ignore_args) {
